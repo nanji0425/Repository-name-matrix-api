@@ -1,0 +1,7 @@
+{
+  "name": "matrix-api",
+  "private": true,
+  "scripts": {
+    "claude-flow": "claude-flow"
+  }
+}
