@@ -50,7 +50,7 @@ export default function AdminAnnouncementsPage() {
       title: a.title || '',
       content: a.content || '',
       priority: a.priority || 'NORMAL',
-      published: a.published ?? a.status === 'PUBLISHED' ?? false,
+      published: a.published ?? (a.status === 'PUBLISHED') ?? false,
       startDate: a.startDate ? a.startDate.split('T')[0] : '',
       endDate: a.endDate ? a.endDate.split('T')[0] : '',
     });
