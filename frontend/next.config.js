@@ -4,7 +4,9 @@ const nextConfig = {
     domains: ['localhost', 'matrixapi.ai'],
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['localhost', '43.154.77.5', 'api.token-bits.com'],
+    },
   },
 };
 

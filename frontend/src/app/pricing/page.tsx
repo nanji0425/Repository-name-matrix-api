@@ -13,7 +13,7 @@ const tagColorMap: Record<string, { label: string; className?: string; style?: R
     label: 'Vision',
     style: { color: '#531dab', background: '#f9f0ff', borderColor: '#d3adf7' },
   },
-  400k: { label: '400k', className: 'ant-tag ant-tag-default' },
+  '400k': { label: '400k', className: 'ant-tag ant-tag-default' },
   '1.1m': { label: '1.1m', className: 'ant-tag ant-tag-default' },
 };
 
