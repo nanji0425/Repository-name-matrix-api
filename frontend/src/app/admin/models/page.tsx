@@ -11,7 +11,6 @@ export default function AdminModelsPage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
 
-  // Add form state
   const [form, setForm] = useState({
     name: '',
     modelCode: '',
@@ -27,7 +26,7 @@ export default function AdminModelsPage() {
       const { data } = await modelsApi.listAll();
       setModels(data.data || data || []);
     } catch {
-      toast.error('Failed to load models');
+      toast.error('模型列表加载失败');
     } finally {
       setLoading(false);
     }
@@ -41,88 +40,87 @@ export default function AdminModelsPage() {
 
   const addModel = async () => {
     if (!form.name.trim() || !form.modelCode.trim() || !form.providerId.trim()) {
-      return toast.error('Name, model code, and provider are required');
+      return toast.error('请填写模型名称、模型编码和上游通道');
     }
     try {
       await api.post('/models', form);
-      toast.success('Model added successfully');
+      toast.success('模型已添加');
       setShowAdd(false);
       resetForm();
       load();
     } catch {
-      toast.error('Failed to add model');
+      toast.error('模型添加失败');
     }
   };
 
   const toggleModelStatus = async (id: string) => {
     try {
       await api.patch(`/models/${id}/toggle`);
-      toast.success('Model status updated');
+      toast.success('模型状态已更新');
       load();
     } catch {
-      toast.error('Failed to update model status');
+      toast.error('模型状态更新失败');
     }
   };
 
   const deleteModel = async (id: string) => {
-    if (!confirm('Delete this model? This action cannot be undone.')) return;
+    if (!confirm('确认删除这个模型吗？删除后无法恢复。')) return;
     try {
       await api.delete(`/models/${id}`);
-      toast.success('Model deleted');
+      toast.success('模型已删除');
       load();
     } catch {
-      toast.error('Failed to delete model');
+      toast.error('模型删除失败');
     }
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Model Management</h1>
+        <h1 className="text-2xl font-bold">模型管理</h1>
         <button onClick={() => { setShowAdd(!showAdd); resetForm(); }} className="btn-primary">
-          <Plus className="w-4 h-4" /> Add Model
+          <Plus className="w-4 h-4" /> 添加模型
         </button>
       </div>
 
-      {/* Add Model Form */}
       {showAdd && (
         <div className="card p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">New Model</h3>
+            <h3 className="font-semibold">新增模型</h3>
             <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-100 rounded">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">模型名称</label>
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="e.g., GPT-4 Turbo"
+                placeholder="例如：GPT-4 Turbo"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Model Code</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">模型编码</label>
               <input
                 value={form.modelCode}
                 onChange={e => setForm(f => ({ ...f, modelCode: e.target.value }))}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="e.g., gpt-4-turbo"
+                placeholder="例如：gpt-4-turbo"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Provider ID</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">上游通道 ID</label>
               <input
                 value={form.providerId}
                 onChange={e => setForm(f => ({ ...f, providerId: e.target.value }))}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="Provider ID"
+                placeholder="上游通道 ID"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Multiplier</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">倍率</label>
               <input
                 type="number"
                 step="0.1"
@@ -133,7 +131,7 @@ export default function AdminModelsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Input Price (per token)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">输入价格（每 token）</label>
               <input
                 type="number"
                 step="0.0000001"
@@ -144,7 +142,7 @@ export default function AdminModelsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Output Price (per token)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">输出价格（每 token）</label>
               <input
                 type="number"
                 step="0.0000001"
@@ -156,19 +154,18 @@ export default function AdminModelsPage() {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={addModel} className="btn-primary">Create Model</button>
-            <button onClick={() => setShowAdd(false)} className="btn-secondary">Cancel</button>
+            <button onClick={addModel} className="btn-primary">创建模型</button>
+            <button onClick={() => setShowAdd(false)} className="btn-secondary">取消</button>
           </div>
         </div>
       )}
 
-      {/* Models Table */}
       {loading ? (
-        <div className="card p-12 text-center text-gray-400">Loading...</div>
+        <div className="card p-12 text-center text-gray-400">正在加载...</div>
       ) : models.length === 0 ? (
         <div className="card p-12 text-center">
           <Brain className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No models available. Add your first model!</p>
+          <p className="text-gray-500">暂无模型，请添加第一个模型。</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -176,13 +173,13 @@ export default function AdminModelsPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Model Code</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Provider</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Input Price</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Output Price</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">名称</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">模型编码</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">上游</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">输入价格</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">输出价格</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -209,7 +206,7 @@ export default function AdminModelsPage() {
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         model.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
                       }`}>
-                        {model.status || 'ACTIVE'}
+                        {model.status === 'ACTIVE' || !model.status ? '活跃' : '已停用'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -217,7 +214,7 @@ export default function AdminModelsPage() {
                         <button
                           onClick={() => toggleModelStatus(model.id || model._id)}
                           className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                          title={model.status === 'ACTIVE' ? 'Disable' : 'Enable'}
+                          title={model.status === 'ACTIVE' ? '停用' : '启用'}
                         >
                           {model.status === 'ACTIVE'
                             ? <EyeOff className="w-4 h-4 text-gray-400" />
@@ -227,7 +224,7 @@ export default function AdminModelsPage() {
                         <button
                           onClick={() => deleteModel(model.id || model._id)}
                           className="p-1.5 hover:bg-red-50 rounded transition-colors"
-                          title="Delete"
+                          title="删除"
                         >
                           <Trash2 className="w-4 h-4 text-red-400" />
                         </button>

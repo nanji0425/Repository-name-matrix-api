@@ -3,8 +3,23 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { Users, Search, ChevronLeft, ChevronRight, Shield, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Users, Search, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const limit = 20;
+
+const statusText: Record<string, string> = {
+  ACTIVE: '正常',
+  DISABLED: '已停用',
+  BANNED: '已封禁',
+  INACTIVE: '未激活',
+};
+
+const roleText: Record<string, string> = {
+  ADMIN: '管理员',
+  VIP: 'VIP 用户',
+  USER: '普通用户',
+};
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -14,19 +29,18 @@ export default function AdminUsersPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const limit = 20;
 
-  const load = async (p = page, q = search) => {
+  const load = async (nextPage = page, keyword = search) => {
     setLoading(true);
     try {
-      const params: any = { page: p, limit };
-      if (q.trim()) params.search = q.trim();
+      const params: any = { page: nextPage, limit };
+      if (keyword.trim()) params.search = keyword.trim();
       const { data } = await adminApi.listUsers(params);
       setUsers(data.data || data.users || []);
       setTotalPages(data.totalPages || Math.ceil((data.total || 0) / limit) || 1);
       setTotal(data.total || 0);
     } catch {
-      toast.error('Failed to load users');
+      toast.error('用户列表加载失败');
     } finally {
       setLoading(false);
     }
@@ -43,10 +57,10 @@ export default function AdminUsersPage() {
   const toggleStatus = async (id: string) => {
     try {
       await adminApi.toggleUserStatus(id);
-      toast.success('User status updated');
+      toast.success('用户状态已更新');
       load(page, search);
     } catch {
-      toast.error('Failed to update user status');
+      toast.error('用户状态更新失败');
     }
   };
 
@@ -68,131 +82,121 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <div className="text-sm text-gray-500">Total: {total} users</div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">用户管理</h1>
+        <div className="text-sm text-gray-500">共 {total} 个用户</div>
       </div>
 
-      {/* Search */}
-      <div className="card p-4 mb-6">
-        <div className="flex gap-3 items-end">
+      <div className="card mb-6 p-4">
+        <div className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search by username or email</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">按用户名搜索</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && doSearch()}
-                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="Search users..."
+                onChange={(event) => setSearchInput(event.target.value)}
+                onKeyDown={(event) => event.key === 'Enter' && doSearch()}
+                className="w-full rounded-lg border py-2 pl-10 pr-3 outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="搜索用户..."
               />
             </div>
           </div>
-          <button onClick={doSearch} className="btn-primary">Search</button>
+          <button onClick={doSearch} className="btn-primary">搜索</button>
           {search && (
             <button
               onClick={() => { setSearchInput(''); setSearch(''); setPage(1); load(1, ''); }}
               className="btn-secondary"
             >
-              Clear
+              清空
             </button>
           )}
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="card overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400">Loading...</div>
+          <div className="p-12 text-center text-gray-400">正在加载...</div>
         ) : users.length === 0 ? (
           <div className="p-12 text-center">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No users found</p>
+            <Users className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <p className="text-gray-500">暂无用户</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">用户名</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">角色</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">状态</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">余额</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">注册时间</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {users.map((user: any) => (
-                  <tr key={user.id || user._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-gray-500 font-mono">
-                      {(user.id || user._id).substring(0, 8)}...
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium">{user.username}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadge(user.role)}`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(user.status)}`}>
-                        {user.status || 'ACTIVE'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-mono">
-                      {formatCurrency(user.balance ?? 0)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {user.createdAt ? formatDate(user.createdAt) : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => toggleStatus(user.id || user._id)}
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          user.status === 'DISABLED'
-                            ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                        }`}
-                        title={user.status === 'DISABLED' ? 'Enable user' : 'Disable user'}
-                      >
-                        {user.status === 'DISABLED' ? (
-                          <><ToggleRight className="w-3.5 h-3.5" /> Enable</>
-                        ) : (
-                          <><ToggleLeft className="w-3.5 h-3.5" /> Disable</>
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {users.map((user: any) => {
+                  const userId = user.id || user._id;
+                  const status = user.status || 'ACTIVE';
+                  return (
+                    <tr key={userId} className="transition-colors hover:bg-gray-50">
+                      <td className="px-4 py-3 font-mono text-sm text-gray-500">{String(userId).substring(0, 8)}...</td>
+                      <td className="px-4 py-3 text-sm font-medium">{user.username}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getRoleBadge(user.role)}`}>
+                          {roleText[user.role] || user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>
+                          {statusText[status] || status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-sm">{formatCurrency(user.balance ?? 0)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{user.createdAt ? formatDate(user.createdAt) : '-'}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => toggleStatus(userId)}
+                          className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
+                            status === 'DISABLED'
+                              ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          }`}
+                          title={status === 'DISABLED' ? '启用用户' : '停用用户'}
+                        >
+                          {status === 'DISABLED'
+                            ? <><ToggleRight className="h-3.5 w-3.5" /> 启用</>
+                            : <><ToggleLeft className="h-3.5 w-3.5" /> 停用</>
+                          }
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <div className="text-sm text-gray-500">
-              Page {page} of {totalPages} ({total} total)
-            </div>
+          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
+            <div className="text-sm text-gray-500">第 {page} / {totalPages} 页，共 {total} 条</div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={page <= 1}
                 className="btn-secondary px-3 py-1.5 disabled:opacity-50"
               >
-                <ChevronLeft className="w-4 h-4" /> Prev
+                <ChevronLeft className="h-4 w-4" /> 上一页
               </button>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                 disabled={page >= totalPages}
                 className="btn-secondary px-3 py-1.5 disabled:opacity-50"
               >
-                Next <ChevronRight className="w-4 h-4" />
+                下一页 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>

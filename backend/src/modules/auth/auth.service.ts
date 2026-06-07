@@ -18,15 +18,12 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { username: dto.username },
-          { email: dto.email },
-        ],
+        username: dto.username,
       },
     });
 
     if (existing) {
-      throw new ConflictException('Username or email already exists');
+      throw new ConflictException('Username already exists');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -35,7 +32,6 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         username: dto.username,
-        email: dto.email,
         passwordHash,
         inviteCode,
         inviteBy: dto.inviteCode || null,
@@ -45,7 +41,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user);
 
     return {
-      user: { id: user.id, username: user.username, email: user.email, role: user.role },
+      user: { id: user.id, username: user.username, email: user.email, role: user.role, balance: user.balance },
       ...tokens,
     };
   }
@@ -53,10 +49,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { username: dto.username },
-          { email: dto.username },
-        ],
+        username: dto.username,
       },
     });
 

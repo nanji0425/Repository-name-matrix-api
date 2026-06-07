@@ -8,18 +8,21 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
+  const frontendOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
 
-  // Global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: ['v1/chat/completions', 'v1/embeddings', 'v1/images/generations', 'v1/audio/transcriptions', 'v1/models'],
+  });
 
-  // Security
   app.use(helmet());
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: frontendOrigins.length > 0 ? frontendOrigins : true,
     credentials: true,
   });
 
-  // Global pipes & filters
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -29,10 +32,9 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Swagger API docs
   const config = new DocumentBuilder()
     .setTitle('MatrixAPI')
-    .setDescription('AI Model Aggregation Platform — Unified API for GPT, Claude, Gemini, DeepSeek, Qwen, Grok')
+    .setDescription('AI Model Aggregation Platform - OpenAI-compatible API gateway')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -44,4 +46,5 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`MatrixAPI running on http://localhost:${port}`);
 }
+
 bootstrap();

@@ -1,97 +1,91 @@
-'use client';
+﻿'use client';
 
-import { useState } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { ArrowRight, KeyRound, Lock, Sparkles, User, X } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ username: '', email: '', password: '', inviteCode: '' });
+  const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', inviteCode: '' });
   const { register, isLoading } = useAuthStore();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (form.username.trim().length < 3) {
+      toast.error('用户名至少需要 3 个字符');
       return;
     }
+    if (form.password.length < 6) {
+      toast.error('密码至少需要 6 个字符');
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      toast.error('两次输入的密码不一致');
+      return;
+    }
+
     try {
-      await register(form);
-      toast.success('Registration successful!');
-      router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.message);
+      await register({ username: form.username.trim(), password: form.password, inviteCode: form.inviteCode.trim() || undefined });
+      toast.success('注册成功');
+      router.push('/dashboard/api-keys');
+    } catch (error: any) {
+      toast.error(error.message || '注册失败');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold gradient-text">MatrixAPI</Link>
-          <p className="text-gray-500 mt-2">Create your account</p>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-black px-4 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(13,24,67,0.9),transparent_30%),radial-gradient(circle_at_48%_54%,rgba(17,24,39,0.85),transparent_28%)]" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center">
+        <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-[470px] rounded-[24px] border border-white/10 bg-[#151518] p-8 shadow-2xl shadow-black/60">
+          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+          <h1 className="text-3xl font-black text-white">创建账户</h1>
+          <p className="mt-2 text-sm text-slate-400">注册 API 平台账户，获取 API Key</p>
 
-        <div className="card p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-              <input
-                type="text"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="Choose a username"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="At least 6 characters"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Invite Code <span className="text-gray-400">(optional)</span>
-              </label>
-              <input
-                type="text"
-                value={form.inviteCode}
-                onChange={(e) => setForm({ ...form, inviteCode: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="Enter invite code"
-              />
-            </div>
-            <button type="submit" disabled={isLoading} className="btn-primary w-full">
-              {isLoading ? 'Creating account...' : 'Create account'}
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+            <Field label="用户名" icon={<User className="h-4 w-4" />}>
+              <input value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} className="matrix-auth-input" placeholder="请输入用户名" required />
+            </Field>
+            <Field label="密码" icon={<Lock className="h-4 w-4" />}>
+              <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className="matrix-auth-input" placeholder="请输入密码" required />
+            </Field>
+            <Field label="确认密码" icon={<Lock className="h-4 w-4" />}>
+              <input type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className="matrix-auth-input" placeholder="请再次输入密码" required />
+            </Field>
+            <Field label="邀请码（可选）" icon={<KeyRound className="h-4 w-4" />}>
+              <input value={form.inviteCode} onChange={(event) => setForm({ ...form, inviteCode: event.target.value })} className="matrix-auth-input" placeholder="请输入邀请码（可选）" />
+            </Field>
+            <button type="submit" disabled={isLoading} className="h-12 w-full rounded-full bg-white text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:opacity-60">
+              {isLoading ? '正在提交...' : '注册账号'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link href="/login" className="text-primary-600 hover:underline">Sign in</Link>
+          <p className="mt-6 text-center text-sm text-slate-400">
+            已有账户？{' '}
+            <Link href="/login" className="font-black text-white hover:underline">
+              登录
+            </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-slate-300">{label}</span>
+      <span className="relative block">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">{icon}</span>
+        {children}
+      </span>
+    </label>
   );
 }

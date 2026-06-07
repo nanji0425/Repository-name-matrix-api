@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -40,13 +40,17 @@ model User {
 
 // ===== API Key =====
 model ApiKey {
-  id        String    @id @default(uuid())
-  userId    String
-  name      String
-  secret    String    @unique
-  status    String    @default("ACTIVE")
-  lastUsed  DateTime?
-  createdAt DateTime @default(now())
+  id           String    @id @default(uuid())
+  userId       String
+  name         String
+  secret       String    @unique
+  status       String    @default("ACTIVE")
+  quota        Float?
+  usedAmount   Float     @default(0)
+  requestCount Int       @default(0)
+  expiresAt    DateTime?
+  lastUsed     DateTime?
+  createdAt    DateTime  @default(now())
 
   user       User         @relation(fields: [userId], references: [id])
   requestLogs RequestLog[]

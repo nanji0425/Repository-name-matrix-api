@@ -1,121 +1,156 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight, Bot, RotateCcw, Search, X } from 'lucide-react';
+import MarketingLayout from '@/components/marketing/MarketingLayout';
 import { modelsApi } from '@/lib/api';
-import { Brain, CheckCircle, Zap, Globe } from 'lucide-react';
+import {
+  BILLING_OPTIONS,
+  formatModelPrice,
+  getBillingType,
+  getModelCode,
+  getModelGroups,
+  getProviderName,
+  GROUP_OPTIONS,
+  MarketingModel,
+  modelMatches,
+  SUPPLIER_OPTIONS,
+} from '@/components/marketing/modelUtils';
+
+const defaultFilters = { provider: '全部供应商', group: '全部分组', billing: '全部类型', query: '' };
 
 export default function ModelsPage() {
-  const [models, setModels] = useState<any[]>([]);
+  const [models, setModels] = useState<MarketingModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<MarketingModel | null>(null);
+  const [filters, setFilters] = useState(defaultFilters);
 
   useEffect(() => {
-    modelsApi.listActive().then(r => setModels(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    modelsApi.listActive().then((response) => setModels(Array.isArray(response.data) ? response.data : [])).catch(() => setModels([])).finally(() => setLoading(false));
   }, []);
 
+  const providers = useMemo(() => {
+    const present = new Set(models.map(getProviderName));
+    return SUPPLIER_OPTIONS.filter((provider) => provider === '全部供应商' || present.has(provider) || ['Runway', 'Fast mode', 'OpenAI', 'Google', '字节跳动', 'MiniMax', 'Anthropic', '未知供应商'].includes(provider));
+  }, [models]);
+
+  const visibleModels = useMemo(() => models.filter((model) => modelMatches(model, filters)), [models, filters]);
+
   return (
-    <div className="min-h-screen">
-      {/* Nav */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="text-xl font-bold gradient-text">MatrixAPI</Link>
-              <div className="hidden md:flex gap-6">
-                <Link href="/models" className="text-sm font-medium text-primary-600">Models</Link>
-                <Link href="/pricing" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">Pricing</Link>
-                <Link href="/docs" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">Docs</Link>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-sm text-gray-600 hover:text-primary-600">Log in</Link>
-              <Link href="/register" className="btn-primary">Sign up</Link>
-            </div>
+    <MarketingLayout>
+      <section className="mx-auto max-w-[1200px] px-6 pb-8 pt-32">
+        <h1 className="text-5xl font-black tracking-tight text-white">模型广场</h1>
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">一点接入，驱动无限可能。浏览平台支持的 AI 模型，查看已按上游价格增加 30% 后的人民币展示价格。</p>
+        <div className="mt-8 max-w-xl">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input value={filters.query} onChange={(event) => setFilters((value) => ({ ...value, query: event.target.value }))} className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-11 pr-4 text-sm text-white outline-none transition focus:border-blue-400" placeholder="搜索模型 ID / 名称 / 供应商" />
           </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-primary-50/50 to-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">AI Models</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Access the most powerful AI models through a single unified API. All models are production-ready and optimized for performance.
-          </p>
         </div>
       </section>
 
-      {/* Feature Highlights */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {[
-            { icon: Zap, title: 'Low Latency', desc: 'Optimized routing to the fastest available provider' },
-            { icon: CheckCircle, title: 'High Reliability', desc: 'Automatic failover between providers' },
-            { icon: Globe, title: 'Global Coverage', desc: 'Models hosted across multiple regions' },
-          ].map(f => {
-            const Icon = f.icon;
-            return (
-              <div key={f.title} className="card p-5 flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-primary-50 shrink-0">
-                  <Icon className="w-5 h-5 text-primary-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{f.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{f.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Models Grid */}
-        <h2 className="text-2xl font-bold mb-6">Available Models ({models.length})</h2>
-        {models.length === 0 ? (
-          <div className="card p-12 text-center text-gray-400">Loading models...</div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {models.map((model: any) => (
-              <div key={model.id} className="card p-5 hover:border-primary-200 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="font-semibold">{model.name}</div>
-                    <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded font-mono text-gray-500">
-                      {model.modelCode}
-                    </code>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                    Active
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <div className="text-xs text-gray-500">Input Price</div>
-                    <div className="font-medium">${model.inputPrice}/1K tokens</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Output Price</div>
-                    <div className="font-medium">${model.outputPrice}/1K tokens</div>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
-                  Provider: {model.provider?.name || 'N/A'}
-                </div>
-              </div>
-            ))}
+      <section className="mx-auto flex max-w-[1200px] flex-col gap-8 px-6 pb-24 lg:flex-row lg:gap-10">
+        <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.035] p-6 lg:w-[280px] lg:shrink-0">
+          <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-5">
+            <h2 className="text-lg font-black text-blue-100">筛选</h2>
+            <button onClick={() => setFilters(defaultFilters)} className="inline-flex items-center gap-1 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 transition hover:text-white">
+              <RotateCcw className="h-3.5 w-3.5" />重置
+            </button>
           </div>
-        )}
+          <FilterGroup title="供应商" options={providers} value={filters.provider} onChange={(provider) => setFilters((value) => ({ ...value, provider }))} color="blue" />
+          <FilterGroup title="分组" options={GROUP_OPTIONS} value={filters.group} onChange={(group) => setFilters((value) => ({ ...value, group }))} color="green" />
+          <FilterGroup title="计费类型" options={BILLING_OPTIONS} value={filters.billing} onChange={(billing) => setFilters((value) => ({ ...value, billing }))} color="orange" />
+        </aside>
+
+        <main className="min-w-0 flex-1">
+          {loading ? (
+            <div className="pt-10 text-lg font-bold text-slate-500">模型加载中...</div>
+          ) : visibleModels.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-10 text-center font-bold text-slate-500">暂无匹配模型</div>
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {visibleModels.map((model) => <ModelCard key={model.id || getModelCode(model)} model={model} onSelect={() => setSelected(model)} />)}
+            </div>
+          )}
+        </main>
       </section>
+      {selected && <ModelDetail model={selected} onClose={() => setSelected(null)} />}
+    </MarketingLayout>
+  );
+}
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="text-sm text-gray-500">© 2024 MatrixAPI. All rights reserved.</div>
-          <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="/" className="hover:text-primary-600">Home</Link>
-            <Link href="/pricing" className="hover:text-primary-600">Pricing</Link>
-            <Link href="/docs" className="hover:text-primary-600">Docs</Link>
-          </div>
-        </div>
-      </footer>
+function FilterGroup({ title, options, value, onChange, color }: { title: string; options: string[]; value: string; onChange: (value: string) => void; color: 'blue' | 'green' | 'orange' }) {
+  const activeClass = { blue: 'border-blue-400/50 bg-blue-500/20 text-blue-200', green: 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200', orange: 'border-amber-400/50 bg-amber-500/20 text-amber-200' }[color];
+  return (
+    <div className="border-b border-white/10 py-6 last:border-b-0">
+      <h3 className="mb-4 text-xl font-black text-white">{title}</h3>
+      <div className="flex flex-wrap gap-3">
+        {options.map((option) => <button key={option} onClick={() => onChange(option)} className={`rounded-full border px-4 py-2 text-sm font-black transition ${value === option ? activeClass : 'border-white/10 bg-white/[0.03] text-slate-300 hover:text-white'}`}>{option}</button>)}
+      </div>
     </div>
   );
+}
+
+function ModelCard({ model, onSelect }: { model: MarketingModel; onSelect: () => void }) {
+  const code = getModelCode(model);
+  const billing = getBillingType(model);
+  return (
+    <div className="rounded-[22px] border border-white/10 bg-white/[0.045] p-5 transition hover:-translate-y-1 hover:border-blue-300/30 hover:bg-white/[0.07]">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <div className="text-lg font-black text-white">{model.name || code}</div>
+          <code className="mt-2 inline-flex rounded-lg bg-black/30 px-2 py-1 text-xs font-bold text-slate-400">{code}</code>
+        </div>
+        <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-300">可用</span>
+      </div>
+      <div className="mb-5 flex flex-wrap gap-2">
+        <span className="rounded-full bg-blue-500/15 px-3 py-1 text-xs font-black text-blue-200">{getProviderName(model)}</span>
+        <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-black text-amber-200">{billing}</span>
+        {getModelGroups(model).map((group) => <span key={group} className="rounded-full bg-white/8 px-3 py-1 text-xs font-bold text-slate-300">{group}</span>)}
+      </div>
+      <div className="grid grid-cols-2 gap-3 rounded-2xl bg-black/20 p-4">
+        <Price label="输入价格" value={formatModelPrice(model.inputPrice, billing)} />
+        <Price label="输出价格" value={formatModelPrice(model.outputPrice, billing)} />
+      </div>
+      <div className="mt-5 flex gap-3">
+        <Link href="/dashboard/api-keys" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-blue-100">获取 API Key<ArrowRight className="h-4 w-4" /></Link>
+        <button onClick={onSelect} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-slate-200 transition hover:border-blue-300/40 hover:text-blue-300">查看详情</button>
+      </div>
+    </div>
+  );
+}
+
+function Price({ label, value }: { label: string; value: string }) {
+  return <div><div className="text-xs font-bold text-slate-500">{label}</div><div className="mt-1 break-words font-mono text-sm font-black text-white">{value}</div></div>;
+}
+
+function ModelDetail({ model, onClose }: { model: MarketingModel; onClose: () => void }) {
+  const code = getModelCode(model);
+  const billing = getBillingType(model);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl rounded-[28px] border border-white/10 bg-[#090b12] p-7 shadow-2xl">
+        <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"><X className="h-5 w-5" /></button>
+        <div className="mb-6 flex items-start gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-950"><Bot className="h-7 w-7" /></div>
+          <div><h2 className="text-2xl font-black text-white">{model.name || code}</h2><p className="mt-2 text-sm text-slate-400">模型 ID：<code className="font-mono">{code}</code></p></div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Info label="供应商" value={getProviderName(model)} />
+          <Info label="计费方式" value={billing} />
+          <Info label="输入价格" value={formatModelPrice(model.inputPrice, billing)} />
+          <Info label="输出价格" value={formatModelPrice(model.outputPrice, billing)} />
+        </div>
+        <div className="mt-6 rounded-2xl bg-black/40 p-5 text-sm text-blue-50"><pre className="overflow-auto">{`curl http://43.154.77.5/v1/chat/completions \\
+  -H "Authorization: Bearer $MATRIX_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"${code}","messages":[{"role":"user","content":"你好"}]}'`}</pre></div>
+      </div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-2xl bg-white/[0.055] p-4"><div className="text-xs font-bold text-slate-500">{label}</div><div className="mt-1 font-black text-white">{value}</div></div>;
 }

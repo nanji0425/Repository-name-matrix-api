@@ -36,6 +36,10 @@ export class GatewayService {
       throw new UnauthorizedException('Invalid or disabled API key');
     }
 
+    if (key.expiresAt && key.expiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedException('API key has expired');
+    }
+
     if (key.user.status === 'DISABLED') {
       throw new UnauthorizedException('Account is disabled');
     }
@@ -70,6 +74,10 @@ export class GatewayService {
       throw new BadRequestException('Insufficient balance');
     }
 
+    if (key.quota !== null && key.usedAmount + estimatedCost > key.quota) {
+      throw new BadRequestException('API key quota exceeded');
+    }
+
     // Forward request to provider
     const startTime = Date.now();
     try {
@@ -80,7 +88,11 @@ export class GatewayService {
       const completionTokens = result.usage?.completion_tokens || result.usage?.completionTokens || estimatedTokens.completion;
       const actualCost = this.calculateCost(model, promptTokens, completionTokens, groupMultiplier, dynamicRate);
 
-      // Deduct balance and log (atomic update via raw SQL to prevent race)
+      if (key.quota !== null && key.usedAmount + actualCost > key.quota) {
+        throw new BadRequestException('API key quota exceeded');
+      }
+
+      // Deduct balance, update token statistics and log.
       const [updatedUser] = await this.prisma.$transaction([
         this.prisma.user.update({
           where: { id: key.user.id },
@@ -93,6 +105,14 @@ export class GatewayService {
             amount: -actualCost,
             balance: key.user.balance - actualCost,
             remark: `API call: ${model.modelCode} (${promptTokens}+${completionTokens} tokens)`,
+          },
+        }),
+        this.prisma.apiKey.update({
+          where: { id: key.id },
+          data: {
+            lastUsed: new Date(),
+            usedAmount: { increment: actualCost },
+            requestCount: { increment: 1 },
           },
         }),
       ]);
@@ -116,12 +136,6 @@ export class GatewayService {
         },
       });
 
-      // Update API key last used
-      await this.prisma.apiKey.update({
-        where: { id: key.id },
-        data: { lastUsed: new Date() },
-      });
-
       return res.status(200).json(result);
     } catch (error) {
       const latency = Date.now() - startTime;
@@ -138,6 +152,14 @@ export class GatewayService {
           cost: 0,
           status: statusCode,
           latency,
+        },
+      });
+
+      await this.prisma.apiKey.update({
+        where: { id: key.id },
+        data: {
+          lastUsed: new Date(),
+          requestCount: { increment: 1 },
         },
       });
 
@@ -189,9 +211,6 @@ export class GatewayService {
     return { prompt: Math.ceil(prompt), completion: maxTokens };
   }
 
-  // Markup over upstream cost (1.3 = 30% profit margin)
-  private readonly MARKUP_RATE = 1.3;
-
   private calculateCost(
     model: any,
     promptTokens: number,
@@ -202,8 +221,7 @@ export class GatewayService {
     const inputCost = (promptTokens / 1000) * model.inputPrice * model.multiplier;
     const outputCost = (completionTokens / 1000) * model.outputPrice * model.multiplier;
     const baseCost = Math.round((inputCost + outputCost) * 1000000) / 1000000;
-    // Apply group multiplier, dynamic rate, and 30% markup
-    return Math.round(baseCost * groupMultiplier * dynamicRate * this.MARKUP_RATE * 1000000) / 1000000;
+    return Math.round(baseCost * groupMultiplier * dynamicRate * 1000000) / 1000000;
   }
 
   private async getCurrentDynamicRate(): Promise<number> {

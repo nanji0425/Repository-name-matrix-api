@@ -58,7 +58,7 @@ const DEFAULT_CONFIG: Config = {
 };
 
 const SAMPLE_RESPONSE =
-  "Hello! I'm CodeToken AI. I can help you with code review, debugging, optimization, and general programming questions. How can I assist you today?";
+  "Hello! I'm MatrixAPI. I can help you with code review, debugging, optimization, and general programming questions. How can I assist you today?";
 
 export default function PlaygroundPage() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
@@ -569,3 +569,4 @@ export default function PlaygroundPage() {
     </div>
   );
 }
+

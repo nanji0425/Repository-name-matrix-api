@@ -1,76 +1,79 @@
-'use client';
+﻿'use client';
 
-import { useState } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { ArrowRight, Lock, Sparkles, User, X } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const { login, isLoading } = useAuthStore();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     try {
-      await login(username, password);
-      toast.success('Login successful!');
+      await login(username.trim(), password);
+      if (remember) localStorage.setItem('matrix_remember_login', '1');
+      toast.success('登录成功');
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error: any) {
+      toast.error(error.message || '登录失败');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold gradient-text">MatrixAPI</Link>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-black px-4 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(13,24,67,0.9),transparent_30%),radial-gradient(circle_at_48%_54%,rgba(17,24,39,0.85),transparent_28%)]" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center">
+        <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-[470px] rounded-[24px] border border-white/10 bg-[#151518] p-8 shadow-2xl shadow-black/60">
+          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+          <h1 className="text-3xl font-black text-white">欢迎回来</h1>
+          <p className="mt-2 text-sm text-slate-400">登录到您的 API 平台账户</p>
 
-        <div className="card p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username / Email</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                placeholder="Enter username or email"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                placeholder="Enter password"
-                required
-              />
-            </div>
-            <button type="submit" disabled={isLoading} className="btn-primary w-full">
-              {isLoading ? 'Signing in...' : 'Sign in'}
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+            <Field label="邮箱或用户名" icon={<User className="h-4 w-4" />}>
+              <input value={username} onChange={(event) => setUsername(event.target.value)} className="matrix-auth-input" placeholder="请输入邮箱或用户名" required />
+            </Field>
+            <Field label="密码" icon={<Lock className="h-4 w-4" />}>
+              <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="matrix-auth-input" placeholder="请输入密码" required />
+            </Field>
+            <label className="flex items-center gap-2 text-sm text-slate-400">
+              <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="h-4 w-4 rounded border-white/20 bg-black" />
+              记住我
+            </label>
+            <button type="submit" disabled={isLoading} className="h-12 w-full rounded-full bg-white text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:opacity-60">
+              {isLoading ? '正在提交...' : '登录'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary-600 hover:underline">Sign up</Link>
+          <p className="mt-6 text-center text-sm text-slate-400">
+            没有账户？{' '}
+            <Link href="/register" className="font-black text-white hover:underline">
+              注册
+            </Link>
           </p>
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-500">
-            <p className="font-medium mb-1">Demo accounts:</p>
-            <p>Admin: admin / admin123456</p>
-            <p>User: demo / user123456</p>
-          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-slate-300">{label}</span>
+      <span className="relative block">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">{icon}</span>
+        {children}
+      </span>
+    </label>
   );
 }

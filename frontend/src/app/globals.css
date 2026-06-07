@@ -2,23 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== CodeToken AI Style Theme ===== */
+/* ===== MatrixAPI Style Theme ===== */
 
 :root {
-  --primary: #1677ff;
-  --primary-hover: #4096ff;
-  --primary-bg: #e6f4ff;
-  --success: #52c41a;
-  --warning: #faad14;
-  --error: #ff4d4f;
-  --bg-page: #f5f5f5;
+  --primary: #0f766e;
+  --primary-hover: #0d9488;
+  --primary-bg: #ccfbf1;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --bg-page: #f4f8fb;
   --bg-card: #ffffff;
-  --text-primary: #1f1f1f;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --border: #e8e8e8;
-  --border-light: #f0f0f0;
-  --shadow: 0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --border: #dbe5ee;
+  --border-light: #e9f0f5;
+  --shadow: 0 12px 32px rgba(15,23,42,0.06);
   --radius: 8px;
   --radius-lg: 12px;
 }
@@ -31,7 +31,10 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: var(--bg-page);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.12), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(124, 58, 237, 0.12), transparent 30%),
+    linear-gradient(135deg, #f8fbff 0%, #eef7f6 46%, #f7f2ff 100%);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
@@ -40,10 +43,11 @@ body {
 
 /* Card */
 .ant-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
   padding: 24px;
 }
 
@@ -53,14 +57,16 @@ body {
 
 /* Stat Card */
 .stat-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
   padding: 20px 24px;
   transition: all 0.2s;
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.06);
 }
 .stat-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 18px 48px rgba(15,23,42,0.12);
+  transform: translateY(-1px);
 }
 .stat-card .stat-label {
   font-size: 14px;
@@ -86,12 +92,12 @@ body {
   gap: 6px;
   height: 36px;
   padding: 0 16px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background: rgba(255,255,255,0.9);
   color: var(--text-primary);
   transition: all 0.2s;
   white-space: nowrap;
@@ -101,9 +107,10 @@ body {
   color: var(--primary);
 }
 .ant-btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: linear-gradient(135deg, #0f766e, #164e63);
+  border-color: transparent;
   color: #fff;
+  box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
 }
 .ant-btn-primary:hover {
   background: var(--primary-hover) !important;
@@ -220,12 +227,12 @@ body {
   height: 36px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
   width: 100%;
-  background: var(--bg-card);
+  background: rgba(255,255,255,0.9);
 }
 .ant-input:focus {
   border-color: var(--primary);
@@ -239,11 +246,11 @@ body {
   height: 36px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
   outline: none;
   cursor: pointer;
-  background: var(--bg-card);
+  background: rgba(255,255,255,0.9);
   min-width: 120px;
   appearance: auto;
 }
@@ -657,7 +664,7 @@ body {
   position: relative;
 }
 .ant-radio-button-recommend::after {
-  content: '推荐';
+  content: 'Recommended';
   position: absolute;
   top: -8px;
   right: -8px;
@@ -699,3 +706,80 @@ body {
 .payment-method-icon.wechat { background: #07c160; color: #fff; }
 .payment-method-icon.usdt { background: #26a17b; color: #fff; }
 .payment-method-icon.stripe { background: #635bff; color: #fff; }
+
+.matrix-auth-input {
+  height: 50px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.38);
+  padding: 0 16px 0 44px;
+  color: #f8fafc;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.matrix-auth-input::placeholder {
+  color: #8b94a3;
+}
+
+.matrix-auth-input:focus {
+  border-color: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+.console-shell {
+  min-height: 100vh;
+  background: #030304;
+  color: #f8fafc;
+}
+
+.console-page {
+  min-height: 740px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: #050506;
+}
+
+.console-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.console-card {
+  border: 1px solid rgba(255,255,255,0.11);
+  background: #141416;
+  border-radius: 12px;
+}
+
+.console-input {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(96,165,250,0.55);
+  background: #111827;
+  padding: 0 14px;
+  color: #e5e7eb;
+  outline: none;
+}
+
+.console-input::placeholder {
+  color: #7f8a9c;
+}
+
+.console-button-white {
+  height: 36px;
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 0 20px;
+  color: #020617;
+  font-size: 14px;
+  font-weight: 800;
+  transition: background .2s;
+}
+
+.console-button-white:hover {
+  background: #e2e8f0;
+}
+

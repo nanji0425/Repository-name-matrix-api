@@ -1,115 +1,165 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
-import { apiKeysApi } from '@/lib/api';
-import { shortenApiKey, copyToClipboard, formatDate } from '@/lib/utils';
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { Copy, Edit3, Eye, Key, Plus, Trash2, X } from 'lucide-react';
+import { ApiBaseBadge, ConsolePage } from '@/components/console/ConsoleShell';
+import { apiKeysApi } from '@/lib/api';
+import { copyToClipboard, formatDate } from '@/lib/utils';
+
+type TokenRecord = {
+  id: string;
+  name: string;
+  secret?: string;
+  status: 'ACTIVE' | 'DISABLED' | string;
+  quota?: number | null;
+  usedAmount?: number;
+  requestCount?: number;
+  expiresAt?: string | null;
+  lastUsed?: string | null;
+  createdAt: string;
+};
+
+function maskKey(secret?: string) {
+  if (!secret) return 'sk-**************';
+  if (secret.length <= 16) return secret;
+  return `${secret.slice(0, 6)}${'*'.repeat(12)}${secret.slice(-4)}`;
+}
 
 export default function ApiKeysPage() {
-  const [keys, setKeys] = useState<any[]>([]);
+  const [tokens, setTokens] = useState<TokenRecord[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [name, setName] = useState('聊天分组');
+  const [quota, setQuota] = useState('');
+  const [createdSecret, setCreatedSecret] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const load = () => apiKeysApi.list().then(r => setKeys(r.data || []));
+  const load = async () => {
+    setLoading(true);
+    try {
+      const response = await apiKeysApi.list();
+      setTokens(Array.isArray(response.data) ? response.data : []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '无法获取 API 密钥');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => { load(); }, []);
 
   const create = async () => {
-    if (!newName.trim()) return toast.error('Name is required');
+    if (!name.trim()) return toast.error('请输入密钥名称');
     try {
-      await apiKeysApi.create({ name: newName });
-      toast.success('API key created!');
-      setNewName('');
+      const payload: any = { name: name.trim() };
+      if (quota.trim()) payload.quota = Number(quota);
+      const response = await apiKeysApi.create(payload);
+      const secret = response.data?.secret || '';
+      setCreatedSecret(secret);
       setShowCreate(false);
-      load();
-    } catch { toast.error('Failed to create'); }
-  };
-
-  const toggle = async (id: string) => {
-    try {
-      await apiKeysApi.toggle(id);
-      toast.success('Status updated');
-      load();
-    } catch { toast.error('Failed to update'); }
+      setName('聊天分组');
+      setQuota('');
+      toast.success(`密钥创建成功：${maskKey(secret)}`);
+      await load();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '创建失败');
+    }
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Delete this API key? This cannot be undone.')) return;
-    try {
-      await apiKeysApi.delete(id);
-      toast.success('API key deleted');
-      load();
-    } catch { toast.error('Failed to delete'); }
+    if (!confirm('确认删除这个 API 密钥？删除后无法恢复。')) return;
+    await apiKeysApi.delete(id);
+    toast.success('密钥已删除');
+    await load();
   };
 
+  const toggle = async (id: string) => {
+    await apiKeysApi.toggle(id);
+    toast.success('状态已更新');
+    await load();
+  };
+
+  const rows = useMemo(() => tokens, [tokens]);
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">API Keys</h1>
-        <button onClick={() => setShowCreate(!showCreate)} className="btn-primary">
-          <Plus className="w-4 h-4" /> New Key
+    <ConsolePage className="pb-28">
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-black text-white">API 密钥</h1>
+          <ApiBaseBadge />
+        </div>
+        <button onClick={() => setShowCreate(true)} className="console-button-white inline-flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          创建新密钥
         </button>
       </div>
 
-      {showCreate && (
-        <div className="card p-4 mb-6 flex gap-3 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Key Name</label>
-            <input
-              value={newName} onChange={e => setNewName(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-              placeholder="e.g., Production API Key"
-              onKeyDown={e => e.key === 'Enter' && create()}
-            />
-          </div>
-          <button onClick={create} className="btn-primary">Create</button>
+      {createdSecret && (
+        <div className="fixed right-8 top-24 z-50 rounded-xl border border-emerald-500/30 bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-2xl">
+          密钥创建成功：{maskKey(createdSecret)}
         </div>
       )}
 
-      {keys.length === 0 ? (
-        <div className="card p-12 text-center">
-          <Key className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No API keys yet. Create your first one!</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {keys.map((key: any) => (
-            <div key={key.id} className="card p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-medium">{key.name}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="text-sm bg-gray-100 px-2 py-0.5 rounded font-mono">
-                      {shortenApiKey(key.secret)}
-                    </code>
-                    <button onClick={() => { copyToClipboard(key.secret); toast.success('Copied!'); }}>
-                      <Copy className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
-                    </button>
+      <section className="console-card mt-7 min-h-[200px] p-8">
+        {loading ? (
+          <div className="py-16 text-center text-slate-500">正在加载...</div>
+        ) : rows.length === 0 ? (
+          <div className="py-16 text-center text-slate-500">
+            <Key className="mx-auto mb-4 h-12 w-12" />
+            暂无密钥，点击右上角创建新密钥。
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {rows.map((token, index) => {
+              const active = token.status === 'ACTIVE';
+              return (
+                <div key={token.id} className="flex items-start justify-between gap-8">
+                  <div className="min-w-0">
+                    <div className="text-lg font-black text-white">{index + 1}</div>
+                    <code className="mt-3 block font-mono text-sm text-slate-400">{maskKey(token.secret)}</code>
+                    <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-slate-500">
+                      <span>分组 <b className="ml-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs text-emerald-300">{token.name || '聊天分组'}</b></span>
+                      <span>状态 <b className="ml-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs text-emerald-300">{active ? '启用' : '停用'}</b></span>
+                      <span>剩余额度/总额度 <b className="font-medium text-slate-300">{token.quota == null ? '无限 / 无限' : `${Math.max(0, Number(token.quota) - Number(token.usedAmount || 0)).toFixed(2)} / ${Number(token.quota).toFixed(2)}`}</b></span>
+                      <span>过期时间 <b className="font-medium text-slate-300">{token.expiresAt ? formatDate(token.expiresAt) : '永不过期'}</b></span>
+                      <span>创建时间 <b className="font-medium text-slate-300">{formatDate(token.createdAt)}</b></span>
+                    </div>
+                    <div className="mt-4 text-sm text-slate-500">最近使用 <span className="text-slate-300">{token.lastUsed ? formatDate(token.lastUsed) : '从未使用'}</span></div>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span>Created: {formatDate(key.createdAt)}</span>
-                    {key.lastUsed && <span>Last used: {formatDate(key.lastUsed)}</span>}
+                  <div className="flex shrink-0 items-center gap-5 pt-8 text-slate-300">
+                    <button title="编辑" className="transition hover:text-white"><Edit3 className="h-4 w-4" /></button>
+                    <button title={active ? '停用' : '启用'} onClick={() => toggle(token.id)} className="transition hover:text-white"><Eye className="h-4 w-4" /></button>
+                    <button title="复制" onClick={() => { if (token.secret) copyToClipboard(token.secret); toast.success('已复制'); }} className="transition hover:text-white"><Copy className="h-4 w-4" /></button>
+                    <button title="删除" onClick={() => remove(token.id)} className="text-red-400 transition hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    key.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {key.status}
-                  </span>
-                  <button onClick={() => toggle(key.id)} className="p-1 hover:bg-gray-100 rounded" title="Toggle status">
-                    {key.status === 'ACTIVE' ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
-                  </button>
-                  <button onClick={() => remove(key.id)} className="p-1 hover:bg-red-50 rounded" title="Delete">
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
-                </div>
-              </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#151518] p-7 text-white shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-black">创建新密钥</h2>
+              <button onClick={() => setShowCreate(false)} className="text-slate-500 hover:text-white"><X className="h-5 w-5" /></button>
             </div>
-          ))}
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-300">分组名称</span>
+                <input value={name} onChange={(event) => setName(event.target.value)} className="console-input w-full" placeholder="聊天分组" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-300">额度限制（可选）</span>
+                <input type="number" value={quota} onChange={(event) => setQuota(event.target.value)} className="console-input w-full" placeholder="留空表示无限" />
+              </label>
+            </div>
+            <button onClick={create} className="mt-6 h-11 w-full rounded-full bg-white text-sm font-black text-slate-950">创建密钥</button>
+          </div>
         </div>
       )}
-    </div>
+    </ConsolePage>
   );
 }

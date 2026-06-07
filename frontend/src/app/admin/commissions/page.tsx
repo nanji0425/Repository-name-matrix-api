@@ -6,6 +6,14 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 import { Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const statusText: Record<string, string> = {
+  PAID: '已支付',
+  SETTLED: '已结算',
+  PENDING: '待结算',
+  CANCELLED: '已取消',
+  FAILED: '失败',
+};
+
 export default function AdminCommissionsPage() {
   const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,12 +25,10 @@ export default function AdminCommissionsPage() {
       const { data } = await commissionsApi.list();
       const items = data.data || data.commissions || data || [];
       let filtered = Array.isArray(items) ? items : [];
-      if (status) {
-        filtered = filtered.filter((c: any) => c.status === status);
-      }
+      if (status) filtered = filtered.filter((commission: any) => commission.status === status);
       setCommissions(filtered);
     } catch {
-      toast.error('Failed to load commissions');
+      toast.error('佣金记录加载失败');
     } finally {
       setLoading(false);
     }
@@ -41,108 +47,88 @@ export default function AdminCommissionsPage() {
     return map[status] || 'bg-yellow-50 text-yellow-700';
   };
 
+  const getUserName = (value: any) => {
+    if (!value) return '-';
+    if (typeof value === 'object') return value.username || value.email || value.id || '-';
+    return String(value).substring(0, 8);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Commission Management</h1>
-        <div className="text-sm text-gray-500">{commissions.length} records</div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">佣金管理</h1>
+        <div className="text-sm text-gray-500">共 {commissions.length} 条记录</div>
       </div>
 
-      {/* Filter */}
-      <div className="card p-4 mb-6">
-        <div className="flex gap-4 items-end flex-wrap">
+      <div className="card mb-6 p-4">
+        <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">按状态筛选</label>
             <select
               value={statusFilter}
-              onChange={e => {
-                setStatusFilter(e.target.value);
-                load(e.target.value);
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                load(event.target.value);
               }}
-              className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+              className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="">All Statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="PAID">Paid</option>
-              <option value="SETTLED">Settled</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="FAILED">Failed</option>
+              <option value="">全部状态</option>
+              <option value="PENDING">待结算</option>
+              <option value="PAID">已支付</option>
+              <option value="SETTLED">已结算</option>
+              <option value="CANCELLED">已取消</option>
+              <option value="FAILED">失败</option>
             </select>
           </div>
           {statusFilter && (
-            <button
-              onClick={() => { setStatusFilter(''); load(''); }}
-              className="btn-secondary"
-            >
-              Clear Filter
+            <button onClick={() => { setStatusFilter(''); load(''); }} className="btn-secondary">
+              清空筛选
             </button>
           )}
         </div>
       </div>
 
-      {/* Commissions Table */}
       {loading ? (
-        <div className="card p-12 text-center text-gray-400">Loading...</div>
+        <div className="card p-12 text-center text-gray-400">正在加载...</div>
       ) : commissions.length === 0 ? (
         <div className="card p-12 text-center">
-          <Gift className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No commission records found</p>
+          <Gift className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+          <p className="text-gray-500">暂无佣金记录</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invited User</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Rate</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">用户</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">被邀请用户</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">金额</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">比例</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">状态</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">时间</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {commissions.map((c: any) => (
-                  <tr key={c.id || c._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium">
-                      {c.user
-                        ? typeof c.user === 'object'
-                          ? c.user.username || c.user.email || c.user.id
-                          : c.user
-                        : c.userId
-                        ? typeof c.userId === 'object'
-                          ? c.userId.username || c.userId.email
-                          : String(c.userId).substring(0, 8)
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {c.invitedUser
-                        ? typeof c.invitedUser === 'object'
-                          ? c.invitedUser.username || c.invitedUser.email || c.invitedUser.id
-                          : c.invitedUser
-                        : c.invitedUserId
-                        ? typeof c.invitedUserId === 'object'
-                          ? c.invitedUserId.username || c.invitedUserId.email
-                          : String(c.invitedUserId).substring(0, 8)
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-mono font-medium">
-                      {formatCurrency(parseFloat(c.amount) || 0)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-mono text-gray-600">
-                      {c.rate != null ? `${(parseFloat(c.rate) * 100).toFixed(1)}%` : '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(c.status)}`}>
-                        {c.status || 'PENDING'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {c.createdAt ? formatDate(c.createdAt) : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {commissions.map((commission: any) => {
+                  const status = commission.status || 'PENDING';
+                  return (
+                    <tr key={commission.id || commission._id} className="transition-colors hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium">{getUserName(commission.user || commission.userId)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{getUserName(commission.invitedUser || commission.invitedUserId)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-sm font-medium">{formatCurrency(parseFloat(commission.amount) || 0)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-sm text-gray-600">
+                        {commission.rate != null ? `${(parseFloat(commission.rate) * 100).toFixed(1)}%` : '-'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>
+                          {statusText[status] || status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{commission.createdAt ? formatDate(commission.createdAt) : '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

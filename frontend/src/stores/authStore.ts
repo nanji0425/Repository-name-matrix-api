@@ -1,14 +1,15 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { authApi, userApi } from '@/lib/api';
 
 interface User {
   id: string;
   username: string;
-  email: string;
+  email?: string | null;
   role: string;
   balance: number;
   avatar?: string;
   inviteCode?: string;
+  createdAt?: string;
 }
 
 interface AuthState {
@@ -16,19 +17,22 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
 
   login: (username: string, password: string) => Promise<void>;
-  register: (data: { username: string; email: string; password: string; inviteCode?: string }) => Promise<void>;
+  register: (data: { username: string; password: string; inviteCode?: string }) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
+  hydrateAuth: () => void;
   setUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('access_token') : null,
+  token: null,
   isLoading: false,
-  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('access_token') : false,
+  isAuthenticated: false,
+  hasHydrated: false,
 
   login: async (username, password) => {
     set({ isLoading: true });
@@ -38,7 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: data.user, token: data.accessToken, isAuthenticated: true, isLoading: false });
     } catch (error: any) {
       set({ isLoading: false });
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.response?.data?.message || '登录失败');
     }
   },
 
@@ -50,7 +54,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: data.user, token: data.accessToken, isAuthenticated: true, isLoading: false });
     } catch (error: any) {
       set({ isLoading: false });
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      throw new Error(error.response?.data?.message || '注册失败');
     }
   },
 
@@ -63,11 +67,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchProfile: async () => {
     try {
       const { data } = await userApi.getProfile();
-      set({ user: data });
+      set({ user: data, isAuthenticated: true });
     } catch {
-      // ignore
+      localStorage.removeItem('access_token');
+      set({ user: null, token: null, isAuthenticated: false });
     }
+  },
+
+  hydrateAuth: () => {
+    if (typeof window === 'undefined') return;
+    const token = localStorage.getItem('access_token');
+    set({ token, isAuthenticated: !!token, hasHydrated: true });
   },
 
   setUser: (user) => set({ user }),
 }));
+

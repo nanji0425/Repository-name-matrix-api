@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 interface ToggleSwitchProps {
   enabled: boolean;
-  onChange: (v: boolean) => void;
+  onChange: (value: boolean) => void;
   label: string;
 }
 
@@ -49,151 +49,113 @@ export default function AdminSettingsPage() {
     allowRegistration: true,
     requireInviteCode: false,
     maintenanceMode: false,
-    emailVerification: false,
   });
 
   const handleSave = (section: string) => {
-    toast.success(`${section} settings saved (UI demo)`);
+    toast.success(`${section}已保存（演示配置）`);
   };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">System Settings</h1>
-        <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">Read-Only Demo</span>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">系统参数</h1>
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">只读演示配置</span>
       </div>
 
-      <div className="space-y-6 max-w-3xl">
-        {/* Rate Limit Config */}
+      <div className="max-w-3xl space-y-6">
         <div className="card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-orange-50">
-              <Gauge className="w-5 h-5 text-orange-600" />
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-lg bg-orange-50 p-2">
+              <Gauge className="h-5 w-5 text-orange-600" />
             </div>
-            <h2 className="font-semibold text-lg">Rate Limit Configuration</h2>
+            <h2 className="text-lg font-semibold">限流配置</h2>
           </div>
           <div className="space-y-4">
             <ToggleSwitch
               enabled={rateLimit.enabled}
-              onChange={(v) => setRateLimit(r => ({ ...r, enabled: v }))}
-              label="Enable Rate Limiting"
+              onChange={(value) => setRateLimit((current) => ({ ...current, enabled: value }))}
+              label="启用请求限流"
             />
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Requests</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">最大请求数</label>
                 <input
                   type="number"
                   value={rateLimit.maxRequests}
-                  onChange={e => setRateLimit(r => ({ ...r, maxRequests: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  onChange={(event) => setRateLimit((current) => ({ ...current, maxRequests: parseInt(event.target.value) || 0 }))}
+                  className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
                   disabled={!rateLimit.enabled}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Window (ms)</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">时间窗口（毫秒）</label>
                 <input
                   type="number"
                   value={rateLimit.windowMs}
-                  onChange={e => setRateLimit(r => ({ ...r, windowMs: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  onChange={(event) => setRateLimit((current) => ({ ...current, windowMs: parseInt(event.target.value) || 0 }))}
+                  className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
                   disabled={!rateLimit.enabled}
                 />
               </div>
             </div>
-            <button onClick={() => handleSave('Rate limit')} className="btn-primary">Save Rate Limits</button>
+            <button onClick={() => handleSave('限流配置')} className="btn-primary">保存限流配置</button>
           </div>
         </div>
 
-        {/* Payment Switches */}
         <div className="card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-green-50">
-              <CreditCard className="w-5 h-5 text-green-600" />
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-lg bg-green-50 p-2">
+              <CreditCard className="h-5 w-5 text-green-600" />
             </div>
-            <h2 className="font-semibold text-lg">Payment Methods</h2>
+            <h2 className="text-lg font-semibold">支付方式</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            <ToggleSwitch
-              enabled={payments.alipay}
-              onChange={(v) => setPayments(p => ({ ...p, alipay: v }))}
-              label="Alipay"
-            />
-            <ToggleSwitch
-              enabled={payments.wechat}
-              onChange={(v) => setPayments(p => ({ ...p, wechat: v }))}
-              label="WeChat Pay"
-            />
-            <ToggleSwitch
-              enabled={payments.creditCard}
-              onChange={(v) => setPayments(p => ({ ...p, creditCard: v }))}
-              label="Credit Card"
-            />
-            <ToggleSwitch
-              enabled={payments.crypto}
-              onChange={(v) => setPayments(p => ({ ...p, crypto: v }))}
-              label="Cryptocurrency"
-            />
+            <ToggleSwitch enabled={payments.alipay} onChange={(value) => setPayments((current) => ({ ...current, alipay: value }))} label="支付宝" />
+            <ToggleSwitch enabled={payments.wechat} onChange={(value) => setPayments((current) => ({ ...current, wechat: value }))} label="微信支付" />
+            <ToggleSwitch enabled={payments.creditCard} onChange={(value) => setPayments((current) => ({ ...current, creditCard: value }))} label="信用卡" />
+            <ToggleSwitch enabled={payments.crypto} onChange={(value) => setPayments((current) => ({ ...current, crypto: value }))} label="加密货币" />
           </div>
-          <button onClick={() => handleSave('Payment')} className="btn-primary mt-4">Save Payment Settings</button>
+          <button onClick={() => handleSave('支付配置')} className="btn-primary mt-4">保存支付配置</button>
         </div>
 
-        {/* General Settings */}
         <div className="card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-blue-50">
-              <Settings className="w-5 h-5 text-blue-600" />
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-lg bg-blue-50 p-2">
+              <Settings className="h-5 w-5 text-blue-600" />
             </div>
-            <h2 className="font-semibold text-lg">General Settings</h2>
+            <h2 className="text-lg font-semibold">通用配置</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            <ToggleSwitch
-              enabled={general.allowRegistration}
-              onChange={(v) => setGeneral(g => ({ ...g, allowRegistration: v }))}
-              label="Allow User Registration"
-            />
-            <ToggleSwitch
-              enabled={general.requireInviteCode}
-              onChange={(v) => setGeneral(g => ({ ...g, requireInviteCode: v }))}
-              label="Require Invite Code for Registration"
-            />
-            <ToggleSwitch
-              enabled={general.maintenanceMode}
-              onChange={(v) => setGeneral(g => ({ ...g, maintenanceMode: v }))}
-              label="Maintenance Mode"
-            />
-            <ToggleSwitch
-              enabled={general.emailVerification}
-              onChange={(v) => setGeneral(g => ({ ...g, emailVerification: v }))}
-              label="Email Verification Required"
-            />
+            <ToggleSwitch enabled={general.allowRegistration} onChange={(value) => setGeneral((current) => ({ ...current, allowRegistration: value }))} label="允许用户注册" />
+            <ToggleSwitch enabled={general.requireInviteCode} onChange={(value) => setGeneral((current) => ({ ...current, requireInviteCode: value }))} label="注册必须填写邀请码" />
+            <ToggleSwitch enabled={general.maintenanceMode} onChange={(value) => setGeneral((current) => ({ ...current, maintenanceMode: value }))} label="维护模式" />
           </div>
-          <button onClick={() => handleSave('General')} className="btn-primary mt-4">Save General Settings</button>
+          <button onClick={() => handleSave('通用配置')} className="btn-primary mt-4">保存通用配置</button>
         </div>
 
-        {/* System Info */}
         <div className="card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-purple-50">
-              <Shield className="w-5 h-5 text-purple-600" />
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-lg bg-purple-50 p-2">
+              <Shield className="h-5 w-5 text-purple-600" />
             </div>
-            <h2 className="font-semibold text-lg">System Information</h2>
+            <h2 className="text-lg font-semibold">系统信息</h2>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-500">Version</span>
+            <div className="flex justify-between border-b border-gray-100 py-2">
+              <span className="text-gray-500">版本</span>
               <span className="font-mono">1.0.0</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-500">Environment</span>
+            <div className="flex justify-between border-b border-gray-100 py-2">
+              <span className="text-gray-500">运行环境</span>
               <span className="font-mono">Production</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-500">API Base URL</span>
+            <div className="flex justify-between border-b border-gray-100 py-2">
+              <span className="text-gray-500">API 地址</span>
               <span className="font-mono text-primary-600">/api</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-gray-500">Last Deployment</span>
-              <span className="text-gray-700">N/A</span>
+              <span className="text-gray-500">最近部署</span>
+              <span className="text-gray-700">当前线上版本</span>
             </div>
           </div>
         </div>
