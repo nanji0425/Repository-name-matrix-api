@@ -35,10 +35,6 @@ const copy = {
     },
     payTypes: {
       ALIPAY: '支付宝',
-      WECHAT: '微信',
-      CREDIT_CARD: '信用卡',
-      BALANCE: '余额',
-      CRYPTO: '加密货币',
     },
   },
   en: {
@@ -68,10 +64,6 @@ const copy = {
     },
     payTypes: {
       ALIPAY: 'Alipay',
-      WECHAT: 'WeChat',
-      CREDIT_CARD: 'Credit Card',
-      BALANCE: 'Balance',
-      CRYPTO: 'Crypto',
     },
   },
 } as const;

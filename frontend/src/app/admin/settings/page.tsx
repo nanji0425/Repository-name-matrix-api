@@ -48,7 +48,7 @@ const copy = {
     apiAddress: 'API 地址',
     latestDeploy: '最近部署',
     currentOnline: '当前线上版本',
-    paymentNote: '当前线上充值仅开放支付宝，其它支付方式暂不在前台显示。',
+    paymentNote: '当前线上充值仅开放支付宝，其他支付方式暂不在前台显示。',
   },
   en: {
     title: 'System Parameters',
@@ -145,9 +145,6 @@ export default function AdminSettingsPage() {
           <p className="mb-2 text-sm text-gray-500 dark:text-slate-400">{text.paymentNote}</p>
           <div className="divide-y divide-gray-100 dark:divide-white/10">
             <ToggleSwitch enabled={payments.alipay} onChange={(value) => setPayments((current) => ({ ...current, alipay: value }))} label={text.alipay} />
-            <ToggleSwitch enabled={false} onChange={() => undefined} label={`WeChat - ${text.unavailable}`} disabled />
-            <ToggleSwitch enabled={false} onChange={() => undefined} label={`Stripe - ${text.unavailable}`} disabled />
-            <ToggleSwitch enabled={false} onChange={() => undefined} label={`USDT - ${text.unavailable}`} disabled />
           </div>
           <button onClick={() => handleSave(text.paymentMethods)} className="btn-primary mt-4">{text.savePayment}</button>
         </div>
