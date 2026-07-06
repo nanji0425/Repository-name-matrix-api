@@ -22,7 +22,13 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { isAuthenticated, hydrateAuth, hasHydrated, logout, user } = useAuthStore();
   const locale = useLocaleStore((state) => state.locale);
+  const localeHydrated = useLocaleStore((state) => state.hasHydrated);
+  const hydrateLocale = useLocaleStore((state) => state.hydrateLocale);
   const t = useLocaleStore((state) => state.t);
+
+  useEffect(() => {
+    if (!localeHydrated) hydrateLocale();
+  }, [localeHydrated, hydrateLocale]);
 
   useEffect(() => {
     if (!hasHydrated) hydrateAuth();

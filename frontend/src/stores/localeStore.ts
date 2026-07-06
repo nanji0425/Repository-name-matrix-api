@@ -102,30 +102,36 @@ interface LocaleState {
   t: (key: TranslationKey) => string;
 }
 
+function readBrowserLocale(): Locale {
+  if (typeof window === 'undefined') return 'zh';
+  return localStorage.getItem('matrix_locale') === 'en' ? 'en' : 'zh';
+}
+
+function applyBrowserLocale(locale: Locale) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('matrix_locale', locale);
+  document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+}
+
+const initialLocale = readBrowserLocale();
+applyBrowserLocale(initialLocale);
+
 export const useLocaleStore = create<LocaleState>((set, get) => ({
-  locale: 'zh',
+  locale: initialLocale,
   hasHydrated: false,
   hydrateLocale: () => {
-    if (typeof window === 'undefined') return;
-    const saved = localStorage.getItem('matrix_locale');
-    const locale: Locale = saved === 'en' ? 'en' : 'zh';
-    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+    const locale = readBrowserLocale();
+    applyBrowserLocale(locale);
     set({ locale, hasHydrated: true });
   },
   toggleLocale: () => {
     const next: Locale = get().locale === 'zh' ? 'en' : 'zh';
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('matrix_locale', next);
-      document.documentElement.lang = next === 'zh' ? 'zh-CN' : 'en';
-    }
-    set({ locale: next });
+    applyBrowserLocale(next);
+    set({ locale: next, hasHydrated: true });
   },
   setLocale: (locale) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('matrix_locale', locale);
-      document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
-    }
-    set({ locale });
+    applyBrowserLocale(locale);
+    set({ locale, hasHydrated: true });
   },
   t: (key) => dictionary[key][get().locale],
 }));

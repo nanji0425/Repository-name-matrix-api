@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ReactNode, useState } from 'react';
 import { ArrowRight, CheckCircle, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocaleStore } from '@/stores/localeStore';
 import { codeSamples, heroModels, steps } from './marketingData';
 
 export function SectionHeader({ eyebrow, title, desc, center = true }: { eyebrow?: string; title: string; desc?: string; center?: boolean }) {
@@ -62,10 +63,11 @@ export function CodeTabs() {
   const tabs = Object.keys(codeSamples) as Array<keyof typeof codeSamples>;
   const [active, setActive] = useState<keyof typeof codeSamples>('Python');
   const code = codeSamples[active];
+  const locale = useLocaleStore((state) => state.locale);
 
   const copyCode = async () => {
     await navigator.clipboard.writeText(code);
-    toast.success('代码已复制');
+    toast.success(locale === 'zh' ? '代码已复制' : 'Code copied');
   };
 
   return (
@@ -80,7 +82,7 @@ export function CodeTabs() {
         </div>
         <button onClick={copyCode} className="inline-flex items-center gap-2 rounded-full bg-white/8 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/14 hover:text-white">
           <Copy className="h-3.5 w-3.5" />
-          复制
+          {locale === 'zh' ? '复制' : 'Copy'}
         </button>
       </div>
       <pre className="min-h-[310px] overflow-auto p-6 text-sm leading-7 text-cyan-50">
@@ -91,9 +93,12 @@ export function CodeTabs() {
 }
 
 export function StepsBlock() {
+  const locale = useLocaleStore((state) => state.locale);
+  const localizedSteps = locale === 'zh' ? steps.zh : steps.en;
+
   return (
     <div className="grid gap-4 md:grid-cols-4">
-      {steps.map((step, index) => (
+      {localizedSteps.map((step, index) => (
         <Link key={step.title} href={index === 0 ? '/register' : index === 1 ? '/dashboard/api-keys' : index === 2 ? '/docs' : '/solutions'} className="tech-surface relative rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-xl shadow-black/20">
           <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-slate-950">
             {index + 1}
@@ -106,7 +111,22 @@ export function StepsBlock() {
   );
 }
 
-export function CTASection({ title = '开始使用 AI API 构建你的应用', desc = '无需漫长配置，立即用同一个标准接口整合全球大模型能力。', button = '立即获取 API Key' }: { title?: string; desc?: string; button?: string }) {
+export function CTASection({ title, desc, button }: { title?: string; desc?: string; button?: string }) {
+  const locale = useLocaleStore((state) => state.locale);
+  const fallback = locale === 'zh'
+    ? {
+        title: '开始使用 AI API 构建你的应用',
+        desc: '无需漫长配置，立即用同一个标准接口整合全球大模型能力。',
+        button: '立即获取 API Key',
+        badge: 'OpenAI 兼容 / 多模型聚合 / 统一计费',
+      }
+    : {
+        title: 'Start building with one AI API',
+        desc: 'Connect global model capabilities through one standard endpoint without long setup work.',
+        button: 'Get API Key',
+        badge: 'OpenAI Compatible / Multi-model / Unified Billing',
+      };
+
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-10 pb-20">
       <div className="tech-surface overflow-hidden rounded-[32px] border border-cyan-300/20 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.20),transparent_30%),linear-gradient(135deg,#101827,#06070b)] p-8 text-white shadow-2xl shadow-black/30 sm:p-12">
@@ -114,13 +134,13 @@ export function CTASection({ title = '开始使用 AI API 构建你的应用', d
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-cyan-300/12 px-4 py-2 text-sm font-black text-cyan-200">
               <CheckCircle className="h-4 w-4" />
-              OpenAI 兼容 / 多模型聚合 / 统一计费
+              {fallback.badge}
             </div>
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h2>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300">{desc}</p>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">{title || fallback.title}</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300">{desc || fallback.desc}</p>
           </div>
           <Link href="/dashboard/api-keys" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-black text-slate-950 shadow-xl shadow-white/10 transition hover:-translate-y-0.5 hover:bg-cyan-100">
-            {button}
+            {button || fallback.button}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

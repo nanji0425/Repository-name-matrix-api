@@ -28,7 +28,13 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const locale = useLocaleStore((state) => state.locale);
+  const localeHydrated = useLocaleStore((state) => state.hasHydrated);
+  const hydrateLocale = useLocaleStore((state) => state.hydrateLocale);
   const t = useLocaleStore((state) => state.t);
+
+  useEffect(() => {
+    if (!localeHydrated) hydrateLocale();
+  }, [localeHydrated, hydrateLocale]);
 
   useEffect(() => {
     hydrateAuth();

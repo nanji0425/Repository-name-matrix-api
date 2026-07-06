@@ -1,3 +1,5 @@
+import type { Locale } from '@/stores/localeStore';
+
 export type MarketingModel = {
   id?: string;
   name?: string;
@@ -8,6 +10,14 @@ export type MarketingModel = {
   outputPrice?: number;
   multiplier?: number;
 };
+
+export type BillingType = 'usage' | 'request';
+export type ModelGroup = 'chat' | 'image' | 'video' | 'audio' | 'embedding';
+
+export const ALL_PROVIDER = '__all_provider__';
+export const UNKNOWN_PROVIDER = '__unknown_provider__';
+export const ALL_GROUP = '__all_group__';
+export const ALL_BILLING = '__all_billing__';
 
 const gatewayProviderNames = ['hohoapi', 'n1n', 'matrixapi', 'new api', 'new-api', 'api'];
 
@@ -33,7 +43,7 @@ const imageKeywords = ['image', 'dall', 'sd', 'flux', 'midjourney', 'stable', 'g
 const audioKeywords = ['audio', 'tts', 'whisper', 'voice', 'speech', 'music', '语音', '音频'];
 
 export const SUPPLIER_OPTIONS = [
-  '全部供应商',
+  ALL_PROVIDER,
   'OpenAI',
   'DeepSeek',
   'Anthropic',
@@ -48,11 +58,47 @@ export const SUPPLIER_OPTIONS = [
   'Luma',
   'Kling',
   'Moonshot',
-  '未知供应商',
+  UNKNOWN_PROVIDER,
 ];
 
-export const GROUP_OPTIONS = ['全部分组', '聊天模型', '图像模型', '视频模型', '语音模型', '嵌入模型'];
-export const BILLING_OPTIONS = ['全部类型', '按量计费', '按次计费'];
+export const GROUP_OPTIONS: Array<typeof ALL_GROUP | ModelGroup> = [ALL_GROUP, 'chat', 'image', 'video', 'audio', 'embedding'];
+export const BILLING_OPTIONS: Array<typeof ALL_BILLING | BillingType> = [ALL_BILLING, 'usage', 'request'];
+
+const labels = {
+  zh: {
+    [ALL_PROVIDER]: '全部供应商',
+    [UNKNOWN_PROVIDER]: '未知供应商',
+    [ALL_GROUP]: '全部分组',
+    [ALL_BILLING]: '全部类型',
+    chat: '聊天模型',
+    image: '图像模型',
+    video: '视频模型',
+    audio: '语音模型',
+    embedding: '嵌入模型',
+    usage: '按量计费',
+    request: '按次计费',
+    requestUnit: '次',
+  },
+  en: {
+    [ALL_PROVIDER]: 'All Providers',
+    [UNKNOWN_PROVIDER]: 'Unknown Provider',
+    [ALL_GROUP]: 'All Groups',
+    [ALL_BILLING]: 'All Types',
+    chat: 'Chat Models',
+    image: 'Image Models',
+    video: 'Video Models',
+    audio: 'Audio Models',
+    embedding: 'Embedding Models',
+    usage: 'Usage Billing',
+    request: 'Per Request',
+    requestUnit: 'request',
+  },
+} as const;
+
+export function getFilterLabel(value: string, locale: Locale) {
+  const localeLabels = labels[locale] as Record<string, string>;
+  return localeLabels[value] || value;
+}
 
 export function getModelCode(model: MarketingModel) {
   return model.modelCode || model.name || model.id || 'unknown-model';
@@ -67,29 +113,29 @@ function searchableText(model: MarketingModel) {
 export function getProviderName(model: MarketingModel) {
   const text = searchableText(model);
   const matched = providerMatchers.find(([, keywords]) => keywords.some((keyword) => text.includes(keyword)));
-  return matched?.[0] || '未知供应商';
+  return matched?.[0] || UNKNOWN_PROVIDER;
 }
 
-export function getModelGroups(model: MarketingModel) {
+export function getModelGroups(model: MarketingModel): ModelGroup[] {
   const text = searchableText(model);
-  if (audioKeywords.some((keyword) => text.includes(keyword))) return ['语音模型'];
-  if (videoKeywords.some((keyword) => text.includes(keyword))) return ['视频模型'];
-  if (imageKeywords.some((keyword) => text.includes(keyword))) return ['图像模型'];
-  if (text.includes('embed') || text.includes('embedding')) return ['嵌入模型'];
-  return ['聊天模型'];
+  if (audioKeywords.some((keyword) => text.includes(keyword))) return ['audio'];
+  if (videoKeywords.some((keyword) => text.includes(keyword))) return ['video'];
+  if (imageKeywords.some((keyword) => text.includes(keyword))) return ['image'];
+  if (text.includes('embed') || text.includes('embedding')) return ['embedding'];
+  return ['chat'];
 }
 
-export function getBillingType(model: MarketingModel) {
+export function getBillingType(model: MarketingModel): BillingType {
   const text = searchableText(model);
-  return [...videoKeywords, ...imageKeywords, ...audioKeywords].some((keyword) => text.includes(keyword)) ? '按次计费' : '按量计费';
+  return [...videoKeywords, ...imageKeywords, ...audioKeywords].some((keyword) => text.includes(keyword)) ? 'request' : 'usage';
 }
 
-export function formatModelPrice(value?: number, billingType = '按量计费') {
+export function formatModelPrice(value?: number, billingType: BillingType = 'usage', locale: Locale = 'zh') {
   const numeric = Number(value);
   const safeValue = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
   const digits = safeValue >= 10 ? 2 : safeValue >= 1 ? 4 : 6;
   const formatted = safeValue.toFixed(digits).replace(/0+$/, '').replace(/\.$/, '') || '0';
-  const unit = billingType === '按次计费' ? '次' : '1K tokens';
+  const unit = billingType === 'request' ? labels[locale].requestUnit : '1K tokens';
   return `¥${formatted} / ${unit}`;
 }
 
@@ -101,9 +147,9 @@ export function modelMatches(model: MarketingModel, filters: { provider: string;
   const haystack = `${code} ${model.name || ''} ${provider}`.toLowerCase();
 
   return (
-    (filters.provider === '全部供应商' || provider === filters.provider) &&
-    (filters.group === '全部分组' || groups.includes(filters.group)) &&
-    (filters.billing === '全部类型' || billing === filters.billing) &&
+    (filters.provider === ALL_PROVIDER || provider === filters.provider) &&
+    (filters.group === ALL_GROUP || groups.includes(filters.group as ModelGroup)) &&
+    (filters.billing === ALL_BILLING || billing === filters.billing) &&
     (!filters.query.trim() || haystack.includes(filters.query.trim().toLowerCase()))
   );
 }
