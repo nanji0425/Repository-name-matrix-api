@@ -99,14 +99,13 @@ export class GatewayService {
 
       // Deduct balance, update token statistics and log.
       const updatedUser = await this.prisma.$transaction(async (tx) => {
-        const remainingQuotaBeforeCall = key.quota === null ? null : key.quota - actualCost;
+        const quotaWhere = key.quota === null
+          ? [{ quota: null }]
+          : [{ quota: null }, { usedAmount: { lte: key.quota - actualCost } }];
         const apiKeyUpdate = await tx.apiKey.updateMany({
           where: {
             id: key.id,
-            OR: [
-              { quota: null },
-              { usedAmount: { lte: remainingQuotaBeforeCall } },
-            ],
+            OR: quotaWhere,
           },
           data: {
             lastUsed: new Date(),

@@ -151,6 +151,15 @@ async function run() {
   assert.equal(fetchCalls.length, 0);
 
   prisma.state.allowedModels = [];
+  prisma.state.quota = null;
+  prisma.state.usedAmount = 0;
+  prisma.state.userBalance = 100;
+  await service.handleRequest(req, res, 'chat/completions');
+  assert.deepEqual(prisma.state.apiKeyUpdateManyArgs[0].where, {
+    id: 'key-1',
+    OR: [{ quota: null }],
+  });
+
   prisma.state.userBalance = 100;
   prisma.state.quota = 1;
   prisma.state.usedAmount = 0;
@@ -162,7 +171,7 @@ async function run() {
   });
   assert.equal(prisma.state.userBalance, 99.982);
   assert.equal(prisma.state.lastWalletLog.data.balance, 99.982);
-  assert.deepEqual(prisma.state.apiKeyUpdateManyArgs[0].where, {
+  assert.deepEqual(prisma.state.apiKeyUpdateManyArgs.at(-1).where, {
     id: 'key-1',
     OR: [
       { quota: null },
