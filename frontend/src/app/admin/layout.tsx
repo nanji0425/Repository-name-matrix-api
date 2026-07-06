@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!hasHydrated || !isAuthenticated || !user || user.role !== 'ADMIN') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,#f8fbff_0%,#eef7f6_45%,#f7f2ff_100%)] text-slate-600">
-        <div className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-5 py-4 shadow-xl shadow-slate-900/10 backdrop-blur">
+        <div className="tech-surface flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl shadow-slate-900/10 backdrop-blur">
           <Loader2 className="h-5 w-5 animate-spin text-cyan-600" />
           正在校验管理员权限...
         </div>
@@ -58,8 +58,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eef7f6_45%,#f7f2ff_100%)]">
-      <aside className="fixed left-0 top-0 z-40 min-h-screen w-64 border-r border-white/10 bg-slate-950 p-4 text-white shadow-2xl shadow-slate-950/30">
-        <div className="mb-7 rounded-2xl border border-cyan-400/20 bg-white/5 p-4">
+      <aside className="fixed left-0 top-0 z-40 min-h-screen w-64 border-r border-cyan-200/10 bg-slate-950 p-4 text-white shadow-2xl shadow-slate-950/30">
+        <div className="tech-surface mb-7 rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300 font-black text-slate-950">M</span>
             <div>
@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white',
+                  'relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-300 transition hover:-translate-y-0.5 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-cyan-950/20',
                   isActive && 'bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-950/20 hover:bg-cyan-300 hover:text-slate-950',
                 )}
               >
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <main className="ml-64 min-h-screen">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/60 bg-white/70 px-8 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-cyan-200/20 bg-white/72 px-8 shadow-lg shadow-cyan-950/5 backdrop-blur-xl">
           <div>
             <div className="text-sm font-bold text-slate-950">MatrixAPI 管理中心</div>
             <div className="text-xs text-slate-500">运营、计费、上游通道与模型参数统一管理</div>
