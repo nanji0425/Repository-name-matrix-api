@@ -49,7 +49,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="console-shell">
-      <header className="border-b border-white/10 bg-[#070708]">
+      <header className="relative z-20 border-b border-cyan-200/10 bg-[#070708]/78 shadow-2xl shadow-cyan-950/10 backdrop-blur-2xl">
         <div className="console-container flex h-16 items-center justify-between">
           <BrandLogo />
           <nav className="hidden items-center gap-7 lg:flex">
@@ -65,7 +65,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                 document.documentElement.classList.toggle('dark', next);
                 localStorage.setItem('theme', next ? 'dark' : 'light');
               }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200/10 bg-white/5 text-slate-300 shadow-lg shadow-cyan-950/10 transition hover:bg-white/10 hover:text-white"
               aria-label="切换主题"
             >
               {dark ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -73,12 +73,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => router.push('/dashboard')}
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-slate-950"
+              className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5"
             >
               <Grid2X2 className="h-4 w-4" />
               控制台
             </button>
-            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white">
               <ChevronDown className="h-4 w-4" />
             </button>
             {open && (
@@ -93,7 +93,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className="border-b border-white/10 bg-[#151517]">
+      <div className="relative z-10 border-b border-cyan-200/10 bg-[#111827]/58 backdrop-blur-xl">
         <nav className="console-container flex h-[58px] items-center justify-center gap-5 overflow-x-auto">
           {consoleTabs.map((item) => {
             const Icon = item.icon;

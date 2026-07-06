@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Providers from './providers';
+import ParticleField from '@/components/ParticleField';
 
 export const metadata: Metadata = {
   title: 'MatrixAPI - AI \u6a21\u578b\u805a\u5408\u5e73\u53f0',
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <ParticleField />
         <Providers>{children}</Providers>
       </body>
     </html>

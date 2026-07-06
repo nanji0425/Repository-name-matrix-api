@@ -27,9 +27,10 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
   const title = useMemo(() => (authMode === 'register' ? '创建账户' : '欢迎回来'), [authMode]);
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#050506] text-white">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.22),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(34,211,238,0.14),transparent_28%),linear-gradient(180deg,#090b12_0%,#050506_48%,#030304_100%)]" />
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#050506]/86 backdrop-blur-2xl">
+    <div className="relative min-h-screen overflow-hidden bg-[#050506]/92 text-white">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.24),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(99,102,241,0.18),transparent_28%),linear-gradient(180deg,#090b12_0%,#050506_48%,#030304_100%)]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 -z-10 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />
+      <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#050506]/76 shadow-2xl shadow-cyan-950/10 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
           <BrandLogo />
 
@@ -45,7 +46,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             <ThemeToggle />
             {isAuthenticated ? (
               <div className="relative">
-                <button onClick={() => router.push('/dashboard')} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-slate-950">
+                <button onClick={() => router.push('/dashboard')} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5 hover:shadow-cyan-300/30">
                   <Grid2X2 className="h-4 w-4" />
                   控制台
                 </button>
@@ -63,7 +64,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             ) : (
               <>
                 <button onClick={() => setAuthMode('login')} className="text-sm font-semibold text-slate-400 transition hover:text-white">登录</button>
-                <button onClick={() => setAuthMode('register')} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-slate-950 transition hover:bg-slate-200">
+                <button onClick={() => setAuthMode('register')} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5 hover:shadow-cyan-300/30">
                   获取 API Key
                   <ArrowRight className="h-4 w-4" />
                 </button>
