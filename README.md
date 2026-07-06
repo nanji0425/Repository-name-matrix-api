@@ -35,19 +35,19 @@ curl http://matrixapi.online/v1/models
 
 ZPay callback URL:
 ```bash
-http://matrixapi.online/api/wallet/zpay/notify
+https://matrixapi.online/api/wallet/zpay/notify
 ```
 
 The ZPay callback must be reachable from the public internet and must return the plain text `success` after a valid paid notification.
 
 ### API base URL
 ```bash
-http://matrixapi.online/api
+https://matrixapi.online/api
 ```
 
 ### OpenAI-compatible gateway
 ```bash
-http://matrixapi.online/v1/chat/completions
+https://matrixapi.online/v1/chat/completions
 ```
 
 ### Production go-live checklist
@@ -57,7 +57,7 @@ Before opening the site to users:
 1. Point the domain DNS `A` record to the server IP.
 2. Fill `.env` with real values from `.env.production.example`; the deploy script rejects placeholders.
 3. Run `./deploy.sh` on the server.
-4. Verify `http://matrixapi.online`, `/api/health/ready`, and `/v1/models`.
+4. Verify `https://matrixapi.online`, `/api/health/ready`, and `/v1/models`.
 5. Issue TLS certificates for `matrixapi.online` and `www.matrixapi.online` into `/etc/letsencrypt/live/matrixapi.online`.
    Example:
    ```bash

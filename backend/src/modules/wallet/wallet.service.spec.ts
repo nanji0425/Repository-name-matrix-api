@@ -107,7 +107,7 @@ async function run() {
     id: 'order-2',
     orderNo: 'RE456',
     amount: 30,
-    payType: 'WECHAT',
+    payType: 'ALIPAY',
     status: notifyStatus,
     userId: 'user-2',
   });
@@ -129,7 +129,7 @@ async function run() {
 
   const notifyParams: Record<string, string> = {
     pid: '1001',
-    type: 'wxpay',
+    type: 'alipay',
     out_trade_no: 'RE456',
     trade_no: 'ZPAY789',
     trade_status: 'TRADE_SUCCESS',
@@ -160,6 +160,15 @@ async function run() {
     }),
     false,
   );
+
+  process.env.FRONTEND_URL = '';
+  process.env.API_PUBLIC_URL = '';
+  process.env.NEXT_PUBLIC_API_URL = '';
+  process.env.ZPAY_NOTIFY_URL = '';
+  process.env.ZPAY_RETURN_URL = '';
+  const defaultUrlService = new WalletService(createPrismaMock());
+  const rechargeConfig = await defaultUrlService.getRechargeConfig();
+  assert.equal(rechargeConfig.gateway, 'https://zpayz.cn/');
 
   console.log('wallet-service confirmPayment test passed');
 }

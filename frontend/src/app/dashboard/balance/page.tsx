@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Bell, CheckCircle2, Copy, CreditCard, ExternalLink, Mail, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Copy, CreditCard, ExternalLink, Mail, RefreshCw, Wallet } from 'lucide-react';
 import { ConsolePage } from '@/components/console/ConsoleShell';
 import { walletApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
@@ -10,13 +10,13 @@ import { cn } from '@/lib/utils';
 
 const packages = [1, 10, 20, 50, 100, 200];
 
-type PayType = 'ALIPAY' | 'WECHAT';
+type PayType = 'ALIPAY';
 
 export default function BalancePage() {
   const { user, fetchProfile } = useAuthStore();
   const [amount, setAmount] = useState(10);
   const [custom, setCustom] = useState('10');
-  const [payment, setPayment] = useState<PayType>('WECHAT');
+  const [payment] = useState<PayType>('ALIPAY');
   const [paying, setPaying] = useState(false);
   const [orderNo, setOrderNo] = useState('');
   const [payUrl, setPayUrl] = useState('');
@@ -29,13 +29,6 @@ export default function BalancePage() {
   }, []);
 
   const effectiveAmount = Number(custom || amount || 1);
-  const paymentMethods = useMemo(
-    () => [
-      { id: 'WECHAT' as const, label: '微信支付', hint: '跳转到 ZPay 微信收银台' },
-      { id: 'ALIPAY' as const, label: '支付宝', hint: '跳转到 ZPay 支付宝收银台' },
-    ],
-    [],
-  );
 
   const pay = async () => {
     if (!Number.isFinite(effectiveAmount) || effectiveAmount < 1) {
@@ -48,7 +41,7 @@ export default function BalancePage() {
       const { data } = await walletApi.recharge({ amount: effectiveAmount, payType: payment });
       setOrderNo(data.orderNo || '');
       setPayUrl(data.payUrl || '');
-      toast.success('订单已创建，正在打开支付页面');
+      toast.success('订单已创建，正在打开支付宝收银台');
       if (data.payUrl) window.open(data.payUrl, '_blank', 'noopener,noreferrer');
       await fetchProfile();
     } catch (error: any) {
@@ -68,9 +61,7 @@ export default function BalancePage() {
     <ConsolePage className="pb-24">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-black text-white">账户充值</h1>
-        <p className="text-sm text-slate-400">
-          选择金额后跳转到 ZPay 收银台完成支付，支付成功后系统会通过异步通知自动更新余额。
-        </p>
+        <p className="text-sm text-slate-400">当前仅支持支付宝。支付成功后系统会通过异步通知自动更新余额。</p>
       </div>
 
       <div className="mt-7 grid gap-6 lg:grid-cols-[340px_1fr]">
@@ -78,7 +69,7 @@ export default function BalancePage() {
           <div className="console-card p-7">
             <div className="flex items-center justify-between text-sm text-slate-400">
               当前余额
-              <Bell className="h-5 w-5" />
+              <Wallet className="h-5 w-5" />
             </div>
             <div className="mt-3 text-4xl font-black text-white">¥{Number(user?.balance || 0).toFixed(2)}</div>
           </div>
@@ -143,20 +134,12 @@ export default function BalancePage() {
           <section className="console-card p-7">
             <h2 className="text-lg font-black text-white">支付通道</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {paymentMethods.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setPayment(item.id)}
-                  className={cn('rounded-xl border p-5 text-left transition', payment === item.id ? 'border-blue-400 bg-blue-500/10' : 'border-slate-600 hover:border-blue-400')}
-                >
-                  <div className="text-xl font-black text-white">{item.label}</div>
-                  <div className="mt-1 text-sm text-slate-500">{item.hint}</div>
-                </button>
-              ))}
+              <button className="rounded-xl border border-blue-400 bg-blue-500/10 p-5 text-left transition">
+                <div className="text-xl font-black text-white">支付宝</div>
+                <div className="mt-1 text-sm text-slate-500">跳转到支付宝收银台完成付款</div>
+              </button>
             </div>
-            <div className="mt-4 text-xs text-slate-500">
-              当前网关：{rechargeConfig?.payName || 'ZPay 在线支付'}
-            </div>
+            <div className="mt-4 text-xs text-slate-500">当前网关：{rechargeConfig?.payName || 'ZPay 在线支付'}</div>
           </section>
 
           <section className="console-card p-7">

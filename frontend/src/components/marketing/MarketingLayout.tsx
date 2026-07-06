@@ -45,13 +45,16 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             <ThemeToggle />
             {isAuthenticated ? (
               <div className="relative">
-                <button onClick={() => setUserMenuOpen((open) => !open)} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-slate-950">
+                <button onClick={() => router.push('/dashboard')} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-slate-950">
                   <Grid2X2 className="h-4 w-4" />
                   控制台
+                </button>
+                <button onClick={() => setUserMenuOpen((open) => !open)} className="ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="账户菜单">
                   <ChevronDown className="h-4 w-4" />
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-white/10 bg-[#111216] p-2 shadow-2xl shadow-black/50">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-2xl border border-white/10 bg-[#111216] p-2 shadow-2xl shadow-black/50">
+                    <Link href="/dashboard" className="flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-200 transition hover:bg-white/8">进入控制台</Link>
                     <button onClick={logout} className="h-10 w-full rounded-xl text-sm font-bold text-red-400 transition hover:bg-white/8">退出登录</button>
                     {user?.role === 'ADMIN' && <Link href="/admin" className="mt-1 flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-300 transition hover:bg-white/8">管理后台</Link>}
                   </div>

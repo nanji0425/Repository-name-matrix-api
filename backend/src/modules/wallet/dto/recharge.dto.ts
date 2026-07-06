@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import { IsIn, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RechargeDto {
@@ -7,7 +7,7 @@ export class RechargeDto {
   @Min(0.01)
   amount: number;
 
-  @ApiProperty({ example: 'ALIPAY', enum: ['ALIPAY', 'WECHAT'], description: 'Payment method' })
-  @IsString()
-  payType: 'ALIPAY' | 'WECHAT';
+  @ApiProperty({ example: 'ALIPAY', enum: ['ALIPAY'], description: 'Payment method' })
+  @IsIn(['ALIPAY'])
+  payType: 'ALIPAY';
 }
