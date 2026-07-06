@@ -25,6 +25,8 @@ const copy = {
 
 export default function RegisterPage() {
   const locale = useLocaleStore((state) => state.locale);
+  const localeHydrated = useLocaleStore((state) => state.hasHydrated);
+  const hydrateLocale = useLocaleStore((state) => state.hydrateLocale);
   const t = useLocaleStore((state) => state.t);
   const text = copy[locale];
   const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', inviteCode: '' });
@@ -32,9 +34,10 @@ export default function RegisterPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!localeHydrated) hydrateLocale();
     const invite = new URLSearchParams(window.location.search).get('invite');
     if (invite) setForm((current) => ({ ...current, inviteCode: invite }));
-  }, []);
+  }, [localeHydrated, hydrateLocale]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

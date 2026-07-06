@@ -41,7 +41,7 @@ function LegalPage({ title, items }: { title: string; items: readonly string[] }
       <div className="mx-auto max-w-3xl rounded-[28px] border border-white/10 bg-white/[0.045] p-8 shadow-xl shadow-black/20 sm:p-10">
         <h1 className="text-3xl font-black text-white">{title}</h1>
         <div className="mt-8 space-y-4 text-base leading-8 text-slate-300">
-          {items.map((item) => <p key={item}>• {item}</p>)}
+          {items.map((item) => <p key={item}>- {item}</p>)}
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Lock, User, X } from 'lucide-react';
@@ -12,12 +12,18 @@ import { useLocaleStore } from '@/stores/localeStore';
 
 export default function LoginPage() {
   const locale = useLocaleStore((state) => state.locale);
+  const localeHydrated = useLocaleStore((state) => state.hasHydrated);
+  const hydrateLocale = useLocaleStore((state) => state.hydrateLocale);
   const t = useLocaleStore((state) => state.t);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const { login, isLoading } = useAuthStore();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!localeHydrated) hydrateLocale();
+  }, [localeHydrated, hydrateLocale]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
