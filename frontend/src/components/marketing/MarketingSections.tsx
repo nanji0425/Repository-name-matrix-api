@@ -18,7 +18,7 @@ export function SectionHeader({ eyebrow, title, desc, center = true }: { eyebrow
 
 export function MarketingCard({ icon, title, desc, children }: { icon?: ReactNode; title: string; desc: string; children?: ReactNode }) {
   return (
-    <div className="group rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]">
+    <div className="tech-surface group rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]">
       {icon && <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300/10 text-cyan-300 ring-1 ring-cyan-300/20 transition group-hover:bg-cyan-300 group-hover:text-slate-950">{icon}</div>}
       <h3 className="text-lg font-black text-white">{title}</h3>
       <p className="mt-3 text-sm leading-7 text-slate-400">{desc}</p>
@@ -33,7 +33,7 @@ export function ModelMarquee({ title }: { title?: string }) {
       {title && <h2 className="mb-6 text-center text-sm font-black text-slate-400">{title}</h2>}
       <div className="flex min-w-max animate-[marquee_22s_linear_infinite] gap-3">
         {[...heroModels, ...heroModels].map((model, index) => (
-          <span key={`${model}-${index}`} className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-slate-200">
+          <span key={`${model}-${index}`} className="tech-surface rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-slate-200">
             {model}
           </span>
         ))}
@@ -59,7 +59,7 @@ export function CodeTabs() {
   };
 
   return (
-    <div className="overflow-hidden rounded-[20px] border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/30">
+    <div className="tech-surface overflow-hidden rounded-[20px] border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/30">
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <div className="flex gap-2">
           {tabs.map((tab) => (
@@ -84,7 +84,7 @@ export function StepsBlock() {
   return (
     <div className="grid gap-4 md:grid-cols-4">
       {steps.map((step, index) => (
-        <div key={step.title} className="relative rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-xl shadow-black/20">
+        <div key={step.title} className="tech-surface relative rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-xl shadow-black/20">
           <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-slate-950">
             {index + 1}
           </div>
@@ -99,7 +99,7 @@ export function StepsBlock() {
 export function CTASection({ title = '开始使用 AI API 构建你的应用', desc = '无需漫长配置，立即用同一个标准接口整合全球大模型能力。', button = '立即获取 API Key' }: { title?: string; desc?: string; button?: string }) {
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-10 pb-20">
-      <div className="overflow-hidden rounded-[32px] border border-cyan-300/20 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.20),transparent_30%),linear-gradient(135deg,#101827,#06070b)] p-8 text-white shadow-2xl shadow-black/30 sm:p-12">
+      <div className="tech-surface overflow-hidden rounded-[32px] border border-cyan-300/20 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.20),transparent_30%),linear-gradient(135deg,#101827,#06070b)] p-8 text-white shadow-2xl shadow-black/30 sm:p-12">
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-cyan-300/12 px-4 py-2 text-sm font-black text-cyan-200">
