@@ -23,7 +23,14 @@ const copy = {
     saved: '资料已保存',
     saveFailed: '保存失败',
     password: '修改密码',
-    passwordTip: '当前版本暂不支持在控制台修改密码，请联系管理员重置。',
+    currentPassword: '当前密码',
+    newPassword: '新密码',
+    confirmPassword: '确认新密码',
+    savePassword: '更新密码',
+    passwordChanged: '密码已更新',
+    passwordFailed: '修改密码失败',
+    passwordTooShort: '新密码至少需要 8 位',
+    passwordMismatch: '两次输入的新密码不一致',
   },
   en: {
     title: 'Account Settings',
@@ -39,7 +46,14 @@ const copy = {
     saved: 'Profile saved',
     saveFailed: 'Failed to save',
     password: 'Change Password',
-    passwordTip: 'Password changes are not available in the console yet. Contact an administrator to reset it.',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm New Password',
+    savePassword: 'Update Password',
+    passwordChanged: 'Password updated',
+    passwordFailed: 'Failed to change password',
+    passwordTooShort: 'New password must be at least 8 characters',
+    passwordMismatch: 'New passwords do not match',
   },
 } as const;
 
@@ -48,8 +62,13 @@ export default function SettingsPage() {
   const locale = useLocaleStore((state) => state.locale);
   const text = copy[locale];
   const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const roleLabel = user?.role === 'ADMIN' ? text.admin : text.user;
+  const inputClass = 'w-full rounded-lg border px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-slate-950 dark:text-white';
 
   const handleSaveProfile = async () => {
     try {
@@ -58,6 +77,31 @@ export default function SettingsPage() {
       toast.success(text.saved);
     } catch (error: any) {
       toast.error(error.response?.data?.message || text.saveFailed);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) {
+      toast.error(text.passwordTooShort);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error(text.passwordMismatch);
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await userApi.changePassword({ currentPassword, newPassword });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success(text.passwordChanged);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || text.passwordFailed);
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -110,12 +154,12 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
+            <label className="block">
+              <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
                 <Image className="h-4 w-4" /> {text.avatarUrl}
-              </label>
-              <input value={avatar} onChange={(event) => setAvatar(event.target.value)} className="w-full rounded-lg border px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-slate-950 dark:text-white" placeholder="https://example.com/avatar.png" />
-            </div>
+              </span>
+              <input value={avatar} onChange={(event) => setAvatar(event.target.value)} className={inputClass} placeholder="https://example.com/avatar.png" />
+            </label>
             <button onClick={handleSaveProfile} className="btn-primary flex items-center gap-2">
               <Save className="h-4 w-4" /> {text.saveProfile}
             </button>
@@ -124,9 +168,24 @@ export default function SettingsPage() {
 
         <div className="card p-6 dark:border-white/10 dark:bg-white/[0.04]">
           <h3 className="mb-4 font-semibold text-slate-950 dark:text-white">{text.password}</h3>
-          <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-            <Lock className="h-4 w-4" />
-            <span>{text.passwordTip}</span>
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
+                <Lock className="h-4 w-4" /> {text.currentPassword}
+              </span>
+              <input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} className={inputClass} autoComplete="current-password" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{text.newPassword}</span>
+              <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} className={inputClass} autoComplete="new-password" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{text.confirmPassword}</span>
+              <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className={inputClass} autoComplete="new-password" />
+            </label>
+            <button onClick={handleChangePassword} disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword} className="btn-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
+              <Save className="h-4 w-4" /> {text.savePassword}
+            </button>
           </div>
         </div>
       </div>

@@ -42,6 +42,7 @@ export const authApi = {
 export const userApi = {
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data: any) => api.put('/users/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) => api.put('/users/password', data),
 };
 
 export const apiKeysApi = {
