@@ -20,14 +20,14 @@ const copy = {
     balance: '当前余额',
     payHelp: '支付说明',
     help1: '支付成功后由 ZPay 回调自动入账，请不要在支付未完成时重复提交。',
-    help2: '如果余额长时间未更新，请提供订单号联系支持邮箱核查。',
+    help2: '如果余额长时间未更新，请提供订单号并通过支持邮箱联系我们核查。',
     contact: '联系我们',
     packages: '充值套餐',
     custom: '自定义金额',
     min: '最小充值金额 ¥1',
     channel: '支付通道',
     alipay: '支付宝',
-    alipayDesc: '跳转到支付宝收银台完成付款',
+    alipayDesc: '打开支付宝收银台完成付款',
     gateway: '当前网关',
     gatewayFallback: 'ZPay 在线支付',
     currentAmount: '本次充值金额',
@@ -190,7 +190,7 @@ export default function BalancePage() {
           <section className="console-card p-7">
             <h2 className="text-lg font-black text-slate-950 dark:text-white">{text.channel}</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <button className="rounded-xl border border-blue-400 bg-blue-500/10 p-5 text-left transition">
+              <button type="button" className="rounded-xl border border-blue-400 bg-blue-500/10 p-5 text-left transition">
                 <div className="text-xl font-black text-slate-950 dark:text-white">{text.alipay}</div>
                 <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">{text.alipayDesc}</div>
               </button>
