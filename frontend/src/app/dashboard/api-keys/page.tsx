@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { CalendarClock, Check, ChevronDown, Copy, Eye, Key, Plus, Search, Shield, Trash2, X } from 'lucide-react';
+import { CalendarClock, Check, ChevronDown, Copy, Download, Eye, ExternalLink, Key, Plus, Search, Shield, Trash2, X } from 'lucide-react';
 import { ApiBaseBadge, ConsolePage } from '@/components/console/ConsoleShell';
 import { apiKeysApi, modelsApi } from '@/lib/api';
 import { copyToClipboard, formatDate } from '@/lib/utils';
@@ -15,7 +15,6 @@ type TokenRecord = {
   status: 'ACTIVE' | 'DISABLED' | string;
   quota?: number | null;
   usedAmount?: number;
-  requestCount?: number;
   expiresAt?: string | null;
   lastUsed?: string | null;
   allowedModels?: string[] | null;
@@ -28,7 +27,21 @@ type ModelOption = {
   name: string;
 };
 
-type ImportClient = 'Cherry Studio' | 'AionUI' | 'DeepChat' | 'Lobe Chat' | 'OpenCat';
+type ImportClient =
+  | 'Cherry Studio'
+  | 'AionUI'
+  | 'DeepChat'
+  | 'Lobe Chat'
+  | 'OpenCat'
+  | 'Chatbox'
+  | 'NextChat'
+  | 'Cursor'
+  | 'Continue'
+  | 'Cline'
+  | 'Roo Code'
+  | 'Claude Code'
+  | 'Codex'
+  | 'VS Code';
 
 type ImportMenu = {
   token: TokenRecord;
@@ -36,12 +49,31 @@ type ImportMenu = {
   left: number;
 } | null;
 
-const importClients: ImportClient[] = ['Cherry Studio', 'AionUI', 'DeepChat', 'Lobe Chat', 'OpenCat'];
+const baseURL = 'https://matrixapi.online/v1';
+const defaultModels = ['gpt-4o-mini', 'gpt-4.1-mini', 'deepseek-chat', 'claude-sonnet-4-5-20250929', 'gemini-2.5-pro'];
+
+const importClients: { name: ImportClient; type: 'open' | 'copy' | 'download'; hint: string }[] = [
+  { name: 'Cherry Studio', type: 'open', hint: '打开客户端导入链接' },
+  { name: 'AionUI', type: 'open', hint: '打开客户端导入链接' },
+  { name: 'DeepChat', type: 'open', hint: '打开客户端导入链接' },
+  { name: 'Lobe Chat', type: 'open', hint: '打开网页配置页' },
+  { name: 'OpenCat', type: 'copy', hint: '复制 OpenAI 配置' },
+  { name: 'Chatbox', type: 'copy', hint: '复制 Chatbox 配置' },
+  { name: 'NextChat', type: 'copy', hint: '复制环境变量' },
+  { name: 'Cursor', type: 'copy', hint: '复制 OpenAI Base URL 配置' },
+  { name: 'Continue', type: 'download', hint: '下载 config.json 片段' },
+  { name: 'Cline', type: 'copy', hint: '复制 VS Code 扩展配置' },
+  { name: 'Roo Code', type: 'copy', hint: '复制 Roo Code 配置' },
+  { name: 'Claude Code', type: 'copy', hint: '复制环境变量' },
+  { name: 'Codex', type: 'copy', hint: '复制 Codex 环境变量' },
+  { name: 'VS Code', type: 'copy', hint: '复制通用 OpenAI 配置' },
+];
+
 const quickExpires = [
   { label: '永不过期', value: '' },
-  { label: '一小时', value: 'hour' },
-  { label: '一天', value: 'day' },
-  { label: '一个月', value: 'month' },
+  { label: '1 小时', value: 'hour' },
+  { label: '1 天', value: 'day' },
+  { label: '1 个月', value: 'month' },
 ];
 
 function maskKey(secret?: string) {
@@ -56,21 +88,52 @@ function formatQuota(token: TokenRecord) {
   return `${remain.toFixed(2)} / ${Number(token.quota).toFixed(2)}`;
 }
 
-function createImportConfig(client: ImportClient, secret: string) {
-  const baseURL = 'https://matrixapi.online/v1';
-  const payload = {
+function providerPayload(secret: string) {
+  return {
     name: 'MatrixAPI',
     provider: 'openai',
     apiKey: secret,
     baseURL,
-    models: ['gpt-4o-mini', 'gpt-4.1-mini', 'deepseek-chat', 'claude-sonnet-4-5-20250929'],
+    baseUrl: baseURL,
+    models: defaultModels,
   };
+}
 
-  if (client === 'Cherry Studio') return `cherrystudio://providers/import?data=${encodeURIComponent(JSON.stringify(payload))}`;
-  if (client === 'AionUI') return `aionui://provider/import?data=${encodeURIComponent(JSON.stringify(payload))}`;
-  if (client === 'DeepChat') return `deepchat://provider/import?data=${encodeURIComponent(JSON.stringify(payload))}`;
-  if (client === 'Lobe Chat') return `https://chat-preview.lobehub.com/settings/llm?provider=openai&endpoint=${encodeURIComponent(baseURL)}&apikey=${encodeURIComponent(secret)}`;
-  return JSON.stringify(payload, null, 2);
+function createImportConfig(client: ImportClient, secret: string) {
+  const payload = providerPayload(secret);
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+
+  if (client === 'Cherry Studio') return { action: 'open', value: `cherrystudio://providers/import?data=${encoded}` };
+  if (client === 'AionUI') return { action: 'open', value: `aionui://provider/import?data=${encoded}` };
+  if (client === 'DeepChat') return { action: 'open', value: `deepchat://provider/import?data=${encoded}` };
+  if (client === 'Lobe Chat') return { action: 'open', value: `https://chat-preview.lobehub.com/settings/llm?provider=openai&endpoint=${encodeURIComponent(baseURL)}&apikey=${encodeURIComponent(secret)}` };
+  if (client === 'Continue') {
+    return {
+      action: 'download',
+      filename: 'matrixapi-continue-config.json',
+      value: JSON.stringify({
+        models: [{ title: 'MatrixAPI GPT-4o Mini', provider: 'openai', model: 'gpt-4o-mini', apiBase: baseURL, apiKey: secret }],
+      }, null, 2),
+    };
+  }
+  if (client === 'NextChat') return { action: 'copy', value: `BASE_URL=${baseURL}\nOPENAI_API_KEY=${secret}` };
+  if (client === 'Claude Code') return { action: 'copy', value: `export ANTHROPIC_BASE_URL=${baseURL}\nexport ANTHROPIC_AUTH_TOKEN=${secret}` };
+  if (client === 'Codex') return { action: 'copy', value: `OPENAI_BASE_URL=${baseURL}\nOPENAI_API_KEY=${secret}` };
+  if (client === 'Cursor') return { action: 'copy', value: `OpenAI API Key: ${secret}\nOverride OpenAI Base URL: ${baseURL}` };
+  if (client === 'Cline' || client === 'Roo Code' || client === 'VS Code') {
+    return { action: 'copy', value: JSON.stringify({ provider: 'openai-compatible', apiKey: secret, baseUrl: baseURL, model: 'gpt-4o-mini' }, null, 2) };
+  }
+  return { action: 'copy', value: JSON.stringify(payload, null, 2) };
+}
+
+function downloadFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function buildExpiry(kind: string) {
@@ -84,9 +147,9 @@ function buildExpiry(kind: string) {
 
 function getMenuPosition(element: HTMLElement) {
   const rect = element.getBoundingClientRect();
-  const width = 210;
+  const width = 310;
   const left = Math.min(window.innerWidth - width - 16, Math.max(16, rect.right - width));
-  const top = Math.min(window.innerHeight - 260, rect.bottom + 8);
+  const top = Math.min(window.innerHeight - 520, rect.bottom + 8);
   return { top: Math.max(16, top), left };
 }
 
@@ -139,10 +202,7 @@ export default function ApiKeysPage() {
   }, [keyword, tokens]);
 
   const create = async () => {
-    if (!name.trim()) {
-      toast.error('请输入令牌名称');
-      return;
-    }
+    if (!name.trim()) return toast.error('请输入令牌名称');
 
     try {
       const payload: any = { name: name.trim() };
@@ -180,15 +240,16 @@ export default function ApiKeysPage() {
   };
 
   const importToClient = async (token: TokenRecord, client: ImportClient) => {
-    if (!token.secret) {
-      toast.error('无法读取完整密钥，请创建新令牌后立即导入');
-      return;
-    }
+    if (!token.secret) return toast.error('无法读取完整密钥，请创建新令牌后立即导入');
     const config = createImportConfig(client, token.secret);
-    if (config.startsWith('http') || config.includes('://')) {
-      window.open(config, '_blank', 'noopener,noreferrer');
+    if (config.action === 'open') {
+      window.open(config.value, '_blank', 'noopener,noreferrer');
+      toast.success(`正在打开 ${client} 导入链接`);
+    } else if (config.action === 'download') {
+      downloadFile(config.filename || 'matrixapi-config.json', config.value);
+      toast.success(`${client} 配置文件已下载`);
     } else {
-      await copyToClipboard(config);
+      await copyToClipboard(config.value);
       toast.success(`${client} 配置已复制`);
     }
     setImportMenu(null);
@@ -218,7 +279,7 @@ export default function ApiKeysPage() {
 
       {createdSecret && (
         <section className="mt-6 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-5 text-sm text-emerald-100">
-          <div className="font-black">令牌已创建，请立即复制保存，完整密钥仅建议在本次操作中使用。</div>
+          <div className="font-black">令牌已创建，请立即复制保存。完整密钥仅建议在本次操作中使用。</div>
           <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center">
             <code className="min-w-0 flex-1 overflow-auto rounded-lg bg-black/30 px-3 py-2 font-mono text-xs text-white">{createdSecret}</code>
             <button onClick={() => copyToClipboard(createdSecret)} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-400 px-4 text-sm font-black text-slate-950">
@@ -230,18 +291,23 @@ export default function ApiKeysPage() {
 
       <section className="console-card mt-7 p-0">
         <div className="overflow-x-auto">
-          <table className="min-w-[1180px] w-full text-left text-sm">
+          <table className="min-w-[1180px] w-full table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[11%]" />
+              <col className="w-[9%]" />
+              <col className="w-[13%]" />
+              <col className="w-[18%]" />
+              <col className="w-[10%]" />
+              <col className="w-[12%]" />
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+              <col className="w-[190px]" />
+            </colgroup>
             <thead className="border-b border-white/10 text-xs text-slate-500">
               <tr>
-                <th className="px-5 py-4">名称</th>
-                <th className="px-5 py-4">状态</th>
-                <th className="px-5 py-4">剩余额度 / 总额度</th>
-                <th className="px-5 py-4">密钥</th>
-                <th className="px-5 py-4">可用模型</th>
-                <th className="px-5 py-4">创建时间</th>
-                <th className="px-5 py-4">最后使用</th>
-                <th className="px-5 py-4">过期时间</th>
-                <th className="px-5 py-4 text-right">操作</th>
+                {['名称', '状态', '剩余额度 / 总额度', '密钥', '可用模型', '创建时间', '最后使用', '过期时间', '操作'].map((item) => (
+                  <th key={item} className={cn('px-5 py-4', item === '操作' && 'text-right')}>{item}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/8">
@@ -256,25 +322,25 @@ export default function ApiKeysPage() {
                     <td className="px-5 py-4 font-bold text-white">{token.name}</td>
                     <td className="px-5 py-4"><span className={cn('rounded-full px-2.5 py-1 text-xs font-bold', active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-300')}>{active ? '已启用' : '已禁用'}</span></td>
                     <td className="px-5 py-4">{formatQuota(token)}</td>
-                    <td className="px-5 py-4"><code className="rounded-lg bg-white/5 px-2.5 py-1 font-mono text-xs text-slate-200">{maskKey(token.secret)}</code></td>
+                    <td className="px-5 py-4"><code className="block truncate rounded-lg bg-white/5 px-2.5 py-1 font-mono text-xs text-slate-200">{maskKey(token.secret)}</code></td>
                     <td className="px-5 py-4">{token.allowedModels?.length ? `${token.allowedModels.length} 个模型` : '无限制'}</td>
                     <td className="px-5 py-4">{formatDate(token.createdAt)}</td>
                     <td className="px-5 py-4">{token.lastUsed ? formatDate(token.lastUsed) : '从未使用'}</td>
                     <td className="px-5 py-4">{token.expiresAt ? formatDate(token.expiresAt) : '永不过期'}</td>
                     <td className="px-5 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => token.secret && copyToClipboard(token.secret)} className="rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white" title="复制"><Copy className="h-4 w-4" /></button>
+                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                        <button onClick={() => token.secret && copyToClipboard(token.secret)} className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 hover:bg-white/8 hover:text-white" title="复制"><Copy className="h-4 w-4" /></button>
                         <button
                           onClick={(event) => {
                             const position = getMenuPosition(event.currentTarget);
                             setImportMenu((current) => current?.token.id === token.id ? null : { token, ...position });
                           }}
-                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white"
+                          className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-slate-300 hover:bg-white/8 hover:text-white"
                         >
                           导入 <ChevronDown className="h-3 w-3" />
                         </button>
-                        <button onClick={() => toggle(token.id)} className="rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white" title={active ? '禁用' : '启用'}><Eye className="h-4 w-4" /></button>
-                        <button onClick={() => remove(token.id)} className="rounded-lg px-2 py-1 text-red-400 hover:bg-red-500/10" title="删除"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => toggle(token.id)} className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 hover:bg-white/8 hover:text-white" title={active ? '禁用' : '启用'}><Eye className="h-4 w-4" /></button>
+                        <button onClick={() => remove(token.id)} className="grid h-9 w-9 place-items-center rounded-lg text-red-400 hover:bg-red-500/10" title="删除"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -289,12 +355,16 @@ export default function ApiKeysPage() {
         <>
           <button className="fixed inset-0 z-[80] cursor-default bg-transparent" onClick={() => setImportMenu(null)} aria-label="关闭导入菜单" />
           <div
-            className="fixed z-[90] w-[210px] rounded-xl border border-cyan-200/20 bg-[#111216] p-2 text-left shadow-2xl shadow-black/60 ring-1 ring-cyan-300/10 backdrop-blur-xl"
+            className="fixed z-[90] max-h-[min(520px,calc(100vh-32px))] w-[310px] overflow-y-auto rounded-xl border border-cyan-200/20 bg-[#111216] p-2 text-left shadow-2xl shadow-black/60 ring-1 ring-cyan-300/10 backdrop-blur-xl"
             style={{ top: importMenu.top, left: importMenu.left }}
           >
             {importClients.map((client) => (
-              <button key={client} onClick={() => importToClient(importMenu.token, client)} className="block h-10 w-full rounded-lg px-3 text-left text-sm font-bold text-slate-200 transition hover:bg-cyan-300/10 hover:text-cyan-100">
-                {client}
+              <button key={client.name} onClick={() => importToClient(importMenu.token, client.name)} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg px-3 text-left transition hover:bg-cyan-300/10">
+                <span>
+                  <span className="block text-sm font-black text-slate-100">{client.name}</span>
+                  <span className="text-xs text-slate-500">{client.hint}</span>
+                </span>
+                {client.type === 'open' ? <ExternalLink className="h-4 w-4 text-slate-500" /> : client.type === 'download' ? <Download className="h-4 w-4 text-slate-500" /> : <Copy className="h-4 w-4 text-slate-500" />}
               </button>
             ))}
           </div>
@@ -338,7 +408,7 @@ export default function ApiKeysPage() {
                   {models.map((model) => <option key={model.id} value={model.modelCode}>{model.name} / {model.modelCode}</option>)}
                 </select>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedModels.map((model) => <button key={model} onClick={() => setSelectedModels((current) => current.filter((item) => item !== model))} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{model} ×</button>)}
+                  {selectedModels.map((model) => <button key={model} onClick={() => setSelectedModels((current) => current.filter((item) => item !== model))} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{model} x</button>)}
                 </div>
               </div>
             </div>

@@ -10,38 +10,48 @@ export function SectionHeader({ eyebrow, title, desc, center = true }: { eyebrow
   return (
     <div className={`${center ? 'mx-auto text-center' : ''} mb-10 max-w-3xl`}>
       {eyebrow && <div className="mb-3 text-sm font-black uppercase tracking-[0.22em] text-cyan-300">{eyebrow}</div>}
-      <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">{title}</h2>
-      {desc && <p className="mt-4 text-base leading-8 text-slate-400">{desc}</p>}
+      <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">{title}</h2>
+      {desc && <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-400">{desc}</p>}
     </div>
   );
 }
 
-export function MarketingCard({ icon, title, desc, children }: { icon?: ReactNode; title: string; desc: string; children?: ReactNode }) {
-  return (
-    <div className="tech-surface group rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]">
+export function MarketingCard({ icon, title, desc, children, href }: { icon?: ReactNode; title: string; desc: string; children?: ReactNode; href?: string }) {
+  const className = 'tech-surface group rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]';
+  const content = (
+    <>
       {icon && <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300/10 text-cyan-300 ring-1 ring-cyan-300/20 transition group-hover:bg-cyan-300 group-hover:text-slate-950">{icon}</div>}
-      <h3 className="text-lg font-black text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-7 text-slate-400">{desc}</p>
+      <h3 className="text-lg font-black text-slate-950 dark:text-white">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-400">{desc}</p>
       {children}
-    </div>
+    </>
   );
+
+  if (href) return <Link href={href} className={`${className} block`}>{content}</Link>;
+  return <div className={className}>{content}</div>;
 }
 
 export function ModelMarquee({ title }: { title?: string }) {
   return (
     <section className="w-full overflow-hidden border-y border-white/10 bg-white/[0.035] py-12 backdrop-blur-md">
-      {title && <h2 className="mb-6 text-center text-sm font-black text-slate-400">{title}</h2>}
-      <div className="flex min-w-max animate-[marquee_22s_linear_infinite] gap-3">
+      {title && <h2 className="mb-6 text-center text-sm font-black text-slate-500 dark:text-slate-400">{title}</h2>}
+      <div className="marquee-track flex w-max gap-3">
         {[...heroModels, ...heroModels].map((model, index) => (
-          <span key={`${model}-${index}`} className="tech-surface rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-slate-200">
+          <Link key={`${model}-${index}`} href="/models" className="tech-surface rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-slate-800 dark:text-slate-200">
             {model}
-          </span>
+          </Link>
         ))}
       </div>
       <style jsx>{`
+        .marquee-track {
+          animation: marquee 28s linear infinite;
+        }
         @keyframes marquee {
           from { transform: translateX(0); }
           to { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .marquee-track { animation: none; }
         }
       `}</style>
     </section>
@@ -84,13 +94,13 @@ export function StepsBlock() {
   return (
     <div className="grid gap-4 md:grid-cols-4">
       {steps.map((step, index) => (
-        <div key={step.title} className="tech-surface relative rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-xl shadow-black/20">
+        <Link key={step.title} href={index === 0 ? '/register' : index === 1 ? '/dashboard/api-keys' : index === 2 ? '/docs' : '/solutions'} className="tech-surface relative rounded-[24px] border border-white/10 bg-white/[0.045] p-6 shadow-xl shadow-black/20">
           <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-slate-950">
             {index + 1}
           </div>
-          <h3 className="text-lg font-black text-white">{step.title}</h3>
-          <p className="mt-3 text-sm leading-7 text-slate-400">{step.desc}</p>
-        </div>
+          <h3 className="text-lg font-black text-slate-950 dark:text-white">{step.title}</h3>
+          <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-400">{step.desc}</p>
+        </Link>
       ))}
     </div>
   );
@@ -104,7 +114,7 @@ export function CTASection({ title = '开始使用 AI API 构建你的应用', d
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-cyan-300/12 px-4 py-2 text-sm font-black text-cyan-200">
               <CheckCircle className="h-4 w-4" />
-              OpenAI 兼容 · 多模型聚合 · 统一计费
+              OpenAI 兼容 / 多模型聚合 / 统一计费
             </div>
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h2>
             <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300">{desc}</p>

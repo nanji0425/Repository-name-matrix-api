@@ -40,9 +40,9 @@ export const dictionary = {
   apiAddress: { zh: 'API地址：', en: 'API URL:' },
   platformServices: { zh: '平台服务', en: 'Platform' },
   developerSupport: { zh: '开发者支持', en: 'Developers' },
-  contactQq: { zh: '联系 QQ：', en: 'QQ:' },
+  contactQq: { zh: '联系邮箱：', en: 'Email:' },
   footerDesc: {
-    zh: '您的企业级 AI 网关底座。一次接入，便可拥抱不断演进、全球最顶级的大模型推理时代。',
+    zh: '您的企业级 AI 网关底座。一次接入，即可调用主流大模型。',
     en: 'Enterprise-grade AI gateway infrastructure for accessing leading models through one unified API.',
   },
   pricing: { zh: '模型与定价', en: 'Models & Pricing' },
@@ -99,7 +99,7 @@ interface LocaleState {
   hydrateLocale: () => void;
   toggleLocale: () => void;
   setLocale: (locale: Locale) => void;
-  t: (key: keyof typeof dictionary) => string;
+  t: (key: TranslationKey) => string;
 }
 
 export const useLocaleStore = create<LocaleState>((set, get) => ({

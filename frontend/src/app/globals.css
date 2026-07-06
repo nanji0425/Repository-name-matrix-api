@@ -148,6 +148,25 @@ body {
   box-shadow: 0 12px 26px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
+html:not(.dark) .matrix-marketing-shell .text-white,
+html:not(.dark) .console-shell .text-white {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .matrix-marketing-shell .text-slate-400,
+html:not(.dark) .matrix-marketing-shell .text-slate-500,
+html:not(.dark) .console-shell .text-slate-400,
+html:not(.dark) .console-shell .text-slate-500 {
+  color: #475569 !important;
+}
+
+html:not(.dark) .matrix-marketing-shell .bg-white\/\[0\.045\],
+html:not(.dark) .matrix-marketing-shell .bg-white\/\[0\.035\],
+html:not(.dark) .console-shell .bg-white\/\[0\.03\],
+html:not(.dark) .console-shell .bg-white\/\[0\.045\] {
+  background-color: rgba(255, 255, 255, 0.62) !important;
+}
+
 body::before {
   content: '';
   position: fixed;
