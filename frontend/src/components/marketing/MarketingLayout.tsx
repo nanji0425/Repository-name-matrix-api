@@ -1,10 +1,12 @@
 ﻿'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { ArrowRight, ChevronDown, Grid2X2, Lock, Menu, Moon, Sparkles, User, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, Grid2X2, Lock, Menu, Sparkles, User, X } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useAuthStore } from '@/stores/authStore';
 import { brand, navLinks } from './marketingData';
 
@@ -40,7 +42,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="hidden items-center gap-4 lg:flex">
-            <Moon className="h-4 w-4 text-slate-500" />
+            <ThemeToggle />
             {isAuthenticated ? (
               <div className="relative">
                 <button onClick={() => setUserMenuOpen((open) => !open)} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-slate-950">
@@ -99,8 +101,8 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
 export function BrandLogo() {
   return (
     <Link href="/" className="flex items-center gap-3 text-xl font-black tracking-tight text-white">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-950 shadow-xl shadow-black/30">
-        <span className="text-base leading-none">◈</span>
+      <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white text-slate-950 shadow-xl shadow-black/30">
+        <Image src="/logo-mark.svg" alt="MatrixAPI" width={36} height={36} priority />
       </span>
       {brand.name}
     </Link>
@@ -113,11 +115,13 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1200px] gap-10 px-6 lg:grid-cols-[1.1fr_2fr]">
         <div>
           <div className="flex items-center gap-3 text-xl font-black">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-950">◈</span>
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-white text-slate-950">
+              <Image src="/logo-mark.svg" alt="MatrixAPI" width={32} height={32} />
+            </span>
             {brand.name}
           </div>
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-500">您的企业级 AI 网关底座。一次接入，便可拥抱不断演进、全球最顶级的大模型推理时代。</p>
-          <p className="mt-4 text-sm text-slate-500">客服邮箱： <span className="font-bold text-white">{brand.email}</span></p>
+          <p className="mt-4 text-sm text-slate-500">联系 QQ： <span className="font-bold text-white">3315419516</span></p>
         </div>
         <div className="grid gap-8 sm:grid-cols-3">
           <FooterGroup title="平台服务" links={[["模型与定价", '/models'], ['API 中转服务', '/api-gateway'], ['解决方案中心', '/solutions']]} />
@@ -179,8 +183,8 @@ function AuthModal({ mode, title, onClose, onSwitch, onSuccess }: { mode: AuthMo
         <p className="mt-2 text-sm text-slate-400">{mode === 'register' ? '注册 API 平台账户，获取 API Key' : '登录到您的 API 平台账户'}</p>
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-          <DarkField icon={<User className="h-4 w-4" />} label={mode === 'login' ? '邮箱或用户名' : '用户名'}>
-            <input value={username} onChange={(event) => setUsername(event.target.value)} className="matrix-auth-input" placeholder={mode === 'login' ? '请输入邮箱或用户名' : '请输入用户名'} required />
+          <DarkField icon={<User className="h-4 w-4" />} label="用户名">
+            <input value={username} onChange={(event) => setUsername(event.target.value)} className="matrix-auth-input" placeholder="请输入用户名" required />
           </DarkField>
           <DarkField icon={<Lock className="h-4 w-4" />} label="密码">
             <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="matrix-auth-input" placeholder="请输入密码" required />

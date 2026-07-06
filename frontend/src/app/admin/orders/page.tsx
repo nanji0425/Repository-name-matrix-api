@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ordersApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, RefreshCw, ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const limit = 20;
@@ -28,6 +28,7 @@ const payTypeText: Record<string, string> = {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -45,12 +46,12 @@ export default function AdminOrdersPage() {
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
       const { data } = await ordersApi.listAll(params);
-      const items = data.data || data.orders || data || [];
+      const items = data.items || data.data || data.orders || [];
       setOrders(Array.isArray(items) ? items : []);
       setTotalPages(data.totalPages || Math.ceil((data.total || 0) / limit) || 1);
       setTotal(data.total || 0);
-    } catch {
-      toast.error('订单加载失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '订单加载失败');
     } finally {
       setLoading(false);
     }
@@ -69,6 +70,22 @@ export default function AdminOrdersPage() {
     setStartDate('');
     setEndDate('');
     setPage(1);
+  };
+
+  const confirmOrder = async (order: any) => {
+    const id = order.id || order._id;
+    if (!id || !window.confirm(`确认订单 ${order.orderNo || id} 已到账并给用户加余额？`)) return;
+
+    setUpdatingId(id);
+    try {
+      await ordersApi.updateStatus(id, 'COMPLETED');
+      toast.success('订单已确认并入账');
+      await load(page);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '确认订单失败');
+    } finally {
+      setUpdatingId('');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -94,7 +111,10 @@ export default function AdminOrdersPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">订单管理</h1>
-        <div className="text-sm text-gray-500">共 {total} 个订单</div>
+        <button onClick={() => load(page)} className="btn-secondary inline-flex items-center gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          刷新
+        </button>
       </div>
 
       <div className="card mb-6 p-4">
@@ -147,26 +167,42 @@ export default function AdminOrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">订单号</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">用户</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">金额</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">支付方式</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">状态</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">创建时间</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {orders.map((order: any) => {
                   const status = order.status || 'PENDING';
                   const payType = order.payType || order.paymentMethod || '';
+                  const id = order.id || order._id;
                   return (
-                    <tr key={order.id || order._id || order.orderNo} className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-sm text-gray-500">{(order.id || order._id || '').substring(0, 8)}...</td>
+                    <tr key={id || order.orderNo} className="transition-colors hover:bg-gray-50">
+                      <td className="px-4 py-3 font-mono text-sm text-gray-500">{order.orderNo || `${String(id || '').substring(0, 8)}...`}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{getUserName(order)}</td>
                       <td className="px-4 py-3 text-right font-mono text-sm font-medium">{formatCurrency(parseFloat(order.amount) || 0)}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{payTypeText[payType] || payType || '-'}</td>
                       <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>{statusText[status] || status}</span></td>
                       <td className="px-4 py-3 text-sm text-gray-500">{order.createdAt ? formatDate(order.createdAt) : '-'}</td>
+                      <td className="px-4 py-3 text-right">
+                        {status === 'PENDING' ? (
+                          <button
+                            onClick={() => confirmOrder(order)}
+                            disabled={updatingId === id}
+                            className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            {updatingId === id ? '确认中' : '确认入账'}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

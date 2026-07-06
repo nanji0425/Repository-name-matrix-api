@@ -1,16 +1,23 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { ArrowRight, KeyRound, Lock, Sparkles, User, X } from 'lucide-react';
+import { KeyRound, Lock, User, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', inviteCode: '' });
   const { register, isLoading } = useAuthStore();
   const router = useRouter();
+
+  useEffect(() => {
+    const invite = new URLSearchParams(window.location.search).get('invite');
+    if (invite) {
+      setForm((current) => ({ ...current, inviteCode: invite }));
+    }
+  }, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -42,7 +49,7 @@ export default function RegisterPage() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center">
         <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
         <div className="relative z-10 w-full max-w-[470px] rounded-[24px] border border-white/10 bg-[#151518] p-8 shadow-2xl shadow-black/60">
-          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white">
+          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white" aria-label="关闭">
             <X className="h-5 w-5" />
           </button>
           <h1 className="text-3xl font-black text-white">创建账户</h1>
@@ -62,13 +69,13 @@ export default function RegisterPage() {
               <input value={form.inviteCode} onChange={(event) => setForm({ ...form, inviteCode: event.target.value })} className="matrix-auth-input" placeholder="请输入邀请码（可选）" />
             </Field>
             <button type="submit" disabled={isLoading} className="h-12 w-full rounded-full bg-white text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:opacity-60">
-              {isLoading ? '正在提交...' : '注册账号'}
+              {isLoading ? '正在提交...' : '注册账户'}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-400">
-            已有账户？{' '}
-            <Link href="/login" className="font-black text-white hover:underline">
+            已有账户？
+            <Link href="/login" className="ml-1 font-black text-white hover:underline">
               登录
             </Link>
           </p>

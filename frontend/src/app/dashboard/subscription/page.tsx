@@ -1,70 +1,49 @@
 'use client';
 
-import { CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { CheckCircle2, CreditCard, Sparkles } from 'lucide-react';
+import { ConsolePage } from '@/components/console/ConsoleShell';
 
 const plans = [
-  { name: '50 Monthly Plan', price: '$50/mo', credit: '$55.00', duration: '1 month', popular: false },
-  { name: '110 Monthly Plan', price: '$100/mo', credit: '$111.00', duration: '1 month', popular: true },
-  { name: '200 Monthly Plan', price: '$200/mo', credit: '$222.00', duration: '1 month', popular: false },
+  { name: '入门版', price: '¥50', quota: '55', duration: '1 个月', popular: false },
+  { name: '标准版', price: '¥100', quota: '111', duration: '1 个月', popular: true },
+  { name: '旗舰版', price: '¥200', quota: '222', duration: '1 个月', popular: false },
 ];
 
 export default function SubscriptionPage() {
   return (
-    <div>
-      <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Subscription Plans</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 24 }}>
-        Subscribe to a plan and enjoy full access to all AI models.
-      </p>
+    <ConsolePage className="pb-24">
+      <div>
+        <h1 className="text-3xl font-black text-white">订阅计划</h1>
+        <p className="mt-2 text-sm text-slate-400">选择适合你的充值方案，直接跳转到余额充值页完成支付。</p>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 900 }}>
+      <div className="mt-7 grid gap-4 lg:grid-cols-3">
         {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className="ant-card"
-            style={{
-              position: 'relative',
-              textAlign: 'center',
-              border: plan.popular ? '2px solid var(--primary)' : undefined,
-            }}
-          >
+          <div key={plan.name} className={`console-card relative p-6 ${plan.popular ? 'border-cyan-300/40 bg-cyan-950/20' : ''}`}>
             {plan.popular && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: -12,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'var(--primary)',
-                  color: '#fff',
-                  fontSize: 12,
-                  padding: '2px 16px',
-                  borderRadius: 12,
-                  fontWeight: 500,
-                }}
-              >
-                POPULAR
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-cyan-300 px-3 py-1 text-xs font-black text-slate-950">
+                推荐
               </div>
             )}
-            <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{plan.price}</div>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
-              {plan.credit} credit · {plan.duration}
+            <div className="flex items-center gap-3 text-white">
+              <Sparkles className="h-5 w-5 text-cyan-300" />
+              <h2 className="text-xl font-black">{plan.name}</h2>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Full AI model access
+            <div className="mt-4 text-3xl font-black text-white">{plan.price}</div>
+            <div className="mt-2 text-sm text-slate-400">到账额度 ¥{plan.quota}，有效期 {plan.duration}</div>
+            <div className="mt-5 space-y-2 text-sm text-slate-300">
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> 全模型可用</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> 支持自动充值记录</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> 可与活动奖励叠加</div>
             </div>
-            <button className="ant-btn ant-btn-primary" style={{ width: '100%' }}>
-              Subscribe
-            </button>
+            <Link href="/dashboard/balance" className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-black text-slate-950 transition hover:bg-cyan-100">
+              <CreditCard className="h-4 w-4" />
+              立即充值
+            </Link>
           </div>
         ))}
       </div>
-
-      <div style={{ marginTop: 32 }}>
-        <Link href="/dashboard/balance" style={{ color: 'var(--primary)', fontSize: 14 }}>
-          Prefer pay-as-you-go? Recharge instead →
-        </Link>
-      </div>
-    </div>
+    </ConsolePage>
   );
 }

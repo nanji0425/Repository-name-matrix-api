@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { commissionsApi } from '@/lib/api';
-import { formatDate, formatCurrency } from '@/lib/utils';
-import { Gift } from 'lucide-react';
+import { adminApi } from '@/lib/api';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const limit = 20;
 
 const statusText: Record<string, string> = {
   PAID: '已支付',
@@ -18,23 +20,33 @@ export default function AdminCommissionsPage() {
   const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const load = async (status?: string) => {
+  const load = async (nextPage = page, status = statusFilter) => {
     setLoading(true);
     try {
-      const { data } = await commissionsApi.list();
-      const items = data.data || data.commissions || data || [];
-      let filtered = Array.isArray(items) ? items : [];
-      if (status) filtered = filtered.filter((commission: any) => commission.status === status);
-      setCommissions(filtered);
-    } catch {
-      toast.error('佣金记录加载失败');
+      const params: any = { page: nextPage, limit };
+      if (status) params.status = status;
+      const { data } = await adminApi.listAllCommissions(params);
+      setCommissions(data.data || data.items || []);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '佣金记录加载失败');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page, statusFilter); }, [page]);
+
+  const changeStatus = (status: string) => {
+    setStatusFilter(status);
+    setPage(1);
+    load(1, status);
+  };
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -57,21 +69,14 @@ export default function AdminCommissionsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">佣金管理</h1>
-        <div className="text-sm text-gray-500">共 {commissions.length} 条记录</div>
+        <div className="text-sm text-gray-500">共 {total || commissions.length} 条记录</div>
       </div>
 
       <div className="card mb-6 p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">按状态筛选</label>
-            <select
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value);
-                load(event.target.value);
-              }}
-              className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
-            >
+            <select value={statusFilter} onChange={(event) => changeStatus(event.target.value)} className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">全部状态</option>
               <option value="PENDING">待结算</option>
               <option value="PAID">已支付</option>
@@ -81,7 +86,7 @@ export default function AdminCommissionsPage() {
             </select>
           </div>
           {statusFilter && (
-            <button onClick={() => { setStatusFilter(''); load(''); }} className="btn-secondary">
+            <button onClick={() => changeStatus('')} className="btn-secondary">
               清空筛选
             </button>
           )}
@@ -101,7 +106,7 @@ export default function AdminCommissionsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">用户</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">返佣用户</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">被邀请用户</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">金额</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">比例</th>
@@ -115,7 +120,7 @@ export default function AdminCommissionsPage() {
                   return (
                     <tr key={commission.id || commission._id} className="transition-colors hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium">{getUserName(commission.user || commission.userId)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{getUserName(commission.invitedUser || commission.invitedUserId)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{getUserName(commission.inviteUser || commission.invitedUser || commission.inviteUserId || commission.invitedUserId)}</td>
                       <td className="px-4 py-3 text-right font-mono text-sm font-medium">{formatCurrency(parseFloat(commission.amount) || 0)}</td>
                       <td className="px-4 py-3 text-right font-mono text-sm text-gray-600">
                         {commission.rate != null ? `${(parseFloat(commission.rate) * 100).toFixed(1)}%` : '-'}
@@ -131,6 +136,20 @@ export default function AdminCommissionsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between rounded-lg border-t border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="text-sm text-gray-500">第 {page} / {totalPages} 页，共 {total} 条</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} className="btn-secondary px-3 py-1.5 disabled:opacity-50">
+              <ChevronLeft className="h-4 w-4" /> 上一页
+            </button>
+            <button onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} className="btn-secondary px-3 py-1.5 disabled:opacity-50">
+              下一页 <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

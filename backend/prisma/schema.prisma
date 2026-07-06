@@ -50,6 +50,7 @@ model ApiKey {
   requestCount Int       @default(0)
   expiresAt    DateTime?
   lastUsed     DateTime?
+  allowedModels Json?
   createdAt    DateTime  @default(now())
 
   user       User         @relation(fields: [userId], references: [id])

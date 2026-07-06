@@ -6,6 +6,11 @@ import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 export class AnnouncementsService {
   constructor(private prisma: PrismaService) {}
 
+  private parseOptionalDate(value: string | null | undefined) {
+    if (!value) return null;
+    return new Date(value);
+  }
+
   /**
    * List published announcements (user-facing).
    * Filters by published=true and optional date range.
@@ -85,8 +90,8 @@ export class AnnouncementsService {
         content: dto.content,
         priority: dto.priority ?? 0,
         published: dto.published ?? false,
-        startAt: dto.startAt ? new Date(dto.startAt) : null,
-        endAt: dto.endAt ? new Date(dto.endAt) : null,
+        startAt: this.parseOptionalDate(dto.startAt),
+        endAt: this.parseOptionalDate(dto.endAt),
       },
     });
   }
@@ -107,8 +112,8 @@ export class AnnouncementsService {
         ...(dto.content !== undefined && { content: dto.content }),
         ...(dto.priority !== undefined && { priority: dto.priority }),
         ...(dto.published !== undefined && { published: dto.published }),
-        ...(dto.startAt !== undefined && { startAt: new Date(dto.startAt) }),
-        ...(dto.endAt !== undefined && { endAt: new Date(dto.endAt) }),
+        ...(dto.startAt !== undefined && { startAt: this.parseOptionalDate(dto.startAt) }),
+        ...(dto.endAt !== undefined && { endAt: this.parseOptionalDate(dto.endAt) }),
       },
     });
   }

@@ -9,44 +9,59 @@ export type MarketingModel = {
   multiplier?: number;
 };
 
-export const SUPPLIER_OPTIONS = [
-  '全部供应商',
-  'Runway',
-  'Fast mode',
-  'OpenAI',
-  'Google',
-  '字节跳动',
-  'MiniMax',
-  'Anthropic',
-  'DeepSeek',
-  '未知供应商',
-];
-
-export const GROUP_OPTIONS = ['全部分组', '聊天分组', '视频分组', 'gemini图片分组'];
-export const BILLING_OPTIONS = ['全部类型', '按量计费', '按次计费'];
+const gatewayProviderNames = ['hohoapi', 'n1n', 'matrixapi', 'new api', 'new-api', 'api'];
 
 const providerMatchers: Array<[string, string[]]> = [
-  ['OpenAI', ['gpt', 'o1', 'o3', 'o4', 'dall', 'whisper', 'tts', 'openai']],
+  ['OpenAI', ['gpt', 'o1', 'o3', 'o4', 'openai', 'dall', 'whisper', 'tts', 'sora']],
   ['DeepSeek', ['deepseek']],
   ['Anthropic', ['claude', 'anthropic']],
   ['Google', ['gemini', 'google', 'veo']],
+  ['xAI', ['grok', 'xai']],
+  ['ByteDance', ['doubao', 'seed', 'jimeng', 'bytedance', 'volc', 'hunyuan']],
   ['MiniMax', ['hailuo', 'minimax']],
   ['Runway', ['runway']],
-  ['字节跳动', ['doubao', 'seed', 'jimeng', 'bytedance', '字节', '豆包', '即梦']],
-  ['Fast mode', ['fast']],
+  ['Qwen', ['qwen', 'qwq']],
+  ['Midjourney', ['midjourney']],
+  ['Stability', ['stable', 'sd', 'flux', 'stability']],
+  ['Luma', ['luma']],
+  ['Kling', ['kling']],
+  ['Moonshot', ['moonshot', 'kimi']],
 ];
 
-const videoKeywords = ['video', 'sora', 'veo', 'runway', 'kling', 'pika', 'hailuo', 'jimeng', '即梦', '视频'];
-const imageKeywords = ['image', 'dall', 'sd', 'flux', 'midjourney', 'stable', 'gemini-image', '图片', '图像'];
+const videoKeywords = ['video', 'sora', 'veo', 'runway', 'kling', 'pika', 'hailuo', 'jimeng', '视频'];
+const imageKeywords = ['image', 'dall', 'sd', 'flux', 'midjourney', 'stable', 'gemini-image', '图像', '图片'];
 const audioKeywords = ['audio', 'tts', 'whisper', 'voice', 'speech', 'music', '语音', '音频'];
+
+export const SUPPLIER_OPTIONS = [
+  '全部供应商',
+  'OpenAI',
+  'DeepSeek',
+  'Anthropic',
+  'Google',
+  'xAI',
+  'ByteDance',
+  'MiniMax',
+  'Runway',
+  'Qwen',
+  'Midjourney',
+  'Stability',
+  'Luma',
+  'Kling',
+  'Moonshot',
+  '未知供应商',
+];
+
+export const GROUP_OPTIONS = ['全部分组', '聊天模型', '图像模型', '视频模型', '语音模型', '嵌入模型'];
+export const BILLING_OPTIONS = ['全部类型', '按量计费', '按次计费'];
 
 export function getModelCode(model: MarketingModel) {
   return model.modelCode || model.name || model.id || 'unknown-model';
 }
 
 function searchableText(model: MarketingModel) {
-  const provider = typeof model.provider === 'string' ? model.provider : model.provider?.name || model.provider?.id || model.providerId || '';
-  return `${getModelCode(model)} ${model.name || ''} ${provider}`.toLowerCase();
+  const providerText = typeof model.provider === 'string' ? model.provider : model.provider?.name || model.provider?.id || model.providerId || '';
+  const safeProviderText = gatewayProviderNames.some((keyword) => providerText.toLowerCase().includes(keyword)) ? '' : providerText;
+  return `${getModelCode(model)} ${model.name || ''} ${safeProviderText}`.toLowerCase();
 }
 
 export function getProviderName(model: MarketingModel) {
@@ -57,9 +72,11 @@ export function getProviderName(model: MarketingModel) {
 
 export function getModelGroups(model: MarketingModel) {
   const text = searchableText(model);
-  if (text.includes('gemini') && imageKeywords.some((keyword) => text.includes(keyword))) return ['gemini图片分组'];
-  if (videoKeywords.some((keyword) => text.includes(keyword))) return ['视频分组'];
-  return ['聊天分组'];
+  if (audioKeywords.some((keyword) => text.includes(keyword))) return ['语音模型'];
+  if (videoKeywords.some((keyword) => text.includes(keyword))) return ['视频模型'];
+  if (imageKeywords.some((keyword) => text.includes(keyword))) return ['图像模型'];
+  if (text.includes('embed') || text.includes('embedding')) return ['嵌入模型'];
+  return ['聊天模型'];
 }
 
 export function getBillingType(model: MarketingModel) {

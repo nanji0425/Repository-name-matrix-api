@@ -31,7 +31,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={dark ? '切换到浅色模式' : '切换到深色模式'}
     >
       {dark ? (
         <Sun className="w-4 h-4 text-yellow-500" />

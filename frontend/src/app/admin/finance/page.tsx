@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ordersApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { DollarSign, TrendingUp, CreditCard, CheckCircle } from 'lucide-react';
+import { CheckCircle, CreditCard, DollarSign, RefreshCw, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const statusText: Record<string, string> = {
@@ -13,6 +13,14 @@ const statusText: Record<string, string> = {
   FAILED: '失败',
   CANCELLED: '已取消',
   REFUNDED: '已退款',
+};
+
+const payTypeText: Record<string, string> = {
+  ALIPAY: '支付宝',
+  WECHAT: '微信',
+  CREDIT_CARD: '信用卡',
+  BALANCE: '余额',
+  CRYPTO: '加密货币',
 };
 
 export default function AdminFinancePage() {
@@ -25,30 +33,43 @@ export default function AdminFinancePage() {
   const load = async () => {
     setLoading(true);
     try {
-      const params: any = {};
+      const params: any = { limit: 100 };
       if (statusFilter) params.status = statusFilter;
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
       const { data } = await ordersApi.listAll(params);
-      setOrders(data.data || data.orders || data || []);
-    } catch {
-      toast.error('财务数据加载失败');
+      const items = data.items || data.data || data.orders || [];
+      setOrders(Array.isArray(items) ? items : []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '财务数据加载失败');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  const totalRevenue = Array.isArray(orders)
-    ? orders.reduce((sum, order) => sum + (parseFloat(order.amount) || 0), 0)
-    : 0;
-  const completedOrders = Array.isArray(orders)
-    ? orders.filter((order) => order.status === 'COMPLETED' || order.status === 'SUCCESS').length
-    : 0;
-  const pendingOrders = Array.isArray(orders)
-    ? orders.filter((order) => order.status === 'PENDING').length
-    : 0;
+  const clearFilter = async () => {
+    setStatusFilter('');
+    setStartDate('');
+    setEndDate('');
+    setLoading(true);
+    try {
+      const { data } = await ordersApi.listAll({ limit: 100 });
+      const items = data.items || data.data || data.orders || [];
+      setOrders(Array.isArray(items) ? items : []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '财务数据加载失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const paidOrders = Array.isArray(orders) ? orders.filter((order) => order.status === 'COMPLETED' || order.status === 'SUCCESS') : [];
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + (parseFloat(order.amount) || 0), 0);
+  const pendingOrders = Array.isArray(orders) ? orders.filter((order) => order.status === 'PENDING').length : 0;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -71,7 +92,13 @@ export default function AdminFinancePage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">财务总览</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">财务总览</h1>
+        <button onClick={load} className="btn-secondary inline-flex items-center gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          刷新
+        </button>
+      </div>
 
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="card p-5">
@@ -79,20 +106,20 @@ export default function AdminFinancePage() {
             <DollarSign className="h-5 w-5 text-green-600" />
           </div>
           <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-          <div className="text-sm text-gray-500">累计收入</div>
+          <div className="text-sm text-gray-500">已完成收入</div>
         </div>
         <div className="card p-5">
           <div className="mb-3 inline-flex rounded-lg bg-blue-50 p-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold">{Array.isArray(orders) ? orders.length : 0}</div>
-          <div className="text-sm text-gray-500">订单总数</div>
+          <div className="text-2xl font-bold">{orders.length}</div>
+          <div className="text-sm text-gray-500">当前列表订单</div>
         </div>
         <div className="card p-5">
           <div className="mb-3 inline-flex rounded-lg bg-purple-50 p-2">
             <CheckCircle className="h-5 w-5 text-purple-600" />
           </div>
-          <div className="text-2xl font-bold">{completedOrders}</div>
+          <div className="text-2xl font-bold">{paidOrders.length}</div>
           <div className="text-sm text-gray-500">已完成</div>
         </div>
         <div className="card p-5">
@@ -126,13 +153,13 @@ export default function AdminFinancePage() {
             <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <button onClick={load} className="btn-primary">应用筛选</button>
-          <button onClick={() => { setStatusFilter(''); setStartDate(''); setEndDate(''); load(); }} className="btn-secondary">清空</button>
+          <button onClick={clearFilter} className="btn-secondary">清空</button>
         </div>
       </div>
 
       {loading ? (
         <div className="card p-12 text-center text-gray-400">正在加载...</div>
-      ) : !Array.isArray(orders) || orders.length === 0 ? (
+      ) : orders.length === 0 ? (
         <div className="card p-12 text-center">
           <DollarSign className="mx-auto mb-4 h-12 w-12 text-gray-300" />
           <p className="text-gray-500">暂无订单</p>
@@ -154,13 +181,16 @@ export default function AdminFinancePage() {
               <tbody className="divide-y divide-gray-100">
                 {orders.map((order: any) => {
                   const status = order.status || 'PENDING';
+                  const payType = order.payType || order.paymentMethod || '';
                   return (
                     <tr key={order.id || order._id || order.orderNo} className="transition-colors hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-sm font-medium">{order.orderNo || order.id?.substring(0, 12) || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{getUserName(order)}</td>
                       <td className="px-4 py-3 text-right font-mono text-sm font-medium">{formatCurrency(parseFloat(order.amount) || 0)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{order.payType || order.paymentMethod || '-'}</td>
-                      <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>{statusText[status] || status}</span></td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{payTypeText[payType] || payType || '-'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>{statusText[status] || status}</span>
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-500">{order.createdAt ? formatDate(order.createdAt) : '-'}</td>
                     </tr>
                   );

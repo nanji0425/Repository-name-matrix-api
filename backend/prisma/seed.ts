@@ -14,84 +14,118 @@ function withMarkup(price: number): number {
   return Number((price * PRICE_MARKUP).toFixed(8));
 }
 
+function getRequiredUpstreamApiKey() {
+  const apiKey = process.env.UPSTREAM_API_KEY || process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('UPSTREAM_API_KEY must be set before seeding production data');
+  }
+  return apiKey;
+}
+
 async function main() {
   console.log('Seeding MatrixAPI database...');
 
-  const adminHash = await bcrypt.hash('admin123456', 10);
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword || adminPassword.length < 12) {
+    throw new Error('ADMIN_PASSWORD must be set to at least 12 characters before seeding production data');
+  }
+  const demoEnabled = process.env.ENABLE_DEMO_DATA === 'true';
+  const demoPassword = process.env.DEMO_PASSWORD;
+  if (demoEnabled && (!demoPassword || demoPassword.length < 12)) {
+    throw new Error('DEMO_PASSWORD must be set to at least 12 characters when ENABLE_DEMO_DATA=true');
+  }
+  const upstreamBaseUrl = process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1';
+  const upstreamApiKey = getRequiredUpstreamApiKey();
+  const upstreamPayload = await loadUpstreamPayload(upstreamBaseUrl, upstreamApiKey);
+
+  const adminHash = await bcrypt.hash(adminPassword, 10);
   await prisma.user.upsert({
-    where: { username: 'admin' },
-    update: {},
+    where: { username: adminUsername },
+    update: {
+      passwordHash: adminHash,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
     create: {
-      username: 'admin',
-      email: 'admin@matrixapi.ai',
+      username: adminUsername,
+      email: process.env.ADMIN_EMAIL || `${adminUsername}@matrixapi.local`,
       passwordHash: adminHash,
       role: 'ADMIN',
       balance: 999999,
       inviteCode: 'ADMIN001',
     },
   });
-  console.log('Admin user: admin / admin123456');
-
-  const userHash = await bcrypt.hash('user123456', 10);
-  const demoUser = await prisma.user.upsert({
-    where: { username: 'demo' },
-    update: {},
-    create: {
-      username: 'demo',
-      email: 'demo@matrixapi.ai',
-      passwordHash: userHash,
-      role: 'USER',
-      balance: 100,
-      inviteCode: 'DEMO001',
-    },
-  });
-  console.log('Demo user: demo / user123456');
+  console.log(`Admin user created or verified: ${adminUsername}`);
 
   await prisma.provider.upsert({
     where: { id: UPSTREAM_PROVIDER_ID },
     update: {
-      name: 'n1n',
-      baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.n1n.ai/v1',
-      apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
+      name: 'bblabu',
+      baseUrl: upstreamBaseUrl,
+      apiKey: upstreamApiKey,
       priority: 1,
       status: 'ACTIVE',
     },
     create: {
       id: UPSTREAM_PROVIDER_ID,
-      name: 'n1n',
-      baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.n1n.ai/v1',
-      apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
+      name: 'bblabu',
+      baseUrl: upstreamBaseUrl,
+      apiKey: upstreamApiKey,
       priority: 1,
       status: 'ACTIVE',
     },
   });
-  console.log('Provider created: n1n');
+  console.log('Provider created: bblabu');
 
-  await seedModels();
+  await seedModels(upstreamPayload);
 
-  await prisma.apiKey.upsert({
-    where: { secret: 'sk-demo-matrix-api-key-for-testing' },
-    update: {},
-    create: {
-      userId: demoUser.id,
-      name: 'Demo Key',
-      secret: 'sk-demo-matrix-api-key-for-testing',
-    },
-  });
-  console.log('Demo API key: sk-demo-matrix-api-key-for-testing');
+  if (demoEnabled) {
+    const userHash = await bcrypt.hash(demoPassword, 10);
+    const demoUser = await prisma.user.upsert({
+      where: { username: 'demo' },
+      update: {
+        passwordHash: userHash,
+        status: 'ACTIVE',
+      },
+      create: {
+        username: 'demo',
+        email: 'demo@matrixapi.ai',
+        passwordHash: userHash,
+        role: 'USER',
+        balance: 100,
+        inviteCode: 'DEMO001',
+      },
+    });
+    console.log('Demo user created or verified: demo');
+
+    const demoApiKey = process.env.DEMO_API_KEY;
+    if (demoApiKey) {
+      await prisma.apiKey.upsert({
+        where: { secret: demoApiKey },
+        update: { status: 'ACTIVE' },
+        create: {
+          userId: demoUser.id,
+          name: 'Demo Key',
+          secret: demoApiKey,
+        },
+      });
+      console.log('Demo API key created for non-production demo use');
+    }
+  }
 
   await prisma.announcement.upsert({
     where: { id: 'welcome' },
     update: {
       title: 'Welcome to MatrixAPI',
-      content: 'MatrixAPI is now live with OpenAI-compatible access through n1n.',
+      content: 'MatrixAPI is now live with OpenAI-compatible gateway access.',
       priority: 10,
       published: true,
     },
     create: {
       id: 'welcome',
       title: 'Welcome to MatrixAPI',
-      content: 'MatrixAPI is now live with OpenAI-compatible access through n1n.',
+      content: 'MatrixAPI is now live with OpenAI-compatible gateway access.',
       priority: 10,
       published: true,
     },
@@ -103,17 +137,24 @@ async function main() {
   console.log('Seeding complete.');
 }
 
-async function seedModels() {
-  const baseUrl = process.env.UPSTREAM_BASE_URL || 'https://api.n1n.ai/v1';
-  const apiKey = process.env.OPENAI_API_KEY || 'sk-placeholder';
-
+async function loadUpstreamPayload(baseUrl: string, apiKey: string) {
   try {
-    const payload = await fetchUpstreamModels(baseUrl, apiKey);
-    const models = await syncUpstreamModels(prisma, payload, UPSTREAM_PROVIDER_ID);
+    return await fetchUpstreamModels(baseUrl, apiKey);
+  } catch (error) {
+    if (process.env.ALLOW_FALLBACK_MODELS !== 'true') {
+      throw new Error(`Upstream model sync failed: ${error.message}`);
+    }
+
+    console.warn(`Upstream model sync failed, using fallback models because ALLOW_FALLBACK_MODELS=true: ${error.message}`);
+    return null;
+  }
+}
+
+async function seedModels(upstreamPayload: any) {
+  if (upstreamPayload) {
+    const models = await syncUpstreamModels(prisma, upstreamPayload, UPSTREAM_PROVIDER_ID);
     console.log(`${models.length} upstream models synced with 30% markup`);
     return;
-  } catch (error) {
-    console.warn(`Upstream model sync failed, using fallback models: ${error.message}`);
   }
 
   const models = [

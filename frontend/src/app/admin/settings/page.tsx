@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Shield, Gauge, CreditCard } from 'lucide-react';
+import { CreditCard, Gauge, Settings, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ToggleSwitchProps {
@@ -14,18 +14,8 @@ function ToggleSwitch({ enabled, onChange, label }: ToggleSwitchProps) {
   return (
     <label className="flex items-center justify-between py-3">
       <span className="text-sm text-gray-700">{label}</span>
-      <button
-        type="button"
-        onClick={() => onChange(!enabled)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          enabled ? 'bg-primary-600' : 'bg-gray-200'
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
+      <button type="button" onClick={() => onChange(!enabled)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-primary-600' : 'bg-gray-200'}`}>
+        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
       </button>
     </label>
   );
@@ -34,15 +24,15 @@ function ToggleSwitch({ enabled, onChange, label }: ToggleSwitchProps) {
 export default function AdminSettingsPage() {
   const [rateLimit, setRateLimit] = useState({
     enabled: true,
-    maxRequests: 100,
+    maxRequests: 120,
     windowMs: 60000,
   });
 
   const [payments, setPayments] = useState({
     alipay: true,
     wechat: true,
-    creditCard: false,
-    crypto: false,
+    stripe: false,
+    usdt: false,
   });
 
   const [general, setGeneral] = useState({
@@ -52,7 +42,7 @@ export default function AdminSettingsPage() {
   });
 
   const handleSave = (section: string) => {
-    toast.success(`${section}已保存（演示配置）`);
+    toast.success(`${section} 已保存到演示状态，真实系统参数请通过环境变量和部署配置调整。`);
   };
 
   return (
@@ -71,31 +61,15 @@ export default function AdminSettingsPage() {
             <h2 className="text-lg font-semibold">限流配置</h2>
           </div>
           <div className="space-y-4">
-            <ToggleSwitch
-              enabled={rateLimit.enabled}
-              onChange={(value) => setRateLimit((current) => ({ ...current, enabled: value }))}
-              label="启用请求限流"
-            />
+            <ToggleSwitch enabled={rateLimit.enabled} onChange={(value) => setRateLimit((current) => ({ ...current, enabled: value }))} label="启用请求限流" />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">最大请求数</label>
-                <input
-                  type="number"
-                  value={rateLimit.maxRequests}
-                  onChange={(event) => setRateLimit((current) => ({ ...current, maxRequests: parseInt(event.target.value) || 0 }))}
-                  className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
-                  disabled={!rateLimit.enabled}
-                />
+                <input type="number" value={rateLimit.maxRequests} onChange={(event) => setRateLimit((current) => ({ ...current, maxRequests: parseInt(event.target.value) || 0 }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" disabled={!rateLimit.enabled} />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">时间窗口（毫秒）</label>
-                <input
-                  type="number"
-                  value={rateLimit.windowMs}
-                  onChange={(event) => setRateLimit((current) => ({ ...current, windowMs: parseInt(event.target.value) || 0 }))}
-                  className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
-                  disabled={!rateLimit.enabled}
-                />
+                <input type="number" value={rateLimit.windowMs} onChange={(event) => setRateLimit((current) => ({ ...current, windowMs: parseInt(event.target.value) || 0 }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" disabled={!rateLimit.enabled} />
               </div>
             </div>
             <button onClick={() => handleSave('限流配置')} className="btn-primary">保存限流配置</button>
@@ -112,8 +86,8 @@ export default function AdminSettingsPage() {
           <div className="divide-y divide-gray-100">
             <ToggleSwitch enabled={payments.alipay} onChange={(value) => setPayments((current) => ({ ...current, alipay: value }))} label="支付宝" />
             <ToggleSwitch enabled={payments.wechat} onChange={(value) => setPayments((current) => ({ ...current, wechat: value }))} label="微信支付" />
-            <ToggleSwitch enabled={payments.creditCard} onChange={(value) => setPayments((current) => ({ ...current, creditCard: value }))} label="信用卡" />
-            <ToggleSwitch enabled={payments.crypto} onChange={(value) => setPayments((current) => ({ ...current, crypto: value }))} label="加密货币" />
+            <ToggleSwitch enabled={payments.stripe} onChange={(value) => setPayments((current) => ({ ...current, stripe: value }))} label="Stripe" />
+            <ToggleSwitch enabled={payments.usdt} onChange={(value) => setPayments((current) => ({ ...current, usdt: value }))} label="USDT" />
           </div>
           <button onClick={() => handleSave('支付配置')} className="btn-primary mt-4">保存支付配置</button>
         </div>

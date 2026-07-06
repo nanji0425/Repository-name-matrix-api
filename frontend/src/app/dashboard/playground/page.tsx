@@ -53,7 +53,7 @@ const DEFAULT_CONFIG: Config = {
   presencePenalty: 0,
   maxTokens: '',
   seed: '',
-  stream: true,
+  stream: false,
   imageUrl: '',
 };
 

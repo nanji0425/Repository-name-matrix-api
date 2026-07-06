@@ -1,4 +1,4 @@
-import { IsDateString, IsNumber, IsOptional, IsString, Max, Min, MinLength, MaxLength } from 'class-validator';
+import { IsArray, IsDateString, IsNumber, IsOptional, IsString, Max, Min, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateApiKeyDto {
@@ -19,4 +19,9 @@ export class CreateApiKeyDto {
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
+
+  @ApiProperty({ example: ['gpt-4o-mini', 'deepseek-chat'], required: false, description: 'Allowed model codes', type: [String] })
+  @IsOptional()
+  @IsArray()
+  allowedModelCodes?: string[];
 }

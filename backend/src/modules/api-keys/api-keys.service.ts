@@ -31,6 +31,7 @@ export class ApiKeysService {
         requestCount: true,
         expiresAt: true,
         lastUsed: true,
+        allowedModels: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -50,6 +51,7 @@ export class ApiKeysService {
         secret,
         quota: dto.quota ?? null,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+        allowedModels: dto.allowedModelCodes?.length ? dto.allowedModelCodes : null,
       },
       select: {
         id: true,
@@ -60,6 +62,7 @@ export class ApiKeysService {
         usedAmount: true,
         requestCount: true,
         expiresAt: true,
+        allowedModels: true,
         createdAt: true,
       },
     });
@@ -113,6 +116,7 @@ export class ApiKeysService {
         requestCount: true,
         expiresAt: true,
         lastUsed: true,
+        allowedModels: true,
         createdAt: true,
       },
     });

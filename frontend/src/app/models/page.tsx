@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -27,12 +27,16 @@ export default function ModelsPage() {
   const [filters, setFilters] = useState(defaultFilters);
 
   useEffect(() => {
-    modelsApi.listActive().then((response) => setModels(Array.isArray(response.data) ? response.data : [])).catch(() => setModels([])).finally(() => setLoading(false));
+    modelsApi
+      .listActive()
+      .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
+      .catch(() => setModels([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const providers = useMemo(() => {
     const present = new Set(models.map(getProviderName));
-    return SUPPLIER_OPTIONS.filter((provider) => provider === '全部供应商' || present.has(provider) || ['Runway', 'Fast mode', 'OpenAI', 'Google', '字节跳动', 'MiniMax', 'Anthropic', '未知供应商'].includes(provider));
+    return SUPPLIER_OPTIONS.filter((provider) => provider === '全部供应商' || provider === '未知供应商' || present.has(provider));
   }, [models]);
 
   const visibleModels = useMemo(() => models.filter((model) => modelMatches(model, filters)), [models, filters]);
@@ -45,7 +49,12 @@ export default function ModelsPage() {
         <div className="mt-8 max-w-xl">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-            <input value={filters.query} onChange={(event) => setFilters((value) => ({ ...value, query: event.target.value }))} className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-11 pr-4 text-sm text-white outline-none transition focus:border-blue-400" placeholder="搜索模型 ID / 名称 / 供应商" />
+            <input
+              value={filters.query}
+              onChange={(event) => setFilters((value) => ({ ...value, query: event.target.value }))}
+              className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-11 pr-4 text-sm text-white outline-none transition focus:border-blue-400"
+              placeholder="搜索模型 ID / 名称 / 供应商"
+            />
           </div>
         </div>
       </section>
@@ -55,7 +64,8 @@ export default function ModelsPage() {
           <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-5">
             <h2 className="text-lg font-black text-blue-100">筛选</h2>
             <button onClick={() => setFilters(defaultFilters)} className="inline-flex items-center gap-1 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 transition hover:text-white">
-              <RotateCcw className="h-3.5 w-3.5" />重置
+              <RotateCcw className="h-3.5 w-3.5" />
+              重置
             </button>
           </div>
           <FilterGroup title="供应商" options={providers} value={filters.provider} onChange={(provider) => setFilters((value) => ({ ...value, provider }))} color="blue" />
@@ -70,7 +80,9 @@ export default function ModelsPage() {
             <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-10 text-center font-bold text-slate-500">暂无匹配模型</div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {visibleModels.map((model) => <ModelCard key={model.id || getModelCode(model)} model={model} onSelect={() => setSelected(model)} />)}
+              {visibleModels.map((model) => (
+                <ModelCard key={model.id || getModelCode(model)} model={model} onSelect={() => setSelected(model)} />
+              ))}
             </div>
           )}
         </main>
@@ -81,12 +93,25 @@ export default function ModelsPage() {
 }
 
 function FilterGroup({ title, options, value, onChange, color }: { title: string; options: string[]; value: string; onChange: (value: string) => void; color: 'blue' | 'green' | 'orange' }) {
-  const activeClass = { blue: 'border-blue-400/50 bg-blue-500/20 text-blue-200', green: 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200', orange: 'border-amber-400/50 bg-amber-500/20 text-amber-200' }[color];
+  const activeClass = {
+    blue: 'border-blue-400/50 bg-blue-500/20 text-blue-200',
+    green: 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200',
+    orange: 'border-amber-400/50 bg-amber-500/20 text-amber-200',
+  }[color];
+
   return (
     <div className="border-b border-white/10 py-6 last:border-b-0">
       <h3 className="mb-4 text-xl font-black text-white">{title}</h3>
       <div className="flex flex-wrap gap-3">
-        {options.map((option) => <button key={option} onClick={() => onChange(option)} className={`rounded-full border px-4 py-2 text-sm font-black transition ${value === option ? activeClass : 'border-white/10 bg-white/[0.03] text-slate-300 hover:text-white'}`}>{option}</button>)}
+        {options.map((option) => (
+          <button
+            key={option}
+            onClick={() => onChange(option)}
+            className={`rounded-full border px-4 py-2 text-sm font-black transition ${value === option ? activeClass : 'border-white/10 bg-white/[0.03] text-slate-300 hover:text-white'}`}
+          >
+            {option}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -95,6 +120,7 @@ function FilterGroup({ title, options, value, onChange, color }: { title: string
 function ModelCard({ model, onSelect }: { model: MarketingModel; onSelect: () => void }) {
   const code = getModelCode(model);
   const billing = getBillingType(model);
+
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/[0.045] p-5 transition hover:-translate-y-1 hover:border-blue-300/30 hover:bg-white/[0.07]">
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -107,34 +133,57 @@ function ModelCard({ model, onSelect }: { model: MarketingModel; onSelect: () =>
       <div className="mb-5 flex flex-wrap gap-2">
         <span className="rounded-full bg-blue-500/15 px-3 py-1 text-xs font-black text-blue-200">{getProviderName(model)}</span>
         <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-black text-amber-200">{billing}</span>
-        {getModelGroups(model).map((group) => <span key={group} className="rounded-full bg-white/8 px-3 py-1 text-xs font-bold text-slate-300">{group}</span>)}
+        {getModelGroups(model).map((group) => (
+          <span key={group} className="rounded-full bg-white/8 px-3 py-1 text-xs font-bold text-slate-300">
+            {group}
+          </span>
+        ))}
       </div>
       <div className="grid grid-cols-2 gap-3 rounded-2xl bg-black/20 p-4">
         <Price label="输入价格" value={formatModelPrice(model.inputPrice, billing)} />
         <Price label="输出价格" value={formatModelPrice(model.outputPrice, billing)} />
       </div>
       <div className="mt-5 flex gap-3">
-        <Link href="/dashboard/api-keys" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-blue-100">获取 API Key<ArrowRight className="h-4 w-4" /></Link>
-        <button onClick={onSelect} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-slate-200 transition hover:border-blue-300/40 hover:text-blue-300">查看详情</button>
+        <Link href="/dashboard/api-keys" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-blue-100">
+          获取 API Key <ArrowRight className="h-4 w-4" />
+        </Link>
+        <button onClick={onSelect} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-slate-200 transition hover:border-blue-300/40 hover:text-blue-300">
+          查看详情
+        </button>
       </div>
     </div>
   );
 }
 
 function Price({ label, value }: { label: string; value: string }) {
-  return <div><div className="text-xs font-bold text-slate-500">{label}</div><div className="mt-1 break-words font-mono text-sm font-black text-white">{value}</div></div>;
+  return (
+    <div>
+      <div className="text-xs font-bold text-slate-500">{label}</div>
+      <div className="mt-1 break-words font-mono text-sm font-black text-white">{value}</div>
+    </div>
+  );
 }
 
 function ModelDetail({ model, onClose }: { model: MarketingModel; onClose: () => void }) {
   const code = getModelCode(model);
   const billing = getBillingType(model);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl rounded-[28px] border border-white/10 bg-[#090b12] p-7 shadow-2xl">
-        <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"><X className="h-5 w-5" /></button>
+        <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white">
+          <X className="h-5 w-5" />
+        </button>
         <div className="mb-6 flex items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-950"><Bot className="h-7 w-7" /></div>
-          <div><h2 className="text-2xl font-black text-white">{model.name || code}</h2><p className="mt-2 text-sm text-slate-400">模型 ID：<code className="font-mono">{code}</code></p></div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-950">
+            <Bot className="h-7 w-7" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-white">{model.name || code}</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              模型 ID：<code className="font-mono">{code}</code>
+            </p>
+          </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Info label="供应商" value={getProviderName(model)} />
@@ -142,15 +191,22 @@ function ModelDetail({ model, onClose }: { model: MarketingModel; onClose: () =>
           <Info label="输入价格" value={formatModelPrice(model.inputPrice, billing)} />
           <Info label="输出价格" value={formatModelPrice(model.outputPrice, billing)} />
         </div>
-        <div className="mt-6 rounded-2xl bg-black/40 p-5 text-sm text-blue-50"><pre className="overflow-auto">{`curl http://43.154.77.5/v1/chat/completions \\
+        <div className="mt-6 rounded-2xl bg-black/40 p-5 text-sm text-blue-50">
+          <pre className="overflow-auto">{`curl https://matrixapi.online/v1/chat/completions \\
   -H "Authorization: Bearer $MATRIX_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"model":"${code}","messages":[{"role":"user","content":"你好"}]}'`}</pre></div>
+  -d '{"model":"${code}","messages":[{"role":"user","content":"你好"}]}'`}</pre>
+        </div>
       </div>
     </div>
   );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl bg-white/[0.055] p-4"><div className="text-xs font-bold text-slate-500">{label}</div><div className="mt-1 font-black text-white">{value}</div></div>;
+  return (
+    <div className="rounded-2xl bg-white/[0.055] p-4">
+      <div className="text-xs font-bold text-slate-500">{label}</div>
+      <div className="mt-1 font-black text-white">{value}</div>
+    </div>
+  );
 }

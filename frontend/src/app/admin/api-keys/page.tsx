@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api, { adminApi } from '@/lib/api';
-import { shortenApiKey, formatDate } from '@/lib/utils';
-import { Key, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { adminApi } from '@/lib/api';
+import { formatDate, shortenApiKey } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Key, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const limit = 20;
@@ -19,11 +19,11 @@ export default function AdminApiKeysPage() {
     setLoading(true);
     try {
       const { data } = await adminApi.listAllApiKeys({ page: nextPage, limit });
-      setKeys(data.data || []);
+      setKeys(data.data || data.items || []);
       setTotalPages(data.totalPages || 1);
       setTotal(data.total || 0);
-    } catch {
-      toast.error('密钥列表加载失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'API Key 列表加载失败');
     } finally {
       setLoading(false);
     }
@@ -33,22 +33,22 @@ export default function AdminApiKeysPage() {
 
   const toggle = async (id: string) => {
     try {
-      await api.patch(`/api-keys/${id}/toggle`);
-      toast.success('密钥状态已更新');
+      await adminApi.toggleApiKeyStatus(id);
+      toast.success('API Key 状态已更新');
       load(page);
-    } catch {
-      toast.error('密钥状态更新失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'API Key 状态更新失败');
     }
   };
 
   const remove = async (id: string) => {
-    if (!confirm('确认删除这个 API 密钥吗？删除后无法恢复。')) return;
+    if (!confirm('确认删除这个 API Key 吗？删除后无法恢复。')) return;
     try {
-      await api.delete(`/api-keys/${id}`);
-      toast.success('API 密钥已删除');
+      await adminApi.deleteApiKey(id);
+      toast.success('API Key 已删除');
       load(page);
-    } catch {
-      toast.error('API 密钥删除失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'API Key 删除失败');
     }
   };
 
@@ -56,13 +56,13 @@ export default function AdminApiKeysPage() {
     const owner = key.user || key.userId;
     if (!owner) return '-';
     if (typeof owner === 'object') return owner.username || owner.email || owner.id || '-';
-    return String(owner).substring(0, 8) + '...';
+    return `${String(owner).substring(0, 8)}...`;
   };
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">密钥审计</h1>
+        <h1 className="text-2xl font-bold">API Key 审计</h1>
         <div className="text-sm text-gray-500">共 {total || keys.length} 个密钥</div>
       </div>
 
@@ -71,7 +71,7 @@ export default function AdminApiKeysPage() {
       ) : keys.length === 0 ? (
         <div className="card p-12 text-center">
           <Key className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <p className="text-gray-500">暂无任何用户密钥。</p>
+          <p className="text-gray-500">暂无任何用户 API Key。</p>
         </div>
       ) : (
         <div className="card overflow-hidden">

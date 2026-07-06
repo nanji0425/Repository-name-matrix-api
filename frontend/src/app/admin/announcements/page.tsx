@@ -1,16 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api, { announcementsApi } from '@/lib/api';
+import { announcementsApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import { Bell, Plus, Trash2, Edit3, X } from 'lucide-react';
+import { Bell, Edit3, Plus, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const priorityText: Record<string, string> = {
-  HIGH: '高',
-  NORMAL: '普通',
-  LOW: '低',
-};
+const priorities = [
+  { value: 10, label: '高', className: 'bg-red-50 text-red-700' },
+  { value: 5, label: '普通', className: 'bg-blue-50 text-blue-700' },
+  { value: 0, label: '低', className: 'bg-gray-100 text-gray-500' },
+];
+
+function toDateInput(value?: string | null) {
+  return value ? value.split('T')[0] : '';
+}
+
+function toStartAt(value: string) {
+  return value ? `${value}T00:00:00.000Z` : null;
+}
+
+function toEndAt(value: string) {
+  return value ? `${value}T23:59:59.999Z` : null;
+}
+
+function priorityMeta(priority: number) {
+  return priorities.find((item) => item.value === priority) || priorities[1];
+}
 
 export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -20,19 +36,19 @@ export default function AdminAnnouncementsPage() {
   const [form, setForm] = useState({
     title: '',
     content: '',
-    priority: 'NORMAL',
+    priority: 5,
     published: false,
-    startDate: '',
-    endDate: '',
+    startAt: '',
+    endAt: '',
   });
 
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await announcementsApi.listAll();
-      setAnnouncements(data.data || data.announcements || data || []);
-    } catch {
-      toast.error('公告加载失败');
+      const { data } = await announcementsApi.listAll({ page: 1, limit: 50 });
+      setAnnouncements(data.items || data.data || data.announcements || data || []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '公告加载失败');
     } finally {
       setLoading(false);
     }
@@ -41,7 +57,7 @@ export default function AdminAnnouncementsPage() {
   useEffect(() => { load(); }, []);
 
   const resetForm = () => {
-    setForm({ title: '', content: '', priority: 'NORMAL', published: false, startDate: '', endDate: '' });
+    setForm({ title: '', content: '', priority: 5, published: false, startAt: '', endAt: '' });
     setEditingId(null);
   };
 
@@ -54,62 +70,65 @@ export default function AdminAnnouncementsPage() {
     setForm({
       title: item.title || '',
       content: item.content || '',
-      priority: item.priority || 'NORMAL',
-      published: item.published ?? (item.status === 'PUBLISHED'),
-      startDate: item.startDate ? item.startDate.split('T')[0] : '',
-      endDate: item.endDate ? item.endDate.split('T')[0] : '',
+      priority: Number(item.priority ?? 5),
+      published: Boolean(item.published),
+      startAt: toDateInput(item.startAt),
+      endAt: toDateInput(item.endAt),
     });
     setEditingId(item.id || item._id);
     setShowForm(true);
   };
 
   const submitForm = async () => {
-    if (!form.title.trim() || !form.content.trim()) return toast.error('请填写公告标题和内容');
+    if (!form.title.trim() || !form.content.trim()) {
+      toast.error('请填写公告标题和内容');
+      return;
+    }
+
     try {
-      const payload = { ...form, startDate: form.startDate || undefined, endDate: form.endDate || undefined };
+      const payload = {
+        title: form.title.trim(),
+        content: form.content.trim(),
+        priority: Number(form.priority),
+        published: form.published,
+        startAt: toStartAt(form.startAt),
+        endAt: toEndAt(form.endAt),
+      };
+
       if (editingId) {
-        await api.patch(`/announcements/${editingId}`, payload);
+        await announcementsApi.update(editingId, payload);
         toast.success('公告已更新');
       } else {
-        await api.post('/announcements', payload);
+        await announcementsApi.create(payload);
         toast.success('公告已创建');
       }
       setShowForm(false);
       resetForm();
       load();
-    } catch {
-      toast.error(editingId ? '公告更新失败' : '公告创建失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || (editingId ? '公告更新失败' : '公告创建失败'));
     }
   };
 
   const deleteAnnouncement = async (id: string) => {
     if (!confirm('确认删除这条公告吗？删除后无法恢复。')) return;
     try {
-      await api.delete(`/announcements/${id}`);
+      await announcementsApi.delete(id);
       toast.success('公告已删除');
       load();
-    } catch {
-      toast.error('公告删除失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '公告删除失败');
     }
   };
 
   const togglePublished = async (id: string, current: boolean) => {
     try {
-      await api.patch(`/announcements/${id}`, { published: !current });
+      await announcementsApi.update(id, { published: !current });
       toast.success(current ? '公告已取消发布' : '公告已发布');
       load();
-    } catch {
-      toast.error('公告状态更新失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '公告状态更新失败');
     }
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const map: Record<string, string> = {
-      HIGH: 'bg-red-50 text-red-700',
-      NORMAL: 'bg-blue-50 text-blue-700',
-      LOW: 'bg-gray-100 text-gray-500',
-    };
-    return map[priority] || 'bg-gray-100 text-gray-500';
   };
 
   return (
@@ -136,32 +155,28 @@ export default function AdminAnnouncementsPage() {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">内容</label>
-              <textarea value={form.content} onChange={(event) => setForm((current) => ({ ...current, content: event.target.value }))} rows={4} className="w-full resize-y rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="公告内容..." />
+              <textarea value={form.content} onChange={(event) => setForm((current) => ({ ...current, content: event.target.value }))} rows={4} className="w-full resize-y rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="公告内容" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">优先级</label>
-                <select value={form.priority} onChange={(event) => setForm((current) => ({ ...current, priority: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500">
-                  <option value="HIGH">高</option>
-                  <option value="NORMAL">普通</option>
-                  <option value="LOW">低</option>
+                <select value={form.priority} onChange={(event) => setForm((current) => ({ ...current, priority: Number(event.target.value) }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500">
+                  {priorities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
               </div>
-              <div className="flex items-end pb-2">
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input type="checkbox" checked={form.published} onChange={(event) => setForm((current) => ({ ...current, published: event.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                  <span className="text-sm font-medium text-gray-700">立即发布</span>
-                </label>
-              </div>
+              <label className="flex cursor-pointer items-end gap-2 pb-2">
+                <input type="checkbox" checked={form.published} onChange={(event) => setForm((current) => ({ ...current, published: event.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                <span className="text-sm font-medium text-gray-700">立即发布</span>
+              </label>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">开始日期</label>
-                <input type="date" value={form.startDate} onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
+                <input type="date" value={form.startAt} onChange={(event) => setForm((current) => ({ ...current, startAt: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">结束日期</label>
-                <input type="date" value={form.endDate} onChange={(event) => setForm((current) => ({ ...current, endDate: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
+                <input type="date" value={form.endAt} onChange={(event) => setForm((current) => ({ ...current, endAt: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
             </div>
           </div>
@@ -183,24 +198,25 @@ export default function AdminAnnouncementsPage() {
         <div className="space-y-4">
           {announcements.map((item: any) => {
             const id = item.id || item._id;
-            const published = item.published || item.status === 'PUBLISHED';
+            const published = Boolean(item.published);
+            const meta = priorityMeta(Number(item.priority ?? 5));
             return (
               <div key={id} className="card p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-3">
                       <h3 className="text-lg font-semibold">{item.title}</h3>
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getPriorityBadge(item.priority)}`}>{priorityText[item.priority] || '普通'}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${meta.className}`}>{meta.label}</span>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${published ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{published ? '已发布' : '草稿'}</span>
                     </div>
                     <p className="mb-2 line-clamp-2 text-sm text-gray-600">{item.content}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      {item.startDate && <span>开始：{formatDate(item.startDate)}</span>}
-                      {item.endDate && <span>结束：{formatDate(item.endDate)}</span>}
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                      {item.startAt && <span>开始：{formatDate(item.startAt)}</span>}
+                      {item.endAt && <span>结束：{formatDate(item.endAt)}</span>}
                       {item.createdAt && <span>创建：{formatDate(item.createdAt)}</span>}
                     </div>
                   </div>
-                  <div className="ml-4 flex items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <button onClick={() => togglePublished(id, published)} className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${published ? 'bg-gray-50 text-gray-600 hover:bg-gray-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
                       {published ? '取消发布' : '发布'}
                     </button>

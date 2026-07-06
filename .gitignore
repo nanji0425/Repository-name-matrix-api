@@ -7,9 +7,11 @@ node_modules/
 dist/
 .next/
 out/
+*.tsbuildinfo
 
 # Environment
 .env
+.env.production
 .env.local
 .env.*.local
 
@@ -29,6 +31,7 @@ npm-debug.log*
 
 # Testing
 coverage/
+.playwright-cli/
 
 # Docker
 docker-compose.override.yml

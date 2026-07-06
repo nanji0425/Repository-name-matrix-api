@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { ArrowRight, Lock, Sparkles, User, X } from 'lucide-react';
+import { Lock, User, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function LoginPage() {
@@ -32,15 +32,15 @@ export default function LoginPage() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center">
         <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
         <div className="relative z-10 w-full max-w-[470px] rounded-[24px] border border-white/10 bg-[#151518] p-8 shadow-2xl shadow-black/60">
-          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white">
+          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white" aria-label="关闭">
             <X className="h-5 w-5" />
           </button>
           <h1 className="text-3xl font-black text-white">欢迎回来</h1>
           <p className="mt-2 text-sm text-slate-400">登录到您的 API 平台账户</p>
 
           <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-            <Field label="邮箱或用户名" icon={<User className="h-4 w-4" />}>
-              <input value={username} onChange={(event) => setUsername(event.target.value)} className="matrix-auth-input" placeholder="请输入邮箱或用户名" required />
+            <Field label="用户名" icon={<User className="h-4 w-4" />}>
+              <input value={username} onChange={(event) => setUsername(event.target.value)} className="matrix-auth-input" placeholder="请输入用户名" required />
             </Field>
             <Field label="密码" icon={<Lock className="h-4 w-4" />}>
               <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="matrix-auth-input" placeholder="请输入密码" required />
@@ -55,8 +55,8 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-400">
-            没有账户？{' '}
-            <Link href="/register" className="font-black text-white hover:underline">
+            没有账户？
+            <Link href="/register" className="ml-1 font-black text-white hover:underline">
               注册
             </Link>
           </p>

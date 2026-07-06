@@ -4,8 +4,11 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import helmet from 'helmet';
+import { validateProductionEnv } from './production-env';
 
 async function bootstrap() {
+  validateProductionEnv();
+
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
   const frontendOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '')

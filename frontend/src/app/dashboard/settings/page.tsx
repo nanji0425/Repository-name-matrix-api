@@ -16,8 +16,8 @@ export default function SettingsPage() {
       const { data } = await userApi.updateProfile({ avatar });
       setUser(data?.user || data || { ...user, avatar });
       toast.success('资料已保存');
-    } catch {
-      toast.error('保存失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '保存失败');
     }
   };
 
@@ -50,7 +50,7 @@ export default function SettingsPage() {
               <User className="h-4 w-4 text-gray-400" />
               <div>
                 <div className="text-xs text-gray-500">用户名</div>
-                <div className="text-sm font-medium">{user?.username || '—'}</div>
+                <div className="text-sm font-medium">{user?.username || '-'}</div>
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
@@ -64,7 +64,7 @@ export default function SettingsPage() {
               <Calendar className="h-4 w-4 text-gray-400" />
               <div>
                 <div className="text-xs text-gray-500">创建时间</div>
-                <div className="text-sm font-medium">{user?.createdAt ? formatDate(user.createdAt) : '—'}</div>
+                <div className="text-sm font-medium">{user?.createdAt ? formatDate(user.createdAt) : '-'}</div>
               </div>
             </div>
           </div>
@@ -74,12 +74,7 @@ export default function SettingsPage() {
               <label className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700">
                 <Image className="h-4 w-4" /> 头像地址
               </label>
-              <input
-                value={avatar}
-                onChange={(event) => setAvatar(event.target.value)}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://example.com/avatar.png"
-              />
+              <input value={avatar} onChange={(event) => setAvatar(event.target.value)} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="https://example.com/avatar.png" />
             </div>
             <button onClick={handleSaveProfile} className="btn-primary flex items-center gap-2">
               <Save className="h-4 w-4" /> 保存资料
@@ -91,7 +86,7 @@ export default function SettingsPage() {
           <h3 className="mb-4 font-semibold">修改密码</h3>
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
             <Lock className="h-4 w-4" />
-            <span>当前版本暂不支持在控制台修改密码。</span>
+            <span>当前版本暂不支持在控制台修改密码，请联系管理员重置。</span>
           </div>
         </div>
       </div>

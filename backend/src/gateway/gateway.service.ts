@@ -62,6 +62,11 @@ export class GatewayService {
       throw new BadRequestException(`Provider for model '${modelCode}' is inactive`);
     }
 
+    const allowedModels = Array.isArray(key.allowedModels) ? key.allowedModels : [];
+    if (allowedModels.length > 0 && !allowedModels.includes(model.modelCode)) {
+      throw new BadRequestException(`API key is not allowed to call model '${model.modelCode}'`);
+    }
+
     // Get group multiplier and dynamic rate
     const groupMultiplier = key.user.group?.multiplier ?? 1.0;
     const dynamicRate = await this.getCurrentDynamicRate();
@@ -93,33 +98,63 @@ export class GatewayService {
       }
 
       // Deduct balance, update token statistics and log.
-      const [updatedUser] = await this.prisma.$transaction([
-        this.prisma.user.update({
-          where: { id: key.user.id },
-          data: { balance: key.user.balance - actualCost },
-        }),
-        this.prisma.walletLog.create({
-          data: {
-            userId: key.user.id,
-            type: 'DEDUCTION',
-            amount: -actualCost,
-            balance: key.user.balance - actualCost,
-            remark: `API call: ${model.modelCode} (${promptTokens}+${completionTokens} tokens)`,
+      const updatedUser = await this.prisma.$transaction(async (tx) => {
+        const remainingQuotaBeforeCall = key.quota === null ? null : key.quota - actualCost;
+        const apiKeyUpdate = await tx.apiKey.updateMany({
+          where: {
+            id: key.id,
+            OR: [
+              { quota: null },
+              { usedAmount: { lte: remainingQuotaBeforeCall } },
+            ],
           },
-        }),
-        this.prisma.apiKey.update({
-          where: { id: key.id },
           data: {
             lastUsed: new Date(),
             usedAmount: { increment: actualCost },
             requestCount: { increment: 1 },
           },
-        }),
-      ]);
-      const newBalance = updatedUser.balance;
+        });
 
-      // Auto-generate commission for referrer
-      await this.generateCommission(key.user, actualCost);
+        if (apiKeyUpdate.count !== 1) {
+          throw new BadRequestException('API key quota exceeded');
+        }
+
+        const userUpdate = await tx.user.updateMany({
+          where: {
+            id: key.user.id,
+            balance: { gte: actualCost },
+          },
+          data: {
+            balance: { decrement: actualCost },
+          },
+        });
+
+        if (userUpdate.count !== 1) {
+          throw new BadRequestException('Insufficient balance');
+        }
+
+        const user = await tx.user.findUnique({
+          where: { id: key.user.id },
+          select: { id: true, balance: true },
+        });
+
+        if (!user) {
+          throw new UnauthorizedException('User not found');
+        }
+
+        await tx.walletLog.create({
+          data: {
+            userId: key.user.id,
+            type: 'DEDUCTION',
+            amount: -actualCost,
+            balance: user.balance,
+            remark: `API call: ${model.modelCode} (${promptTokens}+${completionTokens} tokens)`,
+          },
+        });
+
+        return user;
+      });
+      const newBalance = updatedUser.balance;
 
       // Log request
       const latency = Date.now() - startTime;
@@ -139,7 +174,7 @@ export class GatewayService {
       return res.status(200).json(result);
     } catch (error) {
       const latency = Date.now() - startTime;
-      const statusCode = error.response?.status || 500;
+      const statusCode = this.getErrorStatusCode(error);
 
       // Log failed request
       await this.prisma.requestLog.create({
@@ -235,6 +270,13 @@ export class GatewayService {
     }
   }
 
+  private getErrorStatusCode(error: any): number {
+    if (typeof error?.getStatus === 'function') {
+      return error.getStatus();
+    }
+    return error?.response?.status || 500;
+  }
+
   private async forwardToProvider(model: any, body: any, endpoint: string): Promise<any> {
     const provider = model.provider;
     const url = `${provider.baseUrl.replace(/\/$/, '')}/${endpoint}`;
@@ -258,50 +300,4 @@ export class GatewayService {
     return response.json();
   }
 
-  private async generateCommission(user: any, spendAmount: number) {
-    if (!user.inviteBy) return;
-
-    try {
-      // Find the referrer who owns this invite code
-      const referrer = await this.prisma.user.findFirst({
-        where: { inviteCode: user.inviteBy },
-      });
-
-      if (!referrer) return;
-
-      const commissionRate = 0.1; // 10% default
-      const commissionAmount = Math.round(spendAmount * commissionRate * 1000000) / 1000000;
-
-      if (commissionAmount <= 0) return;
-
-      // Create commission record and credit referrer
-      const newBalance = referrer.balance + commissionAmount;
-      await this.prisma.$transaction([
-        this.prisma.user.update({
-          where: { id: referrer.id },
-          data: { balance: newBalance },
-        }),
-        this.prisma.commission.create({
-          data: {
-            userId: referrer.id,
-            inviteUserId: user.id,
-            amount: commissionAmount,
-            rate: commissionRate,
-            status: 'SETTLED',
-          },
-        }),
-        this.prisma.walletLog.create({
-          data: {
-            userId: referrer.id,
-            type: 'COMMISSION',
-            amount: commissionAmount,
-            balance: newBalance,
-            remark: `Commission from ${user.username} API usage`,
-          },
-        }),
-      ]);
-    } catch (err) {
-      this.logger.warn(`Commission generation failed for ${user.id}: ${err.message}`);
-    }
-  }
 }

@@ -57,11 +57,20 @@ services:
       REDIS_URL: "redis://redis:6379"
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: "7d"
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       PORT: 3000
-      FRONTEND_URLS: ${FRONTEND_URLS:-http://47.82.105.81}
-      FRONTEND_URL: ${FRONTEND_URL:-http://47.82.105.81}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://matrixapi.online/api}
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://matrixapi.online,http://www.matrixapi.online,http://47.82.105.81}
+      FRONTEND_URL: ${FRONTEND_URL:-http://matrixapi.online}
+      ZPAY_GATEWAY: ${ZPAY_GATEWAY:-https://zpayz.cn/}
+      ZPAY_PID: ${ZPAY_PID}
+      ZPAY_KEY: ${ZPAY_KEY}
+      ZPAY_NOTIFY_URL: ${ZPAY_NOTIFY_URL:-http://matrixapi.online/api/wallet/zpay/notify}
+      ZPAY_RETURN_URL: ${ZPAY_RETURN_URL:-http://matrixapi.online/dashboard/balance}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      UPSTREAM_BASE_URL: ${UPSTREAM_BASE_URL:-https://api.n1n.ai/v1}
+      UPSTREAM_BASE_URL: ${UPSTREAM_BASE_URL:-https://api.bblabu.cn/v1}
+      UPSTREAM_API_KEY: ${UPSTREAM_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
@@ -76,13 +85,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://matrixapi.online/api}
     container_name: matrixapi-frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://47.82.105.81/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://matrixapi.online/api}
     ports:
       - "127.0.0.1:3001:3001"
     networks:
@@ -94,11 +105,12 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/sites:/etc/nginx/conf.d:ro
-      - certbot_www:/var/www/certbot:ro
-      - certbot_conf:/etc/letsencrypt:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
       - frontend
@@ -112,5 +124,3 @@ networks:
 volumes:
   postgres_data:
   redis_data:
-  certbot_www:
-  certbot_conf:

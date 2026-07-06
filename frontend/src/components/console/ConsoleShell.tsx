@@ -1,9 +1,10 @@
 ﻿'use client';
 
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
-import { Activity, ChevronDown, CreditCard, Grid2X2, Key, List, LogOut, Moon, ReceiptText } from 'lucide-react';
+import { Activity, ChevronDown, CreditCard, Grid2X2, Key, List, LogOut, Moon, ReceiptText, SunMedium } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { brand, navLinks } from '@/components/marketing/marketingData';
 import { BrandLogo, SiteFooter } from '@/components/marketing/MarketingLayout';
@@ -23,10 +24,17 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     hydrateAuth();
   }, [hydrateAuth]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isDark = document.documentElement.classList.contains('dark');
+    setDark(isDark);
+  }, []);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -50,10 +58,27 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="relative flex items-center gap-5">
-            <Moon className="h-4 w-4 text-slate-500" />
-            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-slate-950">
+            <button
+              onClick={() => {
+                const next = !dark;
+                setDark(next);
+                document.documentElement.classList.toggle('dark', next);
+                localStorage.setItem('theme', next ? 'dark' : 'light');
+              }}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+              aria-label="切换主题"
+            >
+              {dark ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-slate-950"
+            >
               <Grid2X2 className="h-4 w-4" />
               控制台
+            </button>
+            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white">
               <ChevronDown className="h-4 w-4" />
             </button>
             {open && (
@@ -104,9 +129,16 @@ export function ConsoleEmpty({ icon, title, desc }: { icon?: ReactNode; title: s
 }
 
 export function ApiBaseBadge() {
-  const copy = async () => navigator.clipboard.writeText(brand.baseUrl);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(brand.baseUrl);
+      toast.success('API 地址已复制');
+    } catch {
+      toast.error('复制失败');
+    }
+  };
   return (
-    <button onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm text-slate-300">
+    <button type="button" onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm text-slate-300">
       <span className="text-slate-500">API地址：</span>
       <code className="font-mono text-slate-100">{brand.baseUrl}</code>
       <span className="text-slate-400">⧉</span>

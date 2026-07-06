@@ -4,13 +4,17 @@ import { ApiKeysService } from './api-keys.service';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ModelsService } from '../models/models.service';
 
 @ApiTags('API Keys')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('api-keys')
 export class ApiKeysController {
-  constructor(private apiKeysService: ApiKeysService) {}
+  constructor(
+    private apiKeysService: ApiKeysService,
+    private modelsService: ModelsService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List all API keys for the current user' })
@@ -25,6 +29,12 @@ export class ApiKeysController {
     @Body() dto: CreateApiKeyDto,
   ) {
     return this.apiKeysService.create(userId, dto);
+  }
+
+  @Get('models')
+  @ApiOperation({ summary: 'List active models for API key restriction selection' })
+  async listModels() {
+    return this.modelsService.findAllActive();
   }
 
   @Delete(':id')

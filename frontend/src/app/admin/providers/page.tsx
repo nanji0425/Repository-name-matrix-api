@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { providersApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import { Globe, Plus, Trash2, Edit3, X } from 'lucide-react';
+import { Edit3, Globe, Plus, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminProvidersPage() {
@@ -17,9 +17,9 @@ export default function AdminProvidersPage() {
     setLoading(true);
     try {
       const { data } = await providersApi.list();
-      setProviders(data.data || data || []);
-    } catch {
-      toast.error('上游通道加载失败');
+      setProviders(data.data || data.items || data || []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '上游通道加载失败');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,11 @@ export default function AdminProvidersPage() {
   };
 
   const submitForm = async () => {
-    if (!form.name.trim() || !form.baseUrl.trim()) return toast.error('请填写通道名称和 Base URL');
+    if (!form.name.trim() || !form.baseUrl.trim()) {
+      toast.error('请填写通道名称和 Base URL');
+      return;
+    }
+
     try {
       if (editingId) {
         const updateData: any = { name: form.name, baseUrl: form.baseUrl, priority: form.priority };
@@ -57,25 +61,29 @@ export default function AdminProvidersPage() {
         await providersApi.update(editingId, updateData);
         toast.success('上游通道已更新');
       } else {
+        if (!form.apiKey.trim()) {
+          toast.error('创建通道时必须填写 API Key');
+          return;
+        }
         await providersApi.create(form);
         toast.success('上游通道已创建');
       }
       setShowForm(false);
       resetForm();
       load();
-    } catch {
-      toast.error(editingId ? '上游通道更新失败' : '上游通道创建失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || (editingId ? '上游通道更新失败' : '上游通道创建失败'));
     }
   };
 
   const deleteProvider = async (id: string) => {
-    if (!confirm('确认删除这个上游通道吗？删除后无法恢复。')) return;
+    if (!confirm('确认删除这个上游通道？删除后无法恢复。')) return;
     try {
       await providersApi.delete(id);
       toast.success('上游通道已删除');
       load();
-    } catch {
-      toast.error('上游通道删除失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '上游通道删除失败');
     }
   };
 
@@ -114,11 +122,11 @@ export default function AdminProvidersPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">通道名称</label>
-              <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="例如：n1n" />
+              <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="例如：bblabu" />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Base URL</label>
-              <input value={form.baseUrl} onChange={(event) => setForm((current) => ({ ...current, baseUrl: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="https://api.n1n.ai/v1" />
+              <input value={form.baseUrl} onChange={(event) => setForm((current) => ({ ...current, baseUrl: event.target.value }))} className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" placeholder="https://api.example.com/v1" />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">API Key {editingId && <span className="font-normal text-gray-400">（留空表示不修改）</span>}</label>

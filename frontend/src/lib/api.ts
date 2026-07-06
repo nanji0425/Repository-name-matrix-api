@@ -1,4 +1,4 @@
-﻿export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://47.82.105.81/api';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://matrixapi.online/api';
 
 import axios from 'axios';
 
@@ -46,7 +46,8 @@ export const userApi = {
 
 export const apiKeysApi = {
   list: () => api.get('/api-keys'),
-  create: (data: { name: string; quota?: number; expiresAt?: string }) => api.post('/api-keys', data),
+  models: () => api.get('/api-keys/models'),
+  create: (data: { name: string; quota?: number; expiresAt?: string; allowedModelCodes?: string[] }) => api.post('/api-keys', data),
   delete: (id: string) => api.delete(`/api-keys/${id}`),
   toggle: (id: string) => api.patch(`/api-keys/${id}/toggle`),
 };
@@ -55,17 +56,23 @@ export const modelsApi = {
   listActive: () => api.get('/models'),
   listAll: () => api.get('/models/all'),
   getById: (id: string) => api.get(`/models/${id}`),
+  sync: () => api.post('/models/sync'),
+  create: (data: any) => api.post('/models', data),
+  toggle: (id: string) => api.patch(`/models/${id}/toggle`),
+  delete: (id: string) => api.delete(`/models/${id}`),
 };
 
 export const walletApi = {
   getBalance: () => api.get('/wallet'),
   getLogs: (params?: any) => api.get('/wallet/logs', { params }),
-  recharge: (data: { amount: number; payType: string }) => api.post('/wallet/recharge', data),
+  getRechargeConfig: () => api.get('/wallet/recharge-config'),
+  recharge: (data: { amount: number; payType: 'ALIPAY' | 'WECHAT' }) => api.post('/wallet/recharge', data),
 };
 
 export const ordersApi = {
   list: (params?: any) => api.get('/orders', { params }),
   listAll: (params?: any) => api.get('/orders/all', { params }),
+  updateStatus: (id: string, status: string) => api.patch(`/orders/${id}/status`, { status }),
 };
 
 export const commissionsApi = {
@@ -91,7 +98,10 @@ export const requestLogsApi = {
 
 export const announcementsApi = {
   listPublished: () => api.get('/announcements'),
-  listAll: () => api.get('/announcements/all'),
+  listAll: (params?: any) => api.get('/announcements/all', { params }),
+  create: (data: any) => api.post('/announcements', data),
+  update: (id: string, data: any) => api.patch(`/announcements/${id}`, data),
+  delete: (id: string) => api.delete(`/announcements/${id}`),
 };
 
 export const providersApi = {
@@ -107,4 +117,7 @@ export const adminApi = {
   toggleUserStatus: (id: string) => api.patch(`/admin/users/${id}/toggle`),
   getStats: () => api.get('/admin/stats'),
   listAllApiKeys: (params?: any) => api.get('/admin/api-keys', { params }),
+  toggleApiKeyStatus: (id: string) => api.patch(`/admin/api-keys/${id}/toggle`),
+  deleteApiKey: (id: string) => api.delete(`/admin/api-keys/${id}`),
+  listAllCommissions: (params?: any) => api.get('/admin/commissions', { params }),
 };

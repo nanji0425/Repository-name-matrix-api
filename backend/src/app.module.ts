@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
@@ -17,9 +18,11 @@ import { AdminModule } from './modules/admin/admin.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { DynamicRateModule } from './modules/dynamic-rate/dynamic-rate.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
     PrismaModule,
     AuthModule,
@@ -41,5 +44,6 @@ import { GatewayModule } from './gateway/gateway.module';
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

@@ -34,8 +34,17 @@ export class OrdersController {
   async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('status') status?: string,
+    @Query('payType') payType?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
-    return this.ordersService.findAll(+page || 1, +limit || 20);
+    return this.ordersService.findAll(+page || 1, +limit || 20, {
+      status,
+      payType,
+      startDate,
+      endDate,
+    });
   }
 
   @Get(':id')

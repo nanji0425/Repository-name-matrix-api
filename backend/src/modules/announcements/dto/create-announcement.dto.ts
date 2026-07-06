@@ -24,10 +24,10 @@ export class CreateAnnouncementDto {
   @ApiProperty({ example: '2024-01-01T00:00:00Z', description: 'Start time (ISO string)', required: false })
   @IsOptional()
   @IsString()
-  startAt?: string;
+  startAt?: string | null;
 
   @ApiProperty({ example: '2024-01-31T23:59:59Z', description: 'End time (ISO string)', required: false })
   @IsOptional()
   @IsString()
-  endAt?: string;
+  endAt?: string | null;
 }

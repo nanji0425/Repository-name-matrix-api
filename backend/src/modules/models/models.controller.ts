@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ModelsService } from './models.service';
+import { ModelSyncService } from './model-sync.service';
 import { CreateModelDto } from './dto/create-model.dto';
 import { UpdateModelDto } from './dto/update-model.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -10,7 +11,10 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @ApiTags('Models')
 @Controller('models')
 export class ModelsController {
-  constructor(private modelsService: ModelsService) {}
+  constructor(
+    private modelsService: ModelsService,
+    private modelSyncService: ModelSyncService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List all active models (public)' })
@@ -31,6 +35,15 @@ export class ModelsController {
   @ApiOperation({ summary: 'Get a single model by ID' })
   async findById(@Param('id') id: string) {
     return this.modelsService.findById(id);
+  }
+
+  @Post('sync')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Sync models from upstream source' })
+  async syncUpstream() {
+    return this.modelSyncService.syncNow();
   }
 
   @Post()

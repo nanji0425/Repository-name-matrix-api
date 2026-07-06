@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, Logger, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -28,14 +28,69 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const inviteCode = uuidv4().slice(0, 8);
+    let referrer: any = null;
 
-    const user = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        passwordHash,
-        inviteCode,
-        inviteBy: dto.inviteCode || null,
-      },
+    if (dto.inviteCode) {
+      referrer = await this.prisma.user.findFirst({
+        where: { inviteCode: dto.inviteCode },
+      });
+
+      if (!referrer) {
+        throw new BadRequestException('Invalid invite code');
+      }
+    }
+
+    const inviteBonus = referrer ? 5 : 0;
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          username: dto.username,
+          passwordHash,
+          inviteCode,
+          inviteBy: referrer?.inviteCode || null,
+          balance: inviteBonus,
+        },
+      });
+
+      if (referrer) {
+        const updatedReferrer = await tx.user.update({
+          where: { id: referrer.id },
+          data: { balance: { increment: 5 } },
+        });
+
+        await tx.commission.create({
+          data: {
+            userId: referrer.id,
+            inviteUserId: createdUser.id,
+            amount: 5,
+            rate: 0.05,
+            status: 'SETTLED',
+          },
+        });
+
+        await tx.walletLog.create({
+          data: {
+            userId: referrer.id,
+            type: 'COMMISSION',
+            amount: 5,
+            balance: updatedReferrer.balance,
+            remark: `Invite bonus from ${createdUser.username}`,
+          },
+        });
+
+        await tx.walletLog.create({
+          data: {
+            userId: createdUser.id,
+            type: 'COMMISSION',
+            amount: 5,
+            balance: inviteBonus,
+            remark: `Invite bonus received from ${referrer.username}`,
+          },
+        });
+      }
+
+      return createdUser;
     });
 
     const tokens = await this.generateTokens(user);

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -53,5 +53,30 @@ export class AdminController {
     @Query('limit') limit = '20',
   ) {
     return this.adminService.listAllApiKeys(parseInt(page), parseInt(limit));
+  }
+
+  @Get('commissions')
+  @ApiOperation({ summary: 'List all commissions (admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'status', required: false })
+  async listAllCommissions(
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+    @Query('status') status?: string,
+  ) {
+    return this.adminService.listAllCommissions(parseInt(page), parseInt(limit), status);
+  }
+
+  @Patch('api-keys/:id/toggle')
+  @ApiOperation({ summary: 'Toggle any API key status (admin)' })
+  async toggleApiKeyStatus(@Param('id') id: string) {
+    return this.adminService.toggleApiKeyStatus(id);
+  }
+
+  @Delete('api-keys/:id')
+  @ApiOperation({ summary: 'Delete any API key (admin)' })
+  async deleteApiKey(@Param('id') id: string) {
+    return this.adminService.deleteApiKey(id);
   }
 }

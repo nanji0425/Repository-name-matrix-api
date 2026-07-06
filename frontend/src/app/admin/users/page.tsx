@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
-import { formatDate, formatCurrency } from '@/lib/utils';
-import { Users, Search, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Search, ToggleLeft, ToggleRight, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const limit = 20;
@@ -39,8 +39,8 @@ export default function AdminUsersPage() {
       setUsers(data.data || data.users || []);
       setTotalPages(data.totalPages || Math.ceil((data.total || 0) / limit) || 1);
       setTotal(data.total || 0);
-    } catch {
-      toast.error('用户列表加载失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '用户列表加载失败');
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,8 @@ export default function AdminUsersPage() {
       await adminApi.toggleUserStatus(id);
       toast.success('用户状态已更新');
       load(page, search);
-    } catch {
-      toast.error('用户状态更新失败');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '用户状态更新失败');
     }
   };
 
@@ -90,24 +90,15 @@ export default function AdminUsersPage() {
       <div className="card mb-6 p-4">
         <div className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-gray-700">按用户名搜索</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">按用户名或邮箱搜索</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                onKeyDown={(event) => event.key === 'Enter' && doSearch()}
-                className="w-full rounded-lg border py-2 pl-10 pr-3 outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="搜索用户..."
-              />
+              <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && doSearch()} className="w-full rounded-lg border py-2 pl-10 pr-3 outline-none focus:ring-2 focus:ring-primary-500" placeholder="搜索用户..." />
             </div>
           </div>
           <button onClick={doSearch} className="btn-primary">搜索</button>
           {search && (
-            <button
-              onClick={() => { setSearchInput(''); setSearch(''); setPage(1); load(1, ''); }}
-              className="btn-secondary"
-            >
+            <button onClick={() => { setSearchInput(''); setSearch(''); setPage(1); load(1, ''); }} className="btn-secondary">
               清空
             </button>
           )}
@@ -184,18 +175,10 @@ export default function AdminUsersPage() {
           <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
             <div className="text-sm text-gray-500">第 {page} / {totalPages} 页，共 {total} 条</div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={page <= 1}
-                className="btn-secondary px-3 py-1.5 disabled:opacity-50"
-              >
+              <button onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} className="btn-secondary px-3 py-1.5 disabled:opacity-50">
                 <ChevronLeft className="h-4 w-4" /> 上一页
               </button>
-              <button
-                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                disabled={page >= totalPages}
-                className="btn-secondary px-3 py-1.5 disabled:opacity-50"
-              >
+              <button onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} className="btn-secondary px-3 py-1.5 disabled:opacity-50">
                 下一页 <ChevronRight className="h-4 w-4" />
               </button>
             </div>

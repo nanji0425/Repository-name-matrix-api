@@ -22,9 +22,10 @@
 
 export const brand = {
   name: 'MatrixAPI',
-  email: 'support@matrixapi.ai',
-  baseUrl: 'http://43.154.77.5/v1',
+  email: '3315419516@qq.com',
+  baseUrl: 'https://matrixapi.online/v1',
   envKey: 'MATRIX_API_KEY',
+  contactQq: '3315419516',
 };
 
 export const navLinks = [
