@@ -4,37 +4,35 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
-import { Activity, ChevronDown, CreditCard, Grid2X2, Key, List, LogOut, Moon, ReceiptText, SunMedium } from 'lucide-react';
+import { Activity, ChevronDown, CreditCard, Grid2X2, Key, List, LogOut, ReceiptText } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
 import { useAuthStore } from '@/stores/authStore';
+import { useLocaleStore } from '@/stores/localeStore';
 import { brand, navLinks } from '@/components/marketing/marketingData';
 import { BrandLogo, SiteFooter } from '@/components/marketing/MarketingLayout';
 import { cn } from '@/lib/utils';
 
 const consoleTabs = [
-  { href: '/dashboard', aliases: ['/console', '/console/overview'], label: '总览', icon: Grid2X2 },
-  { href: '/dashboard/api-keys', aliases: ['/console/api-keys', '/console/token'], label: 'API 密钥', icon: Key },
-  { href: '/dashboard/logs', aliases: ['/console/usage-logs'], label: '消费日志', icon: ReceiptText },
-  { href: '/dashboard/task-logs', aliases: ['/console/task-logs'], label: '任务日志', icon: List },
-  { href: '/dashboard/balance', aliases: ['/console/recharge'], label: '充值', icon: CreditCard },
-  { href: '/dashboard/invite', aliases: ['/console/activity'], label: '活动', icon: Activity },
-];
+  { href: '/dashboard', aliases: ['/console', '/console/overview'], labelKey: 'overview', icon: Grid2X2 },
+  { href: '/dashboard/api-keys', aliases: ['/console/api-keys', '/console/token'], labelKey: 'apiKeys', icon: Key },
+  { href: '/dashboard/logs', aliases: ['/console/usage-logs'], labelKey: 'usageLogs', icon: ReceiptText },
+  { href: '/dashboard/task-logs', aliases: ['/console/task-logs'], labelKey: 'taskLogs', icon: List },
+  { href: '/dashboard/balance', aliases: ['/console/recharge'], labelKey: 'recharge', icon: CreditCard },
+  { href: '/dashboard/invite', aliases: ['/console/activity'], labelKey: 'activity', icon: Activity },
+] as const;
 
 export function ConsoleShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, hasHydrated, hydrateAuth, fetchProfile, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(false);
+  const locale = useLocaleStore((state) => state.locale);
+  const t = useLocaleStore((state) => state.t);
 
   useEffect(() => {
     hydrateAuth();
   }, [hydrateAuth]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const isDark = document.documentElement.classList.contains('dark');
-    setDark(isDark);
-  }, []);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -48,35 +46,25 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   if (!hasHydrated || !isAuthenticated) return null;
 
   return (
-    <div className="console-shell">
+    <div className="console-shell" data-locale={locale}>
       <header className="relative z-20 border-b border-cyan-200/10 bg-[#070708]/78 shadow-2xl shadow-cyan-950/10 backdrop-blur-2xl">
         <div className="console-container flex h-16 items-center justify-between">
           <BrandLogo />
           <nav className="hidden items-center gap-7 lg:flex">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="text-sm font-medium text-slate-500 transition hover:text-white">{link.label}</Link>
+              <Link key={link.href} href={link.href} className="text-sm font-medium text-slate-500 transition hover:text-white">{t(link.labelKey)}</Link>
             ))}
           </nav>
           <div className="relative flex items-center gap-5">
-            <button
-              onClick={() => {
-                const next = !dark;
-                setDark(next);
-                document.documentElement.classList.toggle('dark', next);
-                localStorage.setItem('theme', next ? 'dark' : 'light');
-              }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200/10 bg-white/5 text-slate-300 shadow-lg shadow-cyan-950/10 transition hover:bg-white/10 hover:text-white"
-              aria-label="切换主题"
-            >
-              {dark ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+            <ThemeToggle />
+            <LanguageToggle />
             <button
               type="button"
               onClick={() => router.push('/dashboard')}
               className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5"
             >
               <Grid2X2 className="h-4 w-4" />
-              控制台
+              {t('console')}
             </button>
             <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white">
               <ChevronDown className="h-4 w-4" />
@@ -85,7 +73,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-white/10 bg-[#111216] p-2 shadow-2xl shadow-black/50">
                 <button onClick={logout} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-400 transition hover:bg-white/8">
                   <LogOut className="h-4 w-4" />
-                  退出登录
+                  {t('logout')}
                 </button>
               </div>
             )}
@@ -97,11 +85,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         <nav className="console-container flex h-[58px] items-center justify-center gap-5 overflow-x-auto">
           {consoleTabs.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href || item.aliases.includes(pathname);
+            const aliases: readonly string[] = item.aliases;
+            const active = pathname === item.href || aliases.includes(pathname);
             return (
               <Link key={item.href} href={item.href} className={cn('inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition', active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/6 hover:text-white')}>
                 <Icon className="h-4 w-4" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -129,17 +118,20 @@ export function ConsoleEmpty({ icon, title, desc }: { icon?: ReactNode; title: s
 }
 
 export function ApiBaseBadge() {
+  const locale = useLocaleStore((state) => state.locale);
+  const t = useLocaleStore((state) => state.t);
+
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(brand.baseUrl);
-      toast.success('API 地址已复制');
+      toast.success(t('apiCopied'));
     } catch {
-      toast.error('复制失败');
+      toast.error(t('copyFailed'));
     }
   };
   return (
-    <button type="button" onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm text-slate-300">
-      <span className="text-slate-500">API地址：</span>
+    <button type="button" onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm text-slate-300" data-locale={locale}>
+      <span className="text-slate-500">{t('apiAddress')}</span>
       <code className="font-mono text-slate-100">{brand.baseUrl}</code>
       <span className="text-slate-400">⧉</span>
     </button>

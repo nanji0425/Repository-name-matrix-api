@@ -19,6 +19,7 @@
   WalletCards,
   Zap,
 } from 'lucide-react';
+import type { TranslationKey } from '@/stores/localeStore';
 
 export const brand = {
   name: 'MatrixAPI',
@@ -28,15 +29,15 @@ export const brand = {
   contactQq: '3315419516',
 };
 
-export const navLinks = [
-  { href: '/', label: '首页' },
-  { href: '/models', label: '模型广场' },
-  { href: '/api-gateway', label: 'API 中转平台' },
-  { href: '/tools', label: '在线创作' },
-  { href: '/solutions', label: '解决方案' },
-  { href: '/news', label: '资讯' },
-  { href: '/docs', label: '文档' },
-  { href: '/about', label: '关于' },
+export const navLinks: { href: string; label: string; labelKey: TranslationKey }[] = [
+  { href: '/', label: '首页', labelKey: 'home' },
+  { href: '/models', label: '模型广场', labelKey: 'models' },
+  { href: '/api-gateway', label: 'API 中转平台', labelKey: 'apiGateway' },
+  { href: '/tools', label: '在线创作', labelKey: 'tools' },
+  { href: '/solutions', label: '解决方案', labelKey: 'solutions' },
+  { href: '/news', label: '资讯', labelKey: 'news' },
+  { href: '/docs', label: '文档', labelKey: 'docs' },
+  { href: '/about', label: '关于', labelKey: 'about' },
 ];
 
 export const heroModels = ['OpenAI GPT-4o', 'Claude 3.5', 'Gemini 1.5 Pro', 'DeepSeek V3', 'Llama 3', 'Qwen Max', 'Mistral Large', 'Stable Diffusion 3'];
