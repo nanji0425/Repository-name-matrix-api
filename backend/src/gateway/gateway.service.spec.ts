@@ -114,6 +114,14 @@ function createPrismaMock() {
 async function run() {
   const prisma = createPrismaMock();
   const service = new GatewayService(prisma, {} as any);
+  const tinyCost = (service as any).calculateCost(
+    { inputPrice: 0.000195, outputPrice: 0.00078, multiplier: 1 },
+    10,
+    3,
+    1,
+    0.0556,
+  );
+  assert.equal(tinyCost, 0.000001);
 
   const fetchCalls: any[] = [];
   globalThis.fetch = (async (url: string, options: any) => {

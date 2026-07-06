@@ -259,7 +259,9 @@ export class GatewayService {
     const inputCost = (promptTokens / 1000) * model.inputPrice * model.multiplier;
     const outputCost = (completionTokens / 1000) * model.outputPrice * model.multiplier;
     const baseCost = Math.round((inputCost + outputCost) * 1000000) / 1000000;
-    return Math.round(baseCost * groupMultiplier * dynamicRate * 1000000) / 1000000;
+    const rawCost = baseCost * groupMultiplier * dynamicRate;
+    const roundedCost = Math.round(rawCost * 1000000) / 1000000;
+    return rawCost > 0 && roundedCost === 0 ? 0.000001 : roundedCost;
   }
 
   private async getCurrentDynamicRate(): Promise<number> {
