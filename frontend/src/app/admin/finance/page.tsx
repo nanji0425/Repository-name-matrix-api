@@ -5,25 +5,80 @@ import { ordersApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { CheckCircle, CreditCard, DollarSign, RefreshCw, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocaleStore } from '@/stores/localeStore';
 
-const statusText: Record<string, string> = {
-  COMPLETED: '已完成',
-  SUCCESS: '成功',
-  PENDING: '待处理',
-  FAILED: '失败',
-  CANCELLED: '已取消',
-  REFUNDED: '已退款',
-};
-
-const payTypeText: Record<string, string> = {
-  ALIPAY: '支付宝',
-  WECHAT: '微信',
-  CREDIT_CARD: '信用卡',
-  BALANCE: '余额',
-  CRYPTO: '加密货币',
-};
+const copy = {
+  zh: {
+    title: '财务总览',
+    refresh: '刷新',
+    completedRevenue: '已完成收入',
+    currentOrders: '当前列表订单',
+    completed: '已完成',
+    pending: '待处理',
+    status: '状态',
+    allStatus: '全部状态',
+    startDate: '开始日期',
+    endDate: '结束日期',
+    apply: '应用筛选',
+    clear: '清空',
+    loading: '正在加载...',
+    empty: '暂无订单',
+    loadFailed: '财务数据加载失败',
+    table: ['订单号', '用户', '金额', '支付方式', '状态', '时间'],
+    statuses: {
+      COMPLETED: '已完成',
+      SUCCESS: '成功',
+      PENDING: '待处理',
+      FAILED: '失败',
+      CANCELLED: '已取消',
+      REFUNDED: '已退款',
+    },
+    payTypes: {
+      ALIPAY: '支付宝',
+      WECHAT: '微信',
+      CREDIT_CARD: '信用卡',
+      BALANCE: '余额',
+      CRYPTO: '加密货币',
+    },
+  },
+  en: {
+    title: 'Finance Overview',
+    refresh: 'Refresh',
+    completedRevenue: 'Completed Revenue',
+    currentOrders: 'Current Orders',
+    completed: 'Completed',
+    pending: 'Pending',
+    status: 'Status',
+    allStatus: 'All statuses',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    apply: 'Apply Filters',
+    clear: 'Clear',
+    loading: 'Loading...',
+    empty: 'No orders',
+    loadFailed: 'Failed to load finance data',
+    table: ['Order No.', 'User', 'Amount', 'Payment', 'Status', 'Time'],
+    statuses: {
+      COMPLETED: 'Completed',
+      SUCCESS: 'Success',
+      PENDING: 'Pending',
+      FAILED: 'Failed',
+      CANCELLED: 'Cancelled',
+      REFUNDED: 'Refunded',
+    },
+    payTypes: {
+      ALIPAY: 'Alipay',
+      WECHAT: 'WeChat',
+      CREDIT_CARD: 'Credit Card',
+      BALANCE: 'Balance',
+      CRYPTO: 'Crypto',
+    },
+  },
+} as const;
 
 export default function AdminFinancePage() {
+  const locale = useLocaleStore((state) => state.locale);
+  const text = copy[locale];
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -41,7 +96,7 @@ export default function AdminFinancePage() {
       const items = data.items || data.data || data.orders || [];
       setOrders(Array.isArray(items) ? items : []);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || '财务数据加载失败');
+      toast.error(error.response?.data?.message || text.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -49,6 +104,7 @@ export default function AdminFinancePage() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearFilter = async () => {
@@ -61,7 +117,7 @@ export default function AdminFinancePage() {
       const items = data.items || data.data || data.orders || [];
       setOrders(Array.isArray(items) ? items : []);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || '财务数据加载失败');
+      toast.error(error.response?.data?.message || text.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -90,106 +146,93 @@ export default function AdminFinancePage() {
     return String(user).substring(0, 8);
   };
 
+  const statusLabel = (status: string) => text.statuses[status as keyof typeof text.statuses] || status;
+  const payTypeLabel = (payType: string) => text.payTypes[payType as keyof typeof text.payTypes] || payType || '-';
+
+  const cards = [
+    { label: text.completedRevenue, value: formatCurrency(totalRevenue), icon: DollarSign, iconClass: 'bg-green-50 text-green-600' },
+    { label: text.currentOrders, value: String(orders.length), icon: TrendingUp, iconClass: 'bg-blue-50 text-blue-600' },
+    { label: text.completed, value: String(paidOrders.length), icon: CheckCircle, iconClass: 'bg-purple-50 text-purple-600' },
+    { label: text.pending, value: String(pendingOrders), icon: CreditCard, iconClass: 'bg-yellow-50 text-yellow-600' },
+  ];
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">财务总览</h1>
+        <h1 className="text-2xl font-bold text-slate-950 dark:text-white">{text.title}</h1>
         <button onClick={load} className="btn-secondary inline-flex items-center gap-2">
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          刷新
+          {text.refresh}
         </button>
       </div>
 
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="card p-5">
-          <div className="mb-3 inline-flex rounded-lg bg-green-50 p-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-          </div>
-          <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-          <div className="text-sm text-gray-500">已完成收入</div>
-        </div>
-        <div className="card p-5">
-          <div className="mb-3 inline-flex rounded-lg bg-blue-50 p-2">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold">{orders.length}</div>
-          <div className="text-sm text-gray-500">当前列表订单</div>
-        </div>
-        <div className="card p-5">
-          <div className="mb-3 inline-flex rounded-lg bg-purple-50 p-2">
-            <CheckCircle className="h-5 w-5 text-purple-600" />
-          </div>
-          <div className="text-2xl font-bold">{paidOrders.length}</div>
-          <div className="text-sm text-gray-500">已完成</div>
-        </div>
-        <div className="card p-5">
-          <div className="mb-3 inline-flex rounded-lg bg-yellow-50 p-2">
-            <CreditCard className="h-5 w-5 text-yellow-600" />
-          </div>
-          <div className="text-2xl font-bold">{pendingOrders}</div>
-          <div className="text-sm text-gray-500">待处理</div>
-        </div>
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="card p-5 dark:border-white/10 dark:bg-white/[0.04]">
+              <div className={`mb-3 inline-flex rounded-lg p-2 ${card.iconClass}`}>
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="text-2xl font-bold text-slate-950 dark:text-white">{card.value}</div>
+              <div className="text-sm text-gray-500 dark:text-slate-400">{card.label}</div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="card mb-6 p-4">
+      <div className="card mb-6 p-4 dark:border-white/10 dark:bg-white/[0.04]">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">状态</label>
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">全部状态</option>
-              <option value="COMPLETED">已完成</option>
-              <option value="PENDING">待处理</option>
-              <option value="FAILED">失败</option>
-              <option value="CANCELLED">已取消</option>
-              <option value="REFUNDED">已退款</option>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{text.status}</label>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-lg border px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-slate-950 dark:text-white">
+              <option value="">{text.allStatus}</option>
+              {Object.entries(text.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">开始日期</label>
-            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{text.startDate}</label>
+            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-slate-950 dark:text-white" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">结束日期</label>
-            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500" />
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{text.endDate}</label>
+            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="rounded-lg border px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-slate-950 dark:text-white" />
           </div>
-          <button onClick={load} className="btn-primary">应用筛选</button>
-          <button onClick={clearFilter} className="btn-secondary">清空</button>
+          <button onClick={load} className="btn-primary">{text.apply}</button>
+          <button onClick={clearFilter} className="btn-secondary">{text.clear}</button>
         </div>
       </div>
 
       {loading ? (
-        <div className="card p-12 text-center text-gray-400">正在加载...</div>
+        <div className="card p-12 text-center text-gray-400 dark:border-white/10 dark:bg-white/[0.04]">{text.loading}</div>
       ) : orders.length === 0 ? (
-        <div className="card p-12 text-center">
+        <div className="card p-12 text-center dark:border-white/10 dark:bg-white/[0.04]">
           <DollarSign className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <p className="text-gray-500">暂无订单</p>
+          <p className="text-gray-500">{text.empty}</p>
         </div>
       ) : (
-        <div className="card overflow-hidden">
+        <div className="card overflow-hidden dark:border-white/10 dark:bg-white/[0.04]">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">订单号</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">用户</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">金额</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">支付方式</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">状态</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">时间</th>
+                <tr className="border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.04]">
+                  {text.table.map((item, index) => (
+                    <th key={item} className={`px-4 py-3 text-xs font-medium uppercase text-gray-500 ${index === 2 ? 'text-right' : 'text-left'}`}>{item}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-white/10">
                 {orders.map((order: any) => {
                   const status = order.status || 'PENDING';
                   const payType = order.payType || order.paymentMethod || '';
                   return (
-                    <tr key={order.id || order._id || order.orderNo} className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-sm font-medium">{order.orderNo || order.id?.substring(0, 12) || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{getUserName(order)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-sm font-medium">{formatCurrency(parseFloat(order.amount) || 0)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{payTypeText[payType] || payType || '-'}</td>
+                    <tr key={order.id || order._id || order.orderNo} className="transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.04]">
+                      <td className="px-4 py-3 font-mono text-sm font-medium text-slate-950 dark:text-white">{order.orderNo || order.id?.substring(0, 12) || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{getUserName(order)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-sm font-medium text-slate-950 dark:text-white">{formatCurrency(parseFloat(order.amount) || 0)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{payTypeLabel(payType)}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>{statusText[status] || status}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusBadge(status)}`}>{statusLabel(status)}</span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">{order.createdAt ? formatDate(order.createdAt) : '-'}</td>
                     </tr>
