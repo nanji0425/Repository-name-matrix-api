@@ -53,12 +53,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="console-shell" data-locale={locale}>
-      <header className="relative z-20 border-b border-cyan-200/10 bg-[#070708]/78 shadow-2xl shadow-cyan-950/10 backdrop-blur-2xl">
+      <header className="relative z-20 border-b border-cyan-700/15 bg-white/82 shadow-2xl shadow-cyan-950/10 backdrop-blur-2xl dark:border-cyan-200/10 dark:bg-[#070708]/78">
         <div className="console-container flex h-16 items-center justify-between">
           <BrandLogo />
           <nav className="hidden items-center gap-7 lg:flex">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="text-sm font-medium text-slate-500 transition hover:text-white">{t(link.labelKey)}</Link>
+              <Link key={link.href} href={link.href} className="text-sm font-medium text-slate-600 transition hover:text-slate-950 dark:text-slate-500 dark:hover:text-white">{t(link.labelKey)}</Link>
             ))}
           </nav>
           <div className="relative flex items-center gap-5">
@@ -72,12 +72,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               <Grid2X2 className="h-4 w-4" />
               {t('console')}
             </button>
-            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <button onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-700/15 bg-white/70 text-slate-700 transition hover:bg-white hover:text-slate-950 dark:border-cyan-200/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <ChevronDown className="h-4 w-4" />
             </button>
             {open && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-white/10 bg-[#111216] p-2 shadow-2xl shadow-black/50">
-                <button onClick={logout} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-400 transition hover:bg-white/8">
+              <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-cyan-700/15 bg-white p-2 shadow-2xl shadow-slate-900/15 dark:border-white/10 dark:bg-[#111216] dark:shadow-black/50">
+                <button onClick={logout} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-500 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-white/8">
                   <LogOut className="h-4 w-4" />
                   {t('logout')}
                 </button>
@@ -87,14 +87,14 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className="relative z-10 border-b border-cyan-200/10 bg-[#111827]/58 backdrop-blur-xl">
+      <div className="relative z-10 border-b border-cyan-700/15 bg-cyan-50/70 backdrop-blur-xl dark:border-cyan-200/10 dark:bg-[#111827]/58">
         <nav className="console-container flex h-[58px] items-center justify-center gap-5 overflow-x-auto">
           {consoleTabs.map((item) => {
             const Icon = item.icon;
             const aliases: readonly string[] = item.aliases;
             const active = pathname === item.href || aliases.includes(pathname);
             return (
-              <Link key={item.href} href={item.href} className={cn('inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition', active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/6 hover:text-white')}>
+              <Link key={item.href} href={item.href} className={cn('inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition', active ? 'bg-cyan-100 text-slate-950 dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-white/70 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/6 dark:hover:text-white')}>
                 <Icon className="h-4 w-4" />
                 {t(item.labelKey)}
               </Link>
@@ -116,9 +116,9 @@ export function ConsolePage({ children, className }: { children: ReactNode; clas
 export function ConsoleEmpty({ icon, title, desc }: { icon?: ReactNode; title: string; desc?: string }) {
   return (
     <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
-      {icon && <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800 text-slate-400">{icon}</div>}
-      <div className="text-2xl font-black text-white">{title}</div>
-      {desc && <p className="mt-3 text-sm text-slate-400">{desc}</p>}
+      {icon && <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">{icon}</div>}
+      <div className="text-2xl font-black text-slate-950 dark:text-white">{title}</div>
+      {desc && <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">{desc}</p>}
     </div>
   );
 }
@@ -136,9 +136,9 @@ export function ApiBaseBadge() {
     }
   };
   return (
-    <button type="button" onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm text-slate-300" data-locale={locale}>
+    <button type="button" onClick={copy} className="inline-flex h-9 items-center gap-3 rounded-full border border-cyan-700/15 bg-white/70 px-4 text-sm text-slate-700 dark:border-white/15 dark:bg-white/[0.03] dark:text-slate-300" data-locale={locale}>
       <span className="text-slate-500">{t('apiAddress')}</span>
-      <code className="font-mono text-slate-100">{brand.baseUrl}</code>
+      <code className="font-mono text-slate-950 dark:text-slate-100">{brand.baseUrl}</code>
       <span className="text-slate-400">⧉</span>
     </button>
   );
