@@ -10,7 +10,7 @@ import { useLocaleStore } from '@/stores/localeStore';
 const copy = {
   zh: {
     title: '模型广场',
-    desc: '所有模型按上游价格加价 30% 展示，便于统一对外销售。',
+    desc: '所有模型按上游价格加价 40% 展示，便于统一对外销售。',
     getKey: '获取 API Key',
     modelCount: '模型数量',
     providerCount: '供应商数',
@@ -25,7 +25,7 @@ const copy = {
   },
   en: {
     title: 'Model Marketplace',
-    desc: 'Models are displayed with a 30% markup over upstream prices for unified sales.',
+    desc: 'Models are displayed with a 40% markup over upstream prices for unified sales.',
     getKey: 'Get API Key',
     modelCount: 'Models',
     providerCount: 'Providers',

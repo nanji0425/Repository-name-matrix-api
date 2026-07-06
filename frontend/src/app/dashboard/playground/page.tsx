@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { SendHorizontal, Download, Upload, Bot, User, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { API_BASE, apiKeysApi, modelsApi } from '@/lib/api';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -12,6 +13,7 @@ interface Message {
 interface Config {
   group: string;
   model: string;
+  apiKeyId: string;
   temperature: number;
   topP: number;
   frequencyPenalty: number;
@@ -22,31 +24,25 @@ interface Config {
   imageUrl: string;
 }
 
-const GROUPS = ['plus', 'codex-plus', 'codex-pro', 'default', 'test'];
+interface ApiKeyOption {
+  id: string;
+  name: string;
+  secret?: string;
+  status: string;
+}
 
-const MODELS = [
-  'codex-auto-review',
-  'gpt-5.5',
-  'gpt-5.4',
-  'gpt-5.3',
-  'gpt-5.2',
-  'gpt-5.1',
-  'gpt-5.0',
-  'gpt-4.5',
-  'gpt-4.1',
-  'gpt-4o',
-  'gpt-4o-mini',
-  'o3',
-  'o3-mini',
-  'o4-mini',
-  'claude-sonnet-5',
-  'claude-haiku-5',
-  'claude-opus-5',
-];
+interface ModelOption {
+  id: string;
+  name: string;
+  modelCode: string;
+}
+
+const GROUPS = ['plus', 'codex-plus', 'codex-pro', 'default', 'test'];
 
 const DEFAULT_CONFIG: Config = {
   group: 'plus',
-  model: 'codex-auto-review',
+  model: '',
+  apiKeyId: '',
   temperature: 0.7,
   topP: 1,
   frequencyPenalty: 0,
@@ -57,23 +53,47 @@ const DEFAULT_CONFIG: Config = {
   imageUrl: '',
 };
 
-const SAMPLE_RESPONSE =
-  "Hello! I'm MatrixAPI. I can help you with code review, debugging, optimization, and general programming questions. How can I assist you today?";
-
 export default function PlaygroundPage() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [apiKeys, setApiKeys] = useState<ApiKeyOption[]>([]);
+  const [models, setModels] = useState<ModelOption[]>([]);
   const [input, setInput] = useState('');
   const [showDebug, setShowDebug] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [error, setError] = useState('');
   const [groupOpen, setGroupOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
+  const [keyOpen, setKeyOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([apiKeysApi.list(), modelsApi.listActive()])
+      .then(([keysResponse, modelsResponse]) => {
+        if (!mounted) return;
+        const activeKeys = (Array.isArray(keysResponse.data) ? keysResponse.data : []).filter((key: ApiKeyOption) => key.status === 'ACTIVE');
+        const activeModels = Array.isArray(modelsResponse.data) ? modelsResponse.data : [];
+        setApiKeys(activeKeys);
+        setModels(activeModels);
+        setConfig((previous) => ({
+          ...previous,
+          apiKeyId: previous.apiKeyId || activeKeys[0]?.id || '',
+          model: previous.model || activeModels[0]?.modelCode || 'gpt-4o-mini',
+        }));
+      })
+      .catch(() => setError('无法加载 API Key 或模型列表，请刷新后重试。'))
+      .finally(() => mounted && setPageLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const updateConfig = <K extends keyof Config>(key: K, value: Config[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -82,18 +102,49 @@ export default function PlaygroundPage() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading) return;
+    const selectedKey = apiKeys.find((key) => key.id === config.apiKeyId);
+    if (!selectedKey?.secret) {
+      setError('请选择一个可用 API Key。旧密钥如无法读取完整 secret，请新建密钥后再调用。');
+      return;
+    }
 
     const userMessage: Message = { role: 'user', content: text };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    setError('');
 
-    // Simulate a short delay to show loading state
-    setTimeout(() => {
-      const assistantMessage: Message = { role: 'assistant', content: SAMPLE_RESPONSE };
+    try {
+      const response = await fetch(`${API_BASE.replace(/\/api$/, '')}/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${selectedKey.secret}`,
+        },
+        body: JSON.stringify({
+          model: config.model,
+          messages: [...messages, userMessage],
+          temperature: config.temperature,
+          top_p: config.topP,
+          frequency_penalty: config.frequencyPenalty,
+          presence_penalty: config.presencePenalty,
+          ...(config.maxTokens ? { max_tokens: Number(config.maxTokens) } : {}),
+          ...(config.seed ? { seed: Number(config.seed) } : {}),
+          stream: false,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.message || data?.error?.message || `HTTP ${response.status}`);
+      const content = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || JSON.stringify(data, null, 2);
+      const assistantMessage: Message = { role: 'assistant', content };
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (requestError: any) {
+      const message = requestError?.message || '调用失败，请检查余额、模型和 API Key。';
+      setError(message);
+      setMessages((prev) => [...prev, { role: 'assistant', content: `调用失败：${message}` }]);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -134,11 +185,8 @@ export default function PlaygroundPage() {
     input.click();
   };
 
-  const currentModelLabel = config.model
-    ? config.model === 'codex-auto-review'
-      ? 'CodeX Auto Review'
-      : config.model
-    : 'Not selected';
+  const currentModelLabel = config.model || 'Not selected';
+  const selectedKeyLabel = apiKeys.find((key) => key.id === config.apiKeyId)?.name || 'Select API Key';
 
   return (
     <div className="flex gap-4 h-[calc(100vh-128px)]">
@@ -216,7 +264,9 @@ export default function PlaygroundPage() {
                     className="absolute left-0 right-0 top-full mt-1 z-20 rounded-lg shadow-lg max-h-48 overflow-y-auto"
                     style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
                   >
-                    {MODELS.map((m) => (
+                    {models.map((model) => {
+                      const m = model.modelCode;
+                      return (
                       <button
                         key={m}
                         onClick={() => { updateConfig('model', m); setModelOpen(false); }}
@@ -235,9 +285,43 @@ export default function PlaygroundPage() {
                           if (m !== config.model) (e.currentTarget as HTMLElement).style.background = 'transparent';
                         }}
                       >
-                        {m}
+                        {model.name} / {m}
+                      </button>
+                    );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+                API Key
+              </label>
+              <div className="relative">
+                <button
+                  onClick={() => { setKeyOpen(!keyOpen); setGroupOpen(false); setModelOpen(false); }}
+                  className="ant-select w-full text-left flex items-center justify-between"
+                >
+                  <span className="truncate">{selectedKeyLabel}</span>
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+                </button>
+                {keyOpen && (
+                  <div
+                    className="absolute left-0 right-0 top-full mt-1 z-20 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                  >
+                    {apiKeys.map((key) => (
+                      <button
+                        key={key.id}
+                        onClick={() => { updateConfig('apiKeyId', key.id); setKeyOpen(false); }}
+                        className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-cyan-500/10"
+                        style={{ color: key.id === config.apiKeyId ? 'var(--primary)' : 'var(--text-primary)' }}
+                      >
+                        {key.name}
                       </button>
                     ))}
+                    {apiKeys.length === 0 && <div className="px-3 py-2 text-sm text-slate-500">No active API Keys</div>}
                   </div>
                 )}
               </div>
@@ -400,7 +484,7 @@ export default function PlaygroundPage() {
             </button>
           </div>
           <p className="text-xs text-center mt-3" style={{ color: 'var(--text-tertiary)' }}>
-            No saved configurations
+            {pageLoading ? 'Loading keys and models...' : 'OpenAI-compatible live request'}
           </p>
         </div>
       </div>
@@ -413,7 +497,7 @@ export default function PlaygroundPage() {
             className="flex items-center justify-between px-5 py-3 border-b shrink-0"
             style={{ borderColor: 'var(--border)' }}
           >
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
               <Bot className="w-5 h-5" style={{ color: 'var(--primary)' }} />
               <span className="font-semibold text-sm">{currentModelLabel}</span>
               <span
@@ -423,6 +507,7 @@ export default function PlaygroundPage() {
                 {config.group}
               </span>
             </div>
+            {error && <div className="text-xs font-medium text-red-500">{error}</div>}
             <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
               <span>Show Debug</span>
               <button
@@ -443,7 +528,7 @@ export default function PlaygroundPage() {
           </div>
 
           {/* Chat messages area */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4" style={{ background: '#fafafa' }}>
+          <div className="flex-1 overflow-y-auto p-5 space-y-4" style={{ background: 'var(--bg-secondary)' }}>
             {messages.length === 0 && !loading ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <Bot className="w-12 h-12 mb-3" style={{ color: 'var(--text-tertiary)' }} />
@@ -529,7 +614,7 @@ export default function PlaygroundPage() {
           {showDebug && messages.length > 0 && (
             <div
               className="border-t px-5 py-3 text-xs max-h-32 overflow-y-auto shrink-0"
-              style={{ borderColor: 'var(--border)', background: '#fafafa' }}
+              style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
             >
               <div className="font-medium mb-1 text-xs" style={{ color: 'var(--text-secondary)' }}>Debug Info</div>
               {messages.map((msg, i) => (

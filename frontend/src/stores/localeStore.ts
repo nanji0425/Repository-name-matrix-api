@@ -113,10 +113,8 @@ function applyBrowserLocale(locale: Locale) {
   document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
 }
 
-const initialLocale: Locale = 'zh';
-
 export const useLocaleStore = create<LocaleState>((set, get) => ({
-  locale: initialLocale,
+  locale: 'zh',
   hasHydrated: false,
   hydrateLocale: () => {
     const locale = readBrowserLocale();

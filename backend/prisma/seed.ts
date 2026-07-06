@@ -9,7 +9,7 @@ import {
 
 const prisma = new PrismaClient();
 
-const PRICE_MARKUP = 1.3;
+const PRICE_MARKUP = 1.4;
 
 function withMarkup(price: number): number {
   return Number((price * PRICE_MARKUP).toFixed(8));
@@ -154,7 +154,7 @@ async function loadUpstreamPayload(baseUrl: string, apiKey: string) {
 async function seedModels(upstreamPayload: any) {
   if (upstreamPayload) {
     const models = await syncUpstreamModels(prisma, upstreamPayload, UPSTREAM_PROVIDER_ID);
-    console.log(`${models.length} upstream models synced with 30% markup`);
+    console.log(`${models.length} upstream models synced with 40% markup`);
     return;
   }
 
@@ -184,7 +184,7 @@ async function seedModels(upstreamPayload: any) {
       }),
     ),
   );
-  console.log(`${models.length} fallback models created with 30% markup`);
+  console.log(`${models.length} fallback models created with 40% markup`);
 }
 
 async function seedGroupsAndDynamicRate() {

@@ -27,7 +27,7 @@ import {
 const copy = {
   zh: {
     title: '模型广场',
-    desc: '一点接入，驱动无限可能。浏览平台支持的 AI 模型，查看已按上游价格增加 30% 后的人民币展示价格。',
+    desc: '一点接入，驱动无限可能。浏览平台支持的 AI 模型，查看已按上游价格增加 40% 后的人民币展示价格。',
     search: '搜索模型 ID / 名称 / 供应商',
     filters: '筛选',
     reset: '重置',
@@ -47,7 +47,7 @@ const copy = {
   },
   en: {
     title: 'Model Marketplace',
-    desc: 'Connect once and unlock many model capabilities. Browse supported AI models and RMB display prices with a 30% markup over upstream cost.',
+    desc: 'Connect once and unlock many model capabilities. Browse supported AI models and RMB display prices with a 40% markup over upstream cost.',
     search: 'Search model ID / name / provider',
     filters: 'Filters',
     reset: 'Reset',

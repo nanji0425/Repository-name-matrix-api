@@ -35,8 +35,8 @@ const payload = {
 const candidates = buildUpstreamCandidates(DEFAULT_UPSTREAM_BASE_URL, 'sk-demo');
 const models = normalizeUpstreamModels(payload, 'bblabu');
 
-assertEqual(applyMarkup(10), 13);
-assertEqual(applyMarkup(0.123456789), 0.16049383);
+assertEqual(applyMarkup(10), 14);
+assertEqual(applyMarkup(0.123456789), 0.1728395);
 assertEqual(formatModelName('gpt-4o-mini'), 'GPT 4o Mini');
 assertEqual(DEFAULT_UPSTREAM_BASE_URL, 'https://api.bblabu.chat/v1');
 assertEqual(candidates.length, 12);
@@ -51,8 +51,8 @@ assertDeepEqual(models[0], {
   name: 'GPT 4o Mini',
   modelCode: 'gpt-4o-mini',
   providerId: 'bblabu',
-  inputPrice: 0.195,
-  outputPrice: 0.78,
+  inputPrice: 0.21,
+  outputPrice: 0.84,
   multiplier: 1,
   status: 'ACTIVE',
   sortOrder: 1,
@@ -61,8 +61,8 @@ assertDeepEqual(models[1], {
   name: 'Claude 3 5 Sonnet',
   modelCode: 'claude-3-5-sonnet',
   providerId: 'bblabu',
-  inputPrice: 3.9,
-  outputPrice: 19.5,
+  inputPrice: 4.2,
+  outputPrice: 21,
   multiplier: 1,
   status: 'ACTIVE',
   sortOrder: 2,
@@ -71,8 +71,8 @@ assertDeepEqual(models[2], {
   name: 'DeepSeek Chat',
   modelCode: 'deepseek-chat',
   providerId: 'bblabu',
-  inputPrice: 0.65,
-  outputPrice: 2.6,
+  inputPrice: 0.7,
+  outputPrice: 2.8,
   multiplier: 1,
   status: 'ACTIVE',
   sortOrder: 3,

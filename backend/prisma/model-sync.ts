@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 export const UPSTREAM_PROVIDER_ID = 'bblabu';
 export const DEFAULT_UPSTREAM_BASE_URL = 'https://api.bblabu.chat/v1';
-export const PRICE_MARKUP = 1.3;
+export const PRICE_MARKUP = 1.4;
 
 type UpstreamModel = {
   id?: string;
@@ -222,7 +222,7 @@ async function main() {
 
     const payload = await fetchUpstreamModels(baseUrl, apiKey);
     const models = await syncUpstreamModels(prisma, payload, UPSTREAM_PROVIDER_ID);
-    console.log(`Synced ${models.length} upstream models with 30% markup`);
+    console.log(`Synced ${models.length} upstream models with 40% markup`);
   } finally {
     await prisma.$disconnect();
   }
