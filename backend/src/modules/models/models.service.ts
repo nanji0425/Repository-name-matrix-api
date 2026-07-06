@@ -12,7 +12,10 @@ export class ModelsService {
    */
   async findAllActive() {
     return this.prisma.model.findMany({
-      where: { status: 'ACTIVE' },
+      where: {
+        status: 'ACTIVE',
+        OR: [{ inputPrice: { gt: 0 } }, { outputPrice: { gt: 0 } }],
+      },
       include: {
         provider: {
           select: { id: true, name: true },

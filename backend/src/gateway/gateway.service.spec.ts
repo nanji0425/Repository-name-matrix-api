@@ -63,7 +63,10 @@ function createPrismaMock() {
           apiKey: 'provider-key',
         },
       }),
-      findMany: async () => [],
+      findMany: async (args: any) => {
+        state.modelFindManyArgs = args;
+        return [];
+      },
     },
     user: {
       update: async (args: any) => {
@@ -114,6 +117,11 @@ function createPrismaMock() {
 async function run() {
   const prisma = createPrismaMock();
   const service = new GatewayService(prisma, {} as any);
+  await service.listModels();
+  assert.deepEqual(prisma.state.modelFindManyArgs.where, {
+    status: 'ACTIVE',
+    OR: [{ inputPrice: { gt: 0 } }, { outputPrice: { gt: 0 } }],
+  });
   const tinyCost = (service as any).calculateCost(
     { inputPrice: 0.000195, outputPrice: 0.00078, multiplier: 1 },
     10,

@@ -211,7 +211,10 @@ export class GatewayService {
 
   async listModels() {
     const models = await this.prisma.model.findMany({
-      where: { status: 'ACTIVE' },
+      where: {
+        status: 'ACTIVE',
+        OR: [{ inputPrice: { gt: 0 } }, { outputPrice: { gt: 0 } }],
+      },
       select: {
         id: true,
         modelCode: true,
