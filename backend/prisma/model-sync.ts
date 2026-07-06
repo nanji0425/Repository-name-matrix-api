@@ -45,6 +45,10 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
+function hasPositivePrice(input: number, output: number): boolean {
+  return input > 0 || output > 0;
+}
+
 function unique<T>(values: T[]) {
   return [...new Set(values)];
 }
@@ -130,6 +134,7 @@ export function normalizeUpstreamModels(payload: any, providerId = UPSTREAM_PROV
 
       const input = toNumber(model.pricing?.input ?? model.pricing?.prompt ?? model.input_price ?? model.prompt_price);
       const output = toNumber(model.pricing?.output ?? model.pricing?.completion ?? model.output_price ?? model.completion_price);
+      if (!hasPositivePrice(input, output)) return null;
 
       return {
         name: model.name || formatModelName(modelCode),

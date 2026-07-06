@@ -62,6 +62,10 @@ export class GatewayService {
       throw new BadRequestException(`Provider for model '${modelCode}' is inactive`);
     }
 
+    if (model.inputPrice <= 0 && model.outputPrice <= 0) {
+      throw new BadRequestException(`Model '${modelCode}' pricing is not configured`);
+    }
+
     const allowedModels = Array.isArray(key.allowedModels) ? key.allowedModels : [];
     if (allowedModels.length > 0 && !allowedModels.includes(model.modelCode)) {
       throw new BadRequestException(`API key is not allowed to call model '${model.modelCode}'`);

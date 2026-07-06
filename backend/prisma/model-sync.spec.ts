@@ -25,6 +25,7 @@ const payload = {
     { id: 'gpt-4o-mini', owned_by: 'openai', pricing: { input: 0.15, output: 0.6 } },
     { id: 'claude-3-5-sonnet', owned_by: 'anthropic', input_price: '3', output_price: '15' },
     { id: 'deepseek-chat', owned_by: 'deepseek', input_price: '0.5', output_price: '2' },
+    { id: 'free-by-mistake', owned_by: 'unknown' },
     { id: '', object: 'model' },
     { object: 'model' },
   ],
@@ -43,6 +44,7 @@ assertEqual(candidates[1].headers.Authorization, 'sk-demo');
 assertEqual(candidates[2].headers['api-key'], 'sk-demo');
 assertEqual(candidates[3].headers['x-api-key'], 'sk-demo');
 assertEqual(models.length, 3);
+assertEqual(models.some((model) => model.modelCode === 'free-by-mistake'), false);
 assertDeepEqual(models[0], {
   name: 'GPT 4o Mini',
   modelCode: 'gpt-4o-mini',

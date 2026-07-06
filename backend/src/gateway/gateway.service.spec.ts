@@ -7,6 +7,8 @@ function createPrismaMock() {
     userBalance: 100,
     quota: null,
     usedAmount: 0,
+    inputPrice: 1,
+    outputPrice: 1,
     userUpdateArgs: [] as any[],
   };
 
@@ -51,8 +53,8 @@ function createPrismaMock() {
       findFirst: async () => ({
         id: 'model-1',
         modelCode: 'gpt-4o-mini',
-        inputPrice: 1,
-        outputPrice: 1,
+        inputPrice: state.inputPrice,
+        outputPrice: state.outputPrice,
         multiplier: 1,
         status: 'ACTIVE',
         provider: {
@@ -151,6 +153,15 @@ async function run() {
   assert.equal(fetchCalls.length, 0);
 
   prisma.state.allowedModels = [];
+  prisma.state.inputPrice = 0;
+  prisma.state.outputPrice = 0;
+  await assert.rejects(
+    () => service.handleRequest(req, res, 'chat/completions'),
+    /pricing is not configured/i,
+  );
+
+  prisma.state.inputPrice = 1;
+  prisma.state.outputPrice = 1;
   prisma.state.quota = null;
   prisma.state.usedAmount = 0;
   prisma.state.userBalance = 100;
