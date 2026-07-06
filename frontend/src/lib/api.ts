@@ -122,3 +122,8 @@ export const adminApi = {
   deleteApiKey: (id: string) => api.delete(`/admin/api-keys/${id}`),
   listAllCommissions: (params?: any) => api.get('/admin/commissions', { params }),
 };
+
+export const systemSettingsApi = {
+  get: () => api.get('/system-settings'),
+  update: (data: any) => api.put('/system-settings', data),
+};

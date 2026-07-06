@@ -17,6 +17,7 @@ import { AnnouncementsModule } from './modules/announcements/announcements.modul
 import { AdminModule } from './modules/admin/admin.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { DynamicRateModule } from './modules/dynamic-rate/dynamic-rate.module';
+import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { HealthController } from './health.controller';
 
@@ -39,6 +40,7 @@ import { HealthController } from './health.controller';
     AdminModule,
     GroupsModule,
     DynamicRateModule,
+    SystemSettingsModule,
     GatewayModule,
   ],
   providers: [
