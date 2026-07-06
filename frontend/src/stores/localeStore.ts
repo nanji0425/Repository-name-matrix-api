@@ -37,12 +37,12 @@ export const dictionary = {
   activity: { zh: '活动', en: 'Activity' },
   apiCopied: { zh: 'API 地址已复制', en: 'API URL copied' },
   copyFailed: { zh: '复制失败', en: 'Copy failed' },
-  apiAddress: { zh: 'API地址：', en: 'API URL:' },
+  apiAddress: { zh: 'API 地址：', en: 'API URL:' },
   platformServices: { zh: '平台服务', en: 'Platform' },
   developerSupport: { zh: '开发者支持', en: 'Developers' },
-  contactQq: { zh: '联系邮箱：', en: 'Email:' },
+  contactEmail: { zh: '联系邮箱：', en: 'Email:' },
   footerDesc: {
-    zh: '您的企业级 AI 网关底座。一次接入，即可调用主流大模型。',
+    zh: '企业级 AI 网关底座。一处接入，即可调用主流大模型、统一计费并集中管理密钥。',
     en: 'Enterprise-grade AI gateway infrastructure for accessing leading models through one unified API.',
   },
   pricing: { zh: '模型与定价', en: 'Models & Pricing' },
@@ -54,8 +54,8 @@ export const dictionary = {
   terms: { zh: '服务条款', en: 'Terms' },
   authLoginTitle: { zh: '欢迎回来', en: 'Welcome Back' },
   authRegisterTitle: { zh: '创建账户', en: 'Create Account' },
-  authLoginDesc: { zh: '登录到您的 API 平台账户', en: 'Sign in to your API platform account' },
-  authRegisterDesc: { zh: '注册 API 平台账户，获取 API Key', en: 'Create an API platform account and get an API key' },
+  authLoginDesc: { zh: '登录到你的 API 平台账户', en: 'Sign in to your API platform account' },
+  authRegisterDesc: { zh: '注册 API 平台账户，立即获取 API Key', en: 'Create an API platform account and get an API key' },
   username: { zh: '用户名', en: 'Username' },
   password: { zh: '密码', en: 'Password' },
   confirmPassword: { zh: '确认密码', en: 'Confirm Password' },
@@ -88,7 +88,7 @@ export const dictionary = {
   validatingAdmin: { zh: '正在校验管理员权限...', en: 'Validating administrator access...' },
   backToDashboard: { zh: '返回用户控制台', en: 'Back to User Console' },
   adminCenter: { zh: 'MatrixAPI 管理中心', en: 'MatrixAPI Admin Center' },
-  adminSubtitle: { zh: '运营、计费、上游通道与模型参数统一管理', en: 'Unified operations, billing, providers, and model settings' },
+  adminSubtitle: { zh: '统一管理运营、计费、上游通道与模型参数', en: 'Unified operations, billing, providers, and model settings' },
 } satisfies Dictionary;
 
 export type TranslationKey = keyof typeof dictionary;

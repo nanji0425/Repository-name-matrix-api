@@ -137,7 +137,7 @@ export function SiteFooter() {
             {brand.name}
           </div>
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-500">{t('footerDesc')}</p>
-          <p className="mt-4 text-sm text-slate-500">{t('contactQq')} <span className="font-bold text-white">3315419516</span></p>
+          <p className="mt-4 text-sm text-slate-500">{t('contactEmail')} <a href={`mailto:${brand.email}`} className="font-bold text-white transition hover:text-cyan-300">{brand.email}</a></p>
         </div>
         <div className="grid gap-8 sm:grid-cols-3">
           <FooterGroup titleKey="platformServices" links={[['pricing', '/models'], ['apiRelay', '/api-gateway'], ['solutions', '/solutions']]} />

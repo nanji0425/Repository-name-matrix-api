@@ -26,7 +26,6 @@ export const brand = {
   email: '3315419516@qq.com',
   baseUrl: 'https://matrixapi.online/v1',
   envKey: 'MATRIX_API_KEY',
-  contactQq: '3315419516',
 };
 
 export const navLinks: { href: string; label: string; labelKey: TranslationKey }[] = [
