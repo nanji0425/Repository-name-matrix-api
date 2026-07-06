@@ -60,14 +60,14 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       PORT: 3000
-      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://matrixapi.online/api}
-      FRONTEND_URLS: ${FRONTEND_URLS:-http://matrixapi.online,http://www.matrixapi.online,http://47.82.105.81}
-      FRONTEND_URL: ${FRONTEND_URL:-http://matrixapi.online}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-https://matrixapi.online/api}
+      FRONTEND_URLS: ${FRONTEND_URLS:-https://matrixapi.online,https://www.matrixapi.online,http://47.82.105.81}
+      FRONTEND_URL: ${FRONTEND_URL:-https://matrixapi.online}
       ZPAY_GATEWAY: ${ZPAY_GATEWAY:-https://zpayz.cn/}
       ZPAY_PID: ${ZPAY_PID}
       ZPAY_KEY: ${ZPAY_KEY}
-      ZPAY_NOTIFY_URL: ${ZPAY_NOTIFY_URL:-http://matrixapi.online/api/wallet/zpay/notify}
-      ZPAY_RETURN_URL: ${ZPAY_RETURN_URL:-http://matrixapi.online/dashboard/balance}
+      ZPAY_NOTIFY_URL: ${ZPAY_NOTIFY_URL:-https://matrixapi.online/api/wallet/zpay/notify}
+      ZPAY_RETURN_URL: ${ZPAY_RETURN_URL:-https://matrixapi.online/dashboard/balance}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       UPSTREAM_BASE_URL: ${UPSTREAM_BASE_URL:-https://api.bblabu.cn/v1}
       UPSTREAM_API_KEY: ${UPSTREAM_API_KEY}
@@ -86,14 +86,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://matrixapi.online/api}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://matrixapi.online/api}
     container_name: matrixapi-frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://matrixapi.online/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://matrixapi.online/api}
     ports:
       - "127.0.0.1:3001:3001"
     networks:

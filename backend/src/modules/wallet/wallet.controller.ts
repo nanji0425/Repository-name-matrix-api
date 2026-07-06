@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { All, Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -60,12 +60,13 @@ export class WalletController {
     return this.walletService.confirmPayment(orderNo);
   }
 
-  @Get('zpay/notify')
+  @All('zpay/notify')
   @SkipThrottle()
   @ApiOperation({ summary: 'ZPay asynchronous payment notification' })
   async handleZpayNotify(@Req() req: Request, @Res() res: Response) {
+    const source = { ...req.query, ...(req.body && typeof req.body === 'object' ? req.body : {}) };
     const params = Object.fromEntries(
-      Object.entries(req.query).map(([key, value]) => [
+      Object.entries(source).map(([key, value]) => [
         key,
         Array.isArray(value) ? String(value[0] ?? '') : String(value ?? ''),
       ]),

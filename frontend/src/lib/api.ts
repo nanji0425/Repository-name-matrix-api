@@ -1,4 +1,4 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://matrixapi.online/api';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://matrixapi.online/api';
 
 import axios from 'axios';
 

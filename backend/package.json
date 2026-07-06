@@ -7,7 +7,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/src/main.js",
-    "test": "ts-node prisma/model-sync.spec.ts && ts-node prisma/seed-security.spec.ts && ts-node src/health.controller.spec.ts && ts-node src/production-env.spec.ts && ts-node src/modules/auth/jwt-secret.spec.ts && ts-node src/modules/auth/auth.service.spec.ts && ts-node src/modules/wallet/zpay.spec.ts && ts-node src/modules/wallet/wallet.service.spec.ts && ts-node src/modules/orders/orders.service.spec.ts && ts-node src/gateway/gateway.service.spec.ts && ts-node src/modules/api-keys/api-keys.service.spec.ts && ts-node src/modules/admin/admin.service.spec.ts",
+    "test": "ts-node prisma/model-sync.spec.ts && ts-node prisma/seed-security.spec.ts && ts-node src/health.controller.spec.ts && ts-node src/production-env.spec.ts && ts-node src/modules/auth/jwt-secret.spec.ts && ts-node src/modules/auth/auth.service.spec.ts && ts-node src/modules/wallet/zpay.spec.ts && ts-node src/modules/wallet/wallet.service.spec.ts && ts-node src/modules/wallet/wallet.controller.spec.ts && ts-node src/modules/orders/orders.service.spec.ts && ts-node src/gateway/gateway.service.spec.ts && ts-node src/modules/api-keys/api-keys.service.spec.ts && ts-node src/modules/admin/admin.service.spec.ts",
     "validate": "prisma validate && tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
