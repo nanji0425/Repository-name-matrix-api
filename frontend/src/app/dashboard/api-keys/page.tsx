@@ -30,6 +30,12 @@ type ModelOption = {
 
 type ImportClient = 'Cherry Studio' | 'AionUI' | 'DeepChat' | 'Lobe Chat' | 'OpenCat';
 
+type ImportMenu = {
+  token: TokenRecord;
+  top: number;
+  left: number;
+} | null;
+
 const importClients: ImportClient[] = ['Cherry Studio', 'AionUI', 'DeepChat', 'Lobe Chat', 'OpenCat'];
 const quickExpires = [
   { label: '永不过期', value: '' },
@@ -76,6 +82,14 @@ function buildExpiry(kind: string) {
   return date.toISOString();
 }
 
+function getMenuPosition(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  const width = 210;
+  const left = Math.min(window.innerWidth - width - 16, Math.max(16, rect.right - width));
+  const top = Math.min(window.innerHeight - 260, rect.bottom + 8);
+  return { top: Math.max(16, top), left };
+}
+
 export default function ApiKeysPage() {
   const [tokens, setTokens] = useState<TokenRecord[]>([]);
   const [models, setModels] = useState<ModelOption[]>([]);
@@ -88,7 +102,7 @@ export default function ApiKeysPage() {
   const [createdSecret, setCreatedSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const [importOpenId, setImportOpenId] = useState<string | null>(null);
+  const [importMenu, setImportMenu] = useState<ImportMenu>(null);
 
   const load = async () => {
     setLoading(true);
@@ -106,6 +120,17 @@ export default function ApiKeysPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!importMenu) return;
+    const close = () => setImportMenu(null);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [importMenu]);
 
   const rows = useMemo(() => {
     const value = keyword.trim().toLowerCase();
@@ -166,7 +191,7 @@ export default function ApiKeysPage() {
       await copyToClipboard(config);
       toast.success(`${client} 配置已复制`);
     }
-    setImportOpenId(null);
+    setImportMenu(null);
   };
 
   return (
@@ -203,7 +228,7 @@ export default function ApiKeysPage() {
         </section>
       )}
 
-      <section className="console-card mt-7 overflow-visible p-0">
+      <section className="console-card mt-7 p-0">
         <div className="overflow-x-auto">
           <table className="min-w-[1180px] w-full text-left text-sm">
             <thead className="border-b border-white/10 text-xs text-slate-500">
@@ -236,18 +261,21 @@ export default function ApiKeysPage() {
                     <td className="px-5 py-4">{formatDate(token.createdAt)}</td>
                     <td className="px-5 py-4">{token.lastUsed ? formatDate(token.lastUsed) : '从未使用'}</td>
                     <td className="px-5 py-4">{token.expiresAt ? formatDate(token.expiresAt) : '永不过期'}</td>
-                    <td className="relative px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => token.secret && copyToClipboard(token.secret)} className="rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white" title="复制"><Copy className="h-4 w-4" /></button>
-                        <button onClick={() => setImportOpenId(importOpenId === token.id ? null : token.id)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white">导入 <ChevronDown className="h-3 w-3" /></button>
+                        <button
+                          onClick={(event) => {
+                            const position = getMenuPosition(event.currentTarget);
+                            setImportMenu((current) => current?.token.id === token.id ? null : { token, ...position });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white"
+                        >
+                          导入 <ChevronDown className="h-3 w-3" />
+                        </button>
                         <button onClick={() => toggle(token.id)} className="rounded-lg px-2 py-1 text-slate-300 hover:bg-white/8 hover:text-white" title={active ? '禁用' : '启用'}><Eye className="h-4 w-4" /></button>
                         <button onClick={() => remove(token.id)} className="rounded-lg px-2 py-1 text-red-400 hover:bg-red-500/10" title="删除"><Trash2 className="h-4 w-4" /></button>
                       </div>
-                      {importOpenId === token.id && (
-                        <div className="absolute right-5 top-12 z-50 w-48 rounded-xl border border-white/10 bg-[#111216] p-2 text-left shadow-2xl">
-                          {importClients.map((client) => <button key={client} onClick={() => importToClient(token, client)} className="block h-9 w-full rounded-lg px-3 text-left text-sm text-slate-200 hover:bg-white/8">{client}</button>)}
-                        </div>
-                      )}
                     </td>
                   </tr>
                 );
@@ -256,6 +284,22 @@ export default function ApiKeysPage() {
           </table>
         </div>
       </section>
+
+      {importMenu && (
+        <>
+          <button className="fixed inset-0 z-[80] cursor-default bg-transparent" onClick={() => setImportMenu(null)} aria-label="关闭导入菜单" />
+          <div
+            className="fixed z-[90] w-[210px] rounded-xl border border-cyan-200/20 bg-[#111216] p-2 text-left shadow-2xl shadow-black/60 ring-1 ring-cyan-300/10 backdrop-blur-xl"
+            style={{ top: importMenu.top, left: importMenu.left }}
+          >
+            {importClients.map((client) => (
+              <button key={client} onClick={() => importToClient(importMenu.token, client)} className="block h-10 w-full rounded-lg px-3 text-left text-sm font-bold text-slate-200 transition hover:bg-cyan-300/10 hover:text-cyan-100">
+                {client}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex justify-start bg-black/55 backdrop-blur-sm">
