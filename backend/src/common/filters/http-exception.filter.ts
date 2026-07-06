@@ -20,7 +20,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
     };
 
-    this.logger.error(`${status} - ${JSON.stringify(errorResponse.message)}`);
+    const logMessage = `${status} - ${JSON.stringify(errorResponse.message)}`;
+    if (status >= 500) {
+      this.logger.error(logMessage);
+    } else {
+      this.logger.warn(logMessage);
+    }
 
     response.status(status).json(errorResponse);
   }
