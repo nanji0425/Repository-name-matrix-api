@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 export const UPSTREAM_PROVIDER_ID = 'bblabu';
+export const DEFAULT_UPSTREAM_BASE_URL = 'https://api.bblabu.chat/v1';
 export const PRICE_MARKUP = 1.3;
 
 type UpstreamModel = {
@@ -197,7 +198,7 @@ async function main() {
       where: { id: UPSTREAM_PROVIDER_ID },
       update: {
         name: 'bblabu',
-        baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1',
+        baseUrl: process.env.UPSTREAM_BASE_URL || DEFAULT_UPSTREAM_BASE_URL,
         apiKey: configuredApiKey,
         priority: 1,
         status: 'ACTIVE',
@@ -205,7 +206,7 @@ async function main() {
       create: {
         id: UPSTREAM_PROVIDER_ID,
         name: 'bblabu',
-        baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1',
+        baseUrl: process.env.UPSTREAM_BASE_URL || DEFAULT_UPSTREAM_BASE_URL,
         apiKey: configuredApiKey,
         priority: 1,
         status: 'ACTIVE',

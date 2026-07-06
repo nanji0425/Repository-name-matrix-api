@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import {
   fetchUpstreamModels,
+  DEFAULT_UPSTREAM_BASE_URL,
   syncUpstreamModels,
   UPSTREAM_PROVIDER_ID,
 } from './model-sync';
@@ -35,7 +36,7 @@ async function main() {
   if (demoEnabled && (!demoPassword || demoPassword.length < 12)) {
     throw new Error('DEMO_PASSWORD must be set to at least 12 characters when ENABLE_DEMO_DATA=true');
   }
-  const upstreamBaseUrl = process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1';
+  const upstreamBaseUrl = process.env.UPSTREAM_BASE_URL || DEFAULT_UPSTREAM_BASE_URL;
   const upstreamApiKey = getRequiredUpstreamApiKey();
   const upstreamPayload = await loadUpstreamPayload(upstreamBaseUrl, upstreamApiKey);
 

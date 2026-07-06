@@ -169,6 +169,10 @@ async function run() {
   const defaultUrlService = new WalletService(createPrismaMock());
   const rechargeConfig = await defaultUrlService.getRechargeConfig();
   assert.equal(rechargeConfig.gateway, 'https://zpayz.cn/');
+  assert.equal(rechargeConfig.payName, 'ZPay 在线支付');
+  assert.equal(rechargeConfig.payHint, '当前仅支持支付宝。提交订单后将跳转至收银台，支付成功后余额自动到账。');
+  assert.equal((rechargeConfig as any).contactEmail, '3315419516@qq.com');
+  assert.equal(Object.prototype.hasOwnProperty.call(rechargeConfig, 'contactQq'), false);
 
   console.log('wallet-service confirmPayment test passed');
 }

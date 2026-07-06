@@ -6,7 +6,7 @@ const validEnv = {
   DATABASE_URL: 'postgresql://matrixapi:strong-password@postgres:5432/matrix_api?schema=public',
   JWT_SECRET: 'a'.repeat(32),
   UPSTREAM_API_KEY: 'sk-live-upstream-key-123456',
-  UPSTREAM_BASE_URL: 'https://api.bblabu.cn/v1',
+  UPSTREAM_BASE_URL: 'https://api.bblabu.chat/v1',
   API_PUBLIC_URL: 'https://matrixapi.online/api',
   FRONTEND_URL: 'https://matrixapi.online',
   FRONTEND_URLS: 'https://matrixapi.online,https://www.matrixapi.online',

@@ -42,7 +42,8 @@ function createPrismaMock() {
       },
       updateMany: async (args: any) => {
         state.apiKeyUpdateManyArgs = [...(state.apiKeyUpdateManyArgs || []), args];
-        if (state.quota !== null && state.usedAmount + args.data.usedAmount.increment > state.quota) {
+        const quotaGuard = args.where.OR || args.where.usedAmount;
+        if (quotaGuard && state.quota !== null && state.usedAmount + args.data.usedAmount.increment > state.quota) {
           return { count: 0 };
         }
         state.usedAmount += args.data.usedAmount.increment;
@@ -184,7 +185,6 @@ async function run() {
   await service.handleRequest(req, res, 'chat/completions');
   assert.deepEqual(prisma.state.apiKeyUpdateManyArgs[0].where, {
     id: 'key-1',
-    OR: [{ quota: null }],
   });
 
   prisma.state.userBalance = 100;
@@ -200,10 +200,6 @@ async function run() {
   assert.equal(prisma.state.lastWalletLog.data.balance, 99.982);
   assert.deepEqual(prisma.state.apiKeyUpdateManyArgs.at(-1).where, {
     id: 'key-1',
-    OR: [
-      { quota: null },
-      { usedAmount: { lte: 0.982 } },
-    ],
   });
 
   prisma.state.quota = 0.01;
@@ -221,6 +217,34 @@ async function run() {
     /insufficient balance/i,
   );
 
+  prisma.state.userBalance = 100;
+
+  let highUsageFetchCalls = 0;
+  prisma.state.quota = 0.05;
+  prisma.state.usedAmount = 0;
+  prisma.state.userBalance = 200;
+  globalThis.fetch = (async () => {
+    highUsageFetchCalls += 1;
+    return {
+      ok: true,
+      json: async () => ({
+        ok: true,
+        usage: {
+          prompt_tokens: 1,
+          completion_tokens: 100000,
+        },
+      }),
+    } as any;
+  }) as any;
+
+  await service.handleRequest(req, res, 'chat/completions');
+  assert.equal(highUsageFetchCalls, 1);
+  assert.equal(res.statusCode, 200);
+  assert.equal(prisma.state.usedAmount, 100.001);
+  assert.equal(prisma.state.lastRequestLog.data.status, 200);
+
+  prisma.state.quota = null;
+  prisma.state.usedAmount = 0;
   prisma.state.userBalance = 100;
 
   globalThis.fetch = (async () => ({

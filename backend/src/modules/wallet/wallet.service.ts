@@ -89,7 +89,7 @@ export class WalletService {
       payTypes: ['ALIPAY'],
       payName: 'ZPay 在线支付',
       payHint: '当前仅支持支付宝。提交订单后将跳转至收银台，支付成功后余额自动到账。',
-      contactQq: '3315419516',
+      contactEmail: '3315419516@qq.com',
       gateway: normalizeZpayGateway(process.env.ZPAY_GATEWAY),
     };
   }

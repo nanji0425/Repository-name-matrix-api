@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   fetchUpstreamModels,
+  DEFAULT_UPSTREAM_BASE_URL,
   syncUpstreamModels as persistUpstreamModels,
   UPSTREAM_PROVIDER_ID,
 } from '../../../prisma/model-sync';
@@ -42,7 +43,7 @@ export class ModelSyncService implements OnModuleInit {
       where: { id: UPSTREAM_PROVIDER_ID },
       update: {
         name: 'bblabu',
-        baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1',
+        baseUrl: process.env.UPSTREAM_BASE_URL || DEFAULT_UPSTREAM_BASE_URL,
         apiKey: configuredApiKey,
         priority: 1,
         status: 'ACTIVE',
@@ -50,7 +51,7 @@ export class ModelSyncService implements OnModuleInit {
       create: {
         id: UPSTREAM_PROVIDER_ID,
         name: 'bblabu',
-        baseUrl: process.env.UPSTREAM_BASE_URL || 'https://api.bblabu.cn/v1',
+        baseUrl: process.env.UPSTREAM_BASE_URL || DEFAULT_UPSTREAM_BASE_URL,
         apiKey: configuredApiKey,
         priority: 1,
         status: 'ACTIVE',

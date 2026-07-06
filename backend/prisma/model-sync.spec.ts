@@ -1,5 +1,6 @@
 import {
   applyMarkup,
+  DEFAULT_UPSTREAM_BASE_URL,
   formatModelName,
   buildUpstreamCandidates,
   normalizeUpstreamModels,
@@ -31,14 +32,15 @@ const payload = {
   ],
 };
 
-const candidates = buildUpstreamCandidates('https://api.bblabu.cn/v1', 'sk-demo');
+const candidates = buildUpstreamCandidates(DEFAULT_UPSTREAM_BASE_URL, 'sk-demo');
 const models = normalizeUpstreamModels(payload, 'bblabu');
 
 assertEqual(applyMarkup(10), 13);
 assertEqual(applyMarkup(0.123456789), 0.16049383);
 assertEqual(formatModelName('gpt-4o-mini'), 'GPT 4o Mini');
+assertEqual(DEFAULT_UPSTREAM_BASE_URL, 'https://api.bblabu.chat/v1');
 assertEqual(candidates.length, 12);
-assertEqual(candidates[0].url, 'https://api.bblabu.cn/v1/models');
+assertEqual(candidates[0].url, 'https://api.bblabu.chat/v1/models');
 assertEqual(candidates[0].headers.Authorization, 'Bearer sk-demo');
 assertEqual(candidates[1].headers.Authorization, 'sk-demo');
 assertEqual(candidates[2].headers['api-key'], 'sk-demo');

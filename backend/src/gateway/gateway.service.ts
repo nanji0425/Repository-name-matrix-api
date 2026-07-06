@@ -97,19 +97,11 @@ export class GatewayService {
       const completionTokens = result.usage?.completion_tokens || result.usage?.completionTokens || estimatedTokens.completion;
       const actualCost = this.calculateCost(model, promptTokens, completionTokens, groupMultiplier, dynamicRate);
 
-      if (key.quota !== null && key.usedAmount + actualCost > key.quota) {
-        throw new BadRequestException('API key quota exceeded');
-      }
-
       // Deduct balance, update token statistics and log.
       const updatedUser = await this.prisma.$transaction(async (tx) => {
-        const quotaWhere = key.quota === null
-          ? [{ quota: null }]
-          : [{ quota: null }, { usedAmount: { lte: key.quota - actualCost } }];
         const apiKeyUpdate = await tx.apiKey.updateMany({
           where: {
             id: key.id,
-            OR: quotaWhere,
           },
           data: {
             lastUsed: new Date(),
@@ -117,10 +109,6 @@ export class GatewayService {
             requestCount: { increment: 1 },
           },
         });
-
-        if (apiKeyUpdate.count !== 1) {
-          throw new BadRequestException('API key quota exceeded');
-        }
 
         const userUpdate = await tx.user.updateMany({
           where: {
