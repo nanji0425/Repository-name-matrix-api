@@ -129,16 +129,19 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {newsPosts.map((post) => (
+          {newsPosts.map((post) => {
+            const localizedPost = post[locale];
+            return (
             <Link key={post.slug} href={`/news/${post.slug}`} className="rounded-[24px] border border-white/10 bg-white/[0.045] p-6 transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-300">
                 <CheckCircle className="h-3.5 w-3.5" />
-                {post.category}
+                {localizedPost.category}
               </div>
-              <div className="mb-3 text-xs font-bold text-slate-500">{post.date}</div>
-              <h3 className="text-lg font-black leading-7 text-slate-950 dark:text-white">{post.title}</h3>
+              <div className="mb-3 text-xs font-bold text-slate-500">{localizedPost.date}</div>
+              <h3 className="text-lg font-black leading-7 text-slate-950 dark:text-white">{localizedPost.title}</h3>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 

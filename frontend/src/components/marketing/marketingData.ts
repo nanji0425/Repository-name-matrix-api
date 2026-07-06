@@ -117,9 +117,51 @@ export const toolCards = {
 };
 
 export const newsPosts = [
-  { slug: 'model-cost-optimization', category: '模型评测', date: '2026年6月5日', title: '多模型 API 接入指南：如何在生产环境优化调用成本', excerpt: '从模型选择、缓存、路由和密钥隔离四个角度，梳理 MatrixAPI 的成本优化实践。' },
-  { slug: 'agent-tools-api', category: '开发教程', date: '2026年6月4日', title: '使用工具调用构建自动化 AI Agent 的实践路径', excerpt: '用统一 API 连接模型、工具和业务系统，快速搭建可执行任务的智能体。' },
-  { slug: 'high-availability-routing', category: '系统架构', date: '2026年6月3日', title: '高可用揭秘：如何处理大模型 API 请求的智能路由', excerpt: '拆解通道健康检查、故障切换、限流和请求审计的设计要点。' },
+  {
+    slug: 'model-cost-optimization',
+    zh: {
+      category: '模型评测',
+      date: '2026年6月5日',
+      title: '多模型 API 接入指南：如何在生产环境优化调用成本',
+      excerpt: '从模型选择、缓存、路由和密钥隔离四个角度，梳理 MatrixAPI 的成本优化实践。',
+    },
+    en: {
+      category: 'Model Review',
+      date: 'Jun 5, 2026',
+      title: 'Multi-model API Guide: Optimizing Production Usage Cost',
+      excerpt: 'A practical look at model choice, caching, routing, and key isolation for better MatrixAPI cost control.',
+    },
+  },
+  {
+    slug: 'agent-tools-api',
+    zh: {
+      category: '开发教程',
+      date: '2026年6月4日',
+      title: '使用工具调用构建自动化 AI Agent 的实践路径',
+      excerpt: '用统一 API 连接模型、工具和业务系统，快速搭建可执行任务的智能体。',
+    },
+    en: {
+      category: 'Developer Guide',
+      date: 'Jun 4, 2026',
+      title: 'Building Automated AI Agents With Tool Calling',
+      excerpt: 'Connect models, tools, and business systems through one API to build agents that can execute real tasks.',
+    },
+  },
+  {
+    slug: 'high-availability-routing',
+    zh: {
+      category: '系统架构',
+      date: '2026年6月3日',
+      title: '高可用揭秘：如何处理大模型 API 请求的智能路由',
+      excerpt: '拆解通道健康检查、故障切换、限流和请求审计的设计要点。',
+    },
+    en: {
+      category: 'Architecture',
+      date: 'Jun 3, 2026',
+      title: 'High Availability: Smart Routing For Model API Requests',
+      excerpt: 'A breakdown of channel health checks, failover, rate limiting, and request auditing.',
+    },
+  },
 ];
 
 export const gatewayProblems = {
