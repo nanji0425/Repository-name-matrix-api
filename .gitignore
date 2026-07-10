@@ -32,6 +32,24 @@ npm-debug.log*
 # Testing
 coverage/
 .playwright-cli/
+.playwright-mcp/
+.swarm/
+output/
+screenshots/
+audit-comparison-bblabu.md
+PROJECT_FULL_CONTEXT_REDACTED.txt
 
 # Docker
 docker-compose.override.yml
+
+# Codex local configuration
+.codex/
+
+# Claude Flow runtime data
+.claude-flow/data/
+.claude-flow/logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local

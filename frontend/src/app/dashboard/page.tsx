@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Bell, CircleDot, Copy, ExternalLink, Flame, Gauge, Sparkles } from 'lucide-react';
 import { ConsolePage } from '@/components/console/ConsoleShell';
 import { requestLogsApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { useLocaleStore } from '@/stores/localeStore';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard } from '@/lib/utils';
 
 type Stats = {
   totalRequests?: number;
@@ -15,155 +15,200 @@ type Stats = {
   totalCost?: number;
 };
 
-const text = {
-  zh: {
-    title: '控制台',
-    desc: '模型数据分析和统计',
-    create: '去创建 API Key',
-    ranges: ['今天', '最近7天', '最近30天'],
-    tabs: ['消费分布', '消费趋势', '调用分布', '调用排名'],
-    balance: '当前余额',
-    cost: '历史消费',
-    requests: '请求次数',
-    tokens: '总 Token 数',
-    modelCost: '模型调用',
-    today: '今日',
-    week: '最近7天',
-    month: '最近30天',
-    active: '活跃',
-    summary: '汇总',
-    status: '请求状态',
-    apiStatus: '接口状态',
-    range: '统计范围',
-    normal: '正常',
-    compatible: 'OpenAI 兼容',
+const announcements = [
+  { time: '2026-07-08 09:31:58', title: 'gpt5.6 官方推送已适配，正在逐步放量。', tone: 'green' },
+  { time: '2026-07-07 12:31:27', title: '全渠道模型已更新完毕，API 调用保持稳定。', tone: 'blue' },
+  { time: '2026-07-07 11:20:10', title: '钱包充值与订单回调已完成校验。', tone: 'pink' },
+];
+
+const apiEntries = [
+  {
+    badge: 'AP',
+    title: 'API 入口',
+    url: 'https://matrixapi.online/v1',
+    desc: 'OpenAI 兼容接口，支持 GPT、Claude、Gemini 等主流模型。',
+    actions: ['复制', '打开文档'],
   },
-  en: {
-    title: 'Console',
-    desc: 'Model usage analytics and statistics',
-    create: 'Create API Key',
-    ranges: ['Today', 'Last 7 days', 'Last 30 days'],
-    tabs: ['Cost Distribution', 'Cost Trend', 'Call Distribution', 'Call Ranking'],
-    balance: 'Current Balance',
-    cost: 'Total Cost',
-    requests: 'Requests',
-    tokens: 'Total Tokens',
-    modelCost: 'Model Calls',
-    today: 'Today',
-    week: 'Last 7 days',
-    month: 'Last 30 days',
-    active: 'Active',
-    summary: 'Summary',
-    status: 'Request Status',
-    apiStatus: 'API Status',
-    range: 'Range',
-    normal: 'Normal',
-    compatible: 'OpenAI Compatible',
+  {
+    badge: '备',
+    title: '备用入口',
+    url: 'https://www.matrixapi.online/v1',
+    desc: '备用域名，与主入口完全相同的功能和模型支持。',
+    actions: ['复制', '打开'],
   },
-} as const;
+  {
+    badge: '联',
+    title: '联系支持',
+    url: 'mailto:3315419516@qq.com',
+    desc: '技术支持邮箱：3315419516@qq.com，问题反馈请发送邮件。',
+    actions: ['复制', '发送邮件'],
+  },
+  {
+    badge: '文',
+    title: 'API 文档',
+    url: 'https://matrixapi.online/docs',
+    desc: '完整的 API 接入文档和使用示例。',
+    actions: ['打开'],
+  },
+];
 
 export default function DashboardOverview() {
   const { user } = useAuthStore();
-  const locale = useLocaleStore((state) => state.locale);
-  const copy = text[locale];
   const [stats, setStats] = useState<Stats>({});
-  const [range, setRange] = useState<string>(copy.ranges[1]);
-  const [tab, setTab] = useState<string>(copy.tabs[2]);
-
-  useEffect(() => {
-    setRange(text[locale].ranges[1]);
-    setTab(text[locale].tabs[2]);
-  }, [locale]);
 
   useEffect(() => {
     requestLogsApi.getStats().then((response) => setStats(response.data || {})).catch(() => setStats({}));
   }, []);
 
   const totalTokens = Number(stats.totalPromptTokens || 0) + Number(stats.totalCompletionTokens || 0);
-  const cards = useMemo(
+
+  const summaryCards = useMemo(
     () => [
-      { value: `¥${Number(user?.balance || 0).toFixed(2)}`, label: copy.balance },
-      { value: `¥${Number(stats.totalCost || 0).toFixed(2)}`, label: copy.cost },
-      { value: String(stats.totalRequests || 0), label: copy.requests },
-      { value: String(totalTokens), label: copy.tokens },
+      {
+        title: '近 24 小时消耗',
+        value: `$${Number(stats.totalCost || 0).toFixed(2)}`,
+        hint: '近 24 小时消耗量',
+        accent: 'from-[#ffedd5] to-[#fef3c7]',
+        icon: Flame,
+      },
+      {
+        title: '历史使用情况',
+        value: `$${Number(stats.totalCost || 0).toFixed(2)}`,
+        hint: '总消耗（USD）',
+        accent: 'from-[#fce7f3] to-[#fbcfe8]',
+        icon: Gauge,
+      },
+      {
+        title: '请求计数',
+        value: String(stats.totalRequests || 0),
+        hint: '总请求数',
+        accent: 'from-[#ede9fe] to-[#ddd6fe]',
+        icon: Sparkles,
+      },
     ],
-    [copy, stats, totalTokens, user?.balance],
+    [stats],
   );
 
-  const breakdown = useMemo(() => {
-    const cost = Number(stats.totalCost || 0);
-    const promptTokens = Number(stats.totalPromptTokens || 0);
-    const completionTokens = Number(stats.totalCompletionTokens || 0);
-    if (tab === copy.tabs[0]) {
-      return [
-        { label: copy.modelCost, value: `¥${cost.toFixed(2)}` },
-        { label: 'Prompt Tokens', value: String(promptTokens) },
-        { label: 'Completion Tokens', value: String(completionTokens) },
-      ];
-    }
-    if (tab === copy.tabs[2]) {
-      return [
-        { label: copy.today, value: range === copy.ranges[0] ? copy.active : copy.summary },
-        { label: copy.week, value: range === copy.ranges[1] ? copy.active : copy.summary },
-        { label: copy.month, value: range === copy.ranges[2] ? copy.active : copy.summary },
-      ];
-    }
-    return [
-      { label: copy.status, value: copy.normal },
-      { label: copy.apiStatus, value: copy.compatible },
-      { label: copy.range, value: range },
-    ];
-  }, [copy, range, stats, tab]);
-
   return (
-    <ConsolePage className="pb-28">
-      <div className="grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">{copy.title}</h1>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{copy.desc}</p>
-        </div>
-        <div className="flex justify-center">
-          <Link href="/dashboard/api-keys" className="console-button-white inline-flex min-w-[170px] items-center justify-center text-center">
-            {copy.create}
-          </Link>
-        </div>
-        <div className="flex justify-start lg:justify-end">
-          <div className="inline-flex rounded-lg border border-slate-300/50 bg-white/70 p-1 dark:border-white/15 dark:bg-[#0f1117]">
-            {copy.ranges.map((item) => (
-              <button key={item} onClick={() => setRange(item)} className={cn('h-8 rounded-md px-4 text-sm transition', range === item ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300' : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white')}>
-                {item}
-              </button>
-            ))}
+    <ConsolePage className="pb-6">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="console-card p-0">
+          <div className="border-b border-[#f3d9e5] px-6 py-5">
+            <div className="text-2xl font-bold text-[#231f27]">👋 Hello, {user?.username || 'aming'}</div>
+            <div className="mt-1 text-sm text-[#9b8292]">用量概览</div>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-7 grid gap-6 md:grid-cols-4">
-        {cards.map((card) => (
-          <div key={card.label} className="console-card h-[116px] p-7">
-            <div className="text-3xl font-black text-slate-950 dark:text-white">{card.value}</div>
-            <div className="mt-3 text-sm text-slate-600 dark:text-slate-400">{card.label}</div>
+          <div className="grid gap-4 p-6 xl:grid-cols-3">
+            {summaryCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div key={card.title} className="rounded-[24px] border border-[#f1d6e2] bg-white/80 p-5 shadow-[0_10px_26px_rgba(184,124,154,0.06)]">
+                  <div className={`inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${card.accent} text-[#9b4581]`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="mt-4 text-lg font-bold text-[#231f27]">{card.value}</div>
+                  <div className="mt-1 text-sm text-[#8f7384]">{card.hint}</div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+          <div className="px-6 pb-6">
+            <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
+              <div className="rounded-[26px] border border-[#f3d9e5] bg-white/80 p-5">
+                <div className="flex items-center gap-2 text-[#d36b9a]">
+                  <CircleDot className="h-4 w-4" />
+                  <div className="font-bold">公告</div>
+                </div>
+                <div className="mt-3 space-y-4">
+                  {announcements.map((item) => (
+                    <div key={item.time} className="rounded-[20px] border border-[#f6e7ee] bg-[#fff9fc] p-4">
+                      <div className="flex items-start gap-3">
+                        <span className={cn('mt-1 h-2.5 w-2.5 shrink-0 rounded-full', item.tone === 'green' ? 'bg-emerald-400' : item.tone === 'blue' ? 'bg-sky-400' : 'bg-pink-400')} />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-[#231f27]">{item.title}</div>
+                          <div className="mt-1 text-xs text-[#b18c9e]">{item.time}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-      <section className="console-card mt-6 p-6">
-        <div className="flex flex-wrap items-center gap-5">
-          {copy.tabs.map((item) => (
-            <button key={item} onClick={() => setTab(item)} className={cn('h-9 rounded-lg px-4 text-sm font-bold transition', tab === item ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300' : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white')}>
-              {item}
-            </button>
-          ))}
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {breakdown.map((item) => (
-            <div key={item.label} className="rounded-2xl border border-slate-300/40 bg-white/60 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-              <div className="text-sm text-slate-600 dark:text-slate-400">{item.label}</div>
-              <div className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{item.value}</div>
+              <div className="rounded-[26px] border border-[#f3d9e5] bg-white/80 p-5">
+                <div className="flex items-center gap-2 text-[#d36b9a]">
+                  <Bell className="h-4 w-4" />
+                  <div className="font-bold">API 信息</div>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {apiEntries.map((entry) => (
+                    <div key={entry.title} className="rounded-[22px] border border-[#f6e4ec] bg-[#fffafc] p-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4f83ff] text-sm font-black text-white">{entry.badge}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-[#231f27]">{entry.title}</div>
+                          <div className="truncate text-xs text-[#e2508c]">{entry.url}</div>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-[#8f7384]">{entry.desc}</p>
+                      <div className="mt-3 flex gap-2">
+                        {entry.actions.map((action) => (
+                          <button
+                            key={action}
+                            type="button"
+                            onClick={() => {
+                              if (action === '打开' || action === '打开文档' || action === '发送邮件') {
+                                window.open(entry.url, '_blank', 'noopener,noreferrer');
+                              } else {
+                                copyToClipboard(entry.url);
+                              }
+                            }}
+                            className="inline-flex h-8 items-center gap-1 rounded-full border border-[#f0cddb] bg-white px-3 text-xs font-medium text-[#6b5363] hover:bg-[#fff3f8]"
+                          >
+                            {action.includes('打开') || action.includes('邮件') ? <ExternalLink className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+
+        <aside className="space-y-4">
+          <div className="console-card p-5">
+            <div className="flex items-center justify-between text-sm text-[#8f7384]">
+              <span>剩余额度</span>
+              <span className="inline-flex items-center gap-1 text-[#d36b9a]"><Sparkles className="h-3.5 w-3.5" /> 余额偏低</span>
+            </div>
+            <div className="mt-3 text-3xl font-bold text-[#231f27]">${Number(user?.balance || 0).toFixed(2)}</div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-[20px] bg-[#fff7fb] p-3">
+                <div className="text-xs text-[#ad8fa0]">近 24 小时消耗</div>
+                <div className="mt-1 text-sm font-bold text-[#231f27]">${Number(stats.totalCost || 0).toFixed(2)}</div>
+              </div>
+              <div className="rounded-[20px] bg-[#fff7fb] p-3">
+                <div className="text-xs text-[#ad8fa0]">可用时长</div>
+                <div className="mt-1 text-sm font-bold text-[#f97316]">剩余不足 1 天</div>
+              </div>
+            </div>
+            <Link href="/dashboard/balance" className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#f472b6] to-[#ec4899] text-sm font-bold text-white">
+              钱包充值
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="console-card p-5">
+            <div className="text-sm font-bold text-[#231f27]">总 Token</div>
+            <div className="mt-2 text-3xl font-black text-[#231f27]">{totalTokens.toLocaleString()}</div>
+            <div className="mt-1 text-sm text-[#8f7384]">累计统计</div>
+            <div className="mt-4 h-2 rounded-full bg-[#f6e2eb]">
+              <div className="h-2 w-[68%] rounded-full bg-gradient-to-r from-[#fb7185] to-[#ec4899]" />
+            </div>
+          </div>
+        </aside>
+      </div>
     </ConsolePage>
   );
 }

@@ -1,0 +1,126 @@
+# MatrixAPI legacy NestJS/Next.js deployment.
+# Keep this file as a rollback target after the New API migration.
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: matrixapi-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: matrixapi
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: matrix_api
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - matrixapi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U matrixapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: matrixapi-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - matrixapi-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: matrixapi-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://matrixapi:${DB_PASSWORD}@postgres:5432/matrix_api?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: "7d"
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      PORT: 3000
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-https://matrixapi.online/api}
+      FRONTEND_URLS: ${FRONTEND_URLS:-https://matrixapi.online,https://www.matrixapi.online,http://47.82.105.81}
+      FRONTEND_URL: ${FRONTEND_URL:-https://matrixapi.online}
+      ZPAY_GATEWAY: ${ZPAY_GATEWAY:-https://zpayz.cn/}
+      ZPAY_PID: ${ZPAY_PID}
+      ZPAY_KEY: ${ZPAY_KEY}
+      ZPAY_NOTIFY_URL: ${ZPAY_NOTIFY_URL:-https://matrixapi.online/api/wallet/zpay/notify}
+      ZPAY_RETURN_URL: ${ZPAY_RETURN_URL:-https://matrixapi.online/dashboard/balance}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      UPSTREAM_BASE_URL: ${UPSTREAM_BASE_URL:-https://api.bblabu.cn/v1}
+      UPSTREAM_API_KEY: ${UPSTREAM_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      QWEN_API_KEY: ${QWEN_API_KEY:-}
+      XAI_API_KEY: ${XAI_API_KEY:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - matrixapi-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://matrixapi.online/api}
+    container_name: matrixapi-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://matrixapi.online/api}
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks:
+      - matrixapi-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: matrixapi-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - matrixapi-network
+
+networks:
+  matrixapi-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

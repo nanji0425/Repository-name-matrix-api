@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString('zh-CN', {
+  return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -16,7 +16,7 @@ export function formatDate(date: string | Date) {
 }
 
 export function formatCurrency(amount: number) {
-  return `¥${amount.toFixed(2)}`;
+  return `CNY ${amount.toFixed(2)}`;
 }
 
 export function shortenApiKey(key: string) {

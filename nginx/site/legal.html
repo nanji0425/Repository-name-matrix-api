@@ -1,0 +1,142 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>MatrixAPI Legal</title>
+    <meta name="description" content="MatrixAPI user agreement and privacy policy." />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+  </head>
+  <body>
+    <header class="shell nav is-app-shell">
+      <a class="brand" href="/" aria-label="MatrixAPI home">
+        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+        <span>MatrixAPI算力中心</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">主页</a>
+        <a href="/console">控制台</a>
+        <a href="/pricing">模型广场</a>
+        <a href="/rankings">排行榜</a>
+        <a href="/docs">文档</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="button" href="/sign-in">登录</a>
+        <a class="button primary" href="/sign-up">注册</a>
+      </div>
+    </header>
+
+    <main class="shell doc-layout">
+      <aside class="rail" aria-label="Legal sections">
+        <strong>MatrixAPI Legal</strong>
+        <a href="#agreement">User agreement</a>
+        <a href="#privacy">Privacy policy</a>
+        <a href="#billing">Billing terms</a>
+        <a href="#support">Support</a>
+      </aside>
+
+      <section style="display:grid; gap:18px; min-width:0;">
+        <article class="doc-hero">
+          <p class="eyebrow">MatrixAPI-owned legal pages</p>
+          <h1>User agreement and privacy policy</h1>
+          <p>
+            These pages describe MatrixAPI account use, OpenAI-compatible API access, balance top-up,
+            token handling, and privacy practices. They stay inside the MatrixAPI domain and open in the same tab.
+          </p>
+          <div class="tabs" style="margin-top:22px;">
+            <a class="tab-link" href="/user-agreement" data-page="agreement">User agreement</a>
+            <a class="tab-link" href="/privacy-policy" data-page="privacy">Privacy policy</a>
+          </div>
+        </article>
+
+        <article id="agreement" class="doc-card">
+          <p class="eyebrow">User agreement</p>
+          <h2>Use MatrixAPI for lawful API access and account management.</h2>
+          <div class="grid-2">
+            <div class="policy-box">
+              <h3>Account responsibility</h3>
+              <p>You are responsible for the account, API tokens, request activity, and balance usage under your account.</p>
+              <ul>
+                <li>Keep passwords, tokens, and client import links private.</li>
+                <li>Rotate a token immediately if it may have been exposed.</li>
+                <li>Use accurate contact information for billing and support.</li>
+              </ul>
+            </div>
+            <div class="policy-box">
+              <h3>Acceptable use</h3>
+              <p>MatrixAPI provides routed access to AI models through compatible endpoints and dashboard tools.</p>
+              <ul>
+                <li>Do not abuse rate limits, payment flows, or upstream providers.</li>
+                <li>Do not use the service for unlawful, harmful, or unauthorized activity.</li>
+                <li>Respect model, provider, and regional restrictions shown in the dashboard.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article id="privacy" class="doc-card">
+          <p class="eyebrow">Privacy policy</p>
+          <h2>MatrixAPI collects only the data needed to operate the gateway.</h2>
+          <div class="grid-2">
+            <div class="policy-box">
+              <h3>Data we process</h3>
+              <p>MatrixAPI may process account identifiers, balance records, request metadata, model names, token usage, and operational logs.</p>
+              <ul>
+                <li>API secrets are sensitive and should never be shared in support messages.</li>
+                <li>Billing records are used to reconcile Alipay orders and account balance.</li>
+                <li>Logs are used for debugging, abuse prevention, and usage visibility.</li>
+              </ul>
+            </div>
+            <div class="policy-box">
+              <h3>Data protection</h3>
+              <p>Access is limited to operational needs. Sensitive credentials should be rotated after exposure.</p>
+              <ul>
+                <li>Use HTTPS endpoints and OpenAI-compatible clients with secure storage.</li>
+                <li>Review token activity and disable unused tokens in the dashboard.</li>
+                <li>Contact support if you need account or billing data reviewed.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article id="billing" class="doc-card">
+          <p class="eyebrow">Billing terms</p>
+          <h2>Alipay top-up is balance-based.</h2>
+          <p>
+            MatrixAPI currently exposes Alipay online top-up. A recharge quantity of 100 corresponds to
+            an actual payment of 10 CNY when the configured price is 0.1 CNY per quantity unit.
+          </p>
+        </article>
+
+        <article id="support" class="doc-card">
+          <p class="eyebrow">Support</p>
+          <h2>Contact MatrixAPI without sharing full credentials.</h2>
+          <p>
+            For account, token, billing, or provider questions, contact support by email. Include route names,
+            timestamps, and masked token prefixes only.
+          </p>
+          <div class="tabs" style="margin-top:18px;">
+            <a class="button primary" href="mailto:3315419516@qq.com?subject=MatrixAPI%20support">Contact support</a>
+            <a class="button" href="/docs">Read docs</a>
+            <a class="button" href="/wallet">Open wallet</a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <script>
+      const active = location.pathname.includes("privacy") ? "privacy" : "agreement";
+      document.querySelectorAll("[data-page]").forEach((link) => {
+        if (link.dataset.page === active) link.setAttribute("aria-current", "page");
+      });
+    </script>
+  </body>
+</html>
+
+
+

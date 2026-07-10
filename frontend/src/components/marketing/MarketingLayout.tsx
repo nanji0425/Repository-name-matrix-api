@@ -7,9 +7,9 @@ import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ArrowRight, ChevronDown, Grid2X2, Lock, Menu, Sparkles, User, X } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
-import LanguageToggle from '@/components/LanguageToggle';
 import { useAuthStore } from '@/stores/authStore';
 import { TranslationKey, useLocaleStore } from '@/stores/localeStore';
+import { getPostLoginPath, isAdminUser } from '@/lib/adminAccess';
 import { brand, navLinks } from './marketingData';
 
 type AuthMode = 'login' | 'register' | null;
@@ -54,10 +54,9 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
 
           <div className="hidden items-center gap-4 lg:flex">
             <ThemeToggle />
-            <LanguageToggle />
             {isAuthenticated ? (
               <div className="relative">
-                <button onClick={() => router.push('/dashboard')} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5 hover:shadow-cyan-300/30">
+                <button onClick={() => router.push(getPostLoginPath(user))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-white to-cyan-100 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:-translate-y-0.5 hover:shadow-cyan-300/30">
                   <Grid2X2 className="h-4 w-4" />
                   {t('console')}
                 </button>
@@ -66,9 +65,9 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-2xl border border-white/10 bg-[#111216] p-2 shadow-2xl shadow-black/50">
-                    <Link href="/dashboard" className="flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-200 transition hover:bg-white/8">{t('enterConsole')}</Link>
+                    <Link href={getPostLoginPath(user)} className="flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-200 transition hover:bg-white/8">{t('enterConsole')}</Link>
                     <button onClick={logout} className="h-10 w-full rounded-xl text-sm font-bold text-red-400 transition hover:bg-white/8">{t('logout')}</button>
-                    {user?.role === 'ADMIN' && <Link href="/admin" className="mt-1 flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-300 transition hover:bg-white/8">{t('admin')}</Link>}
+                    {isAdminUser(user) && <Link href="/admin" className="mt-1 flex h-10 items-center justify-center rounded-xl text-sm font-bold text-slate-300 transition hover:bg-white/8">{t('admin')}</Link>}
                   </div>
                 )}
               </div>
@@ -98,9 +97,8 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
               ))}
               <div className="flex gap-2 py-2">
                 <ThemeToggle />
-                <LanguageToggle />
               </div>
-              <button onClick={() => (isAuthenticated ? router.push('/dashboard') : setAuthMode('login'))} className="mt-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950">
+              <button onClick={() => (isAuthenticated ? router.push(getPostLoginPath(user)) : setAuthMode('login'))} className="mt-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950">
                 {isAuthenticated ? t('enterConsole') : t('loginRegister')}
               </button>
             </div>
@@ -112,7 +110,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
 
       <SiteFooter />
 
-      {authMode && <AuthModal mode={authMode} title={title} onClose={() => setAuthMode(null)} onSwitch={setAuthMode} onSuccess={() => router.push(authMode === 'register' ? '/dashboard/api-keys' : '/dashboard')} />}
+      {authMode && <AuthModal mode={authMode} title={title} onClose={() => setAuthMode(null)} onSwitch={setAuthMode} onSuccess={(user, mode) => router.push(mode === 'register' ? '/dashboard/api-keys' : getPostLoginPath(user))} />}
     </div>
   );
 }
@@ -136,19 +134,18 @@ export function SiteFooter() {
     <footer className="border-t border-white/10 bg-[#050506] pt-16 pb-8 text-sm text-white" data-locale={locale}>
       <div className="mx-auto grid max-w-[1200px] gap-10 px-6 lg:grid-cols-[1.1fr_2fr]">
         <div>
-          <div className="flex items-center gap-3 text-xl font-black">
-            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-white text-slate-950">
+      <div className="flex items-center gap-3 text-xl font-black">
+        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-white text-slate-950">
               <Image src="/logo-mark.svg" alt="MatrixAPI" width={32} height={32} />
-            </span>
-            {brand.name}
-          </div>
+        </span>
+        {brand.name}
+      </div>
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-500">{t('footerDesc')}</p>
           <p className="mt-4 text-sm text-slate-500">{t('contactEmail')} <a href={`mailto:${brand.email}`} className="font-bold text-white transition hover:text-cyan-300">{brand.email}</a></p>
         </div>
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2">
           <FooterGroup titleKey="platformServices" links={[['pricing', '/models'], ['apiRelay', '/api-gateway'], ['solutions', '/solutions']]} />
           <FooterGroup titleKey="developerSupport" links={[['docsOfficial', '/docs'], ['tools', '/tools'], ['console', '/dashboard']]} />
-          <FooterGroup titleKey="about" links={[['aboutUs', '/about'], ['latestNews', '/news'], ['privacy', '/privacy'], ['terms', '/terms']]} />
         </div>
       </div>
       <div className="mx-auto mt-12 max-w-[1200px] border-t border-white/10 px-6 pt-6 text-xs text-slate-600">© 2024-2026 {brand.name}. All rights reserved.</div>
@@ -171,7 +168,7 @@ function FooterGroup({ titleKey, links }: { titleKey: TranslationKey; links: [Tr
   );
 }
 
-function AuthModal({ mode, title, onClose, onSwitch, onSuccess }: { mode: AuthMode; title: string; onClose: () => void; onSwitch: (mode: AuthMode) => void; onSuccess: () => void }) {
+function AuthModal({ mode, title, onClose, onSwitch, onSuccess }: { mode: AuthMode; title: string; onClose: () => void; onSwitch: (mode: AuthMode) => void; onSuccess: (user: any, mode: AuthMode) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -184,17 +181,18 @@ function AuthModal({ mode, title, onClose, onSwitch, onSuccess }: { mode: AuthMo
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     try {
+      let loggedInUser: any = null;
       if (mode === 'register') {
         if (password !== confirmPassword) return toast.error(t('passwordMismatch'));
         await register({ username: username.trim(), password, inviteCode: inviteCode.trim() || undefined });
         toast.success(t('registerSuccess'));
       } else {
-        await login(username.trim(), password);
+        loggedInUser = await login(username.trim(), password);
         if (remember) localStorage.setItem('matrix_remember_login', '1');
         toast.success(t('loginSuccess'));
       }
       onClose();
-      onSuccess();
+      onSuccess(loggedInUser, mode);
     } catch (error: any) {
       toast.error(error.message || (mode === 'register' ? t('registerFailed') : t('loginFailed')));
     }

@@ -30,6 +30,7 @@ type ModelSeed = {
   multiplier: number;
   status: string;
   sortOrder: number;
+  category: string;
 };
 
 type UpstreamCandidate = {
@@ -91,6 +92,49 @@ export function applyMarkup(price: number): number {
   return Number((price * PRICE_MARKUP).toFixed(8));
 }
 
+export function categorizeModel(modelCode: string): string {
+  const code = modelCode.toLowerCase();
+
+  // Text generation models
+  if (code.includes('gpt') || code.includes('claude') || code.includes('gemini') ||
+      code.includes('deepseek') || code.includes('qwen') || code.includes('llama') ||
+      code.includes('mistral') || code.includes('moonshot') || code.includes('yi-') ||
+      code.includes('chatglm') || code.includes('baichuan')) {
+    return 'text';
+  }
+
+  // Image generation models
+  if (code.includes('dall-e') || code.includes('dalle') || code.includes('midjourney') ||
+      code.includes('stable-diffusion') || code.includes('sd-') || code.includes('flux') ||
+      code.includes('imagen') || code.includes('ideogram') || code.includes('playground')) {
+    return 'image';
+  }
+
+  // Video generation models
+  if (code.includes('sora') || code.includes('runway') || code.includes('luma') ||
+      code.includes('pika') || code.includes('kling') || code.includes('video')) {
+    return 'video';
+  }
+
+  // Audio/Speech models
+  if (code.includes('whisper') || code.includes('tts') || code.includes('speech') ||
+      code.includes('audio') || code.includes('voice')) {
+    return 'audio';
+  }
+
+  // Embedding models
+  if (code.includes('embedding') || code.includes('embed') || code.includes('text-embedding')) {
+    return 'embedding';
+  }
+
+  // Moderation models
+  if (code.includes('moderation') || code.includes('moderate')) {
+    return 'moderation';
+  }
+
+  return 'general';
+}
+
 export function formatModelName(modelCode: string): string {
   const overrides: Record<string, string> = {
     openai: 'OpenAI',
@@ -146,6 +190,7 @@ export function normalizeUpstreamModels(payload: any, providerId = UPSTREAM_PROV
         multiplier: 1,
         status: 'ACTIVE',
         sortOrder: seen.size,
+        category: categorizeModel(modelCode),
       };
     })
     .filter((model): model is ModelSeed => Boolean(model));

@@ -29,14 +29,13 @@ export const brand = {
 };
 
 export const navLinks: { href: string; label: string; labelKey: TranslationKey }[] = [
-  { href: '/', label: '首页', labelKey: 'home' },
-  { href: '/models', label: '模型广场', labelKey: 'models' },
-  { href: '/api-gateway', label: 'API 中转平台', labelKey: 'apiGateway' },
-  { href: '/tools', label: '在线创作', labelKey: 'tools' },
-  { href: '/solutions', label: '解决方案', labelKey: 'solutions' },
-  { href: '/news', label: '资讯', labelKey: 'news' },
-  { href: '/docs', label: '文档', labelKey: 'docs' },
-  { href: '/about', label: '关于', labelKey: 'about' },
+  { href: '/', label: 'Home', labelKey: 'home' },
+  { href: '/models', label: 'Model Plaza', labelKey: 'models' },
+  { href: '/api-gateway', label: 'API Gateway', labelKey: 'apiGateway' },
+  { href: '/tools', label: 'Tools', labelKey: 'tools' },
+  { href: '/solutions', label: 'Solutions', labelKey: 'solutions' },
+  { href: '/news', label: 'News', labelKey: 'news' },
+  { href: '/docs', label: 'Docs', labelKey: 'docs' },
 ];
 
 export const heroModels = ['OpenAI GPT-4o', 'Claude 3.5', 'Gemini 1.5 Pro', 'DeepSeek V3', 'Llama 3', 'Qwen Max', 'Mistral Large', 'Stable Diffusion 3'];

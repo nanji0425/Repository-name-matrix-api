@@ -26,7 +26,7 @@ function getRequiredUpstreamApiKey() {
 async function main() {
   console.log('Seeding MatrixAPI database...');
 
-  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminUsername = process.env.ADMIN_USERNAME || 'aming';
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword || adminPassword.length < 12) {
     throw new Error('ADMIN_PASSWORD must be set to at least 12 characters before seeding production data');

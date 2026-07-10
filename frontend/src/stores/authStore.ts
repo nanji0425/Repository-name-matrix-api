@@ -5,7 +5,8 @@ interface User {
   id: string;
   username: string;
   email?: string | null;
-  role: string;
+  role: string | number;
+  status?: string | number | null;
   balance: number;
   avatar?: string;
   inviteCode?: string;
@@ -19,7 +20,7 @@ interface AuthState {
   isAuthenticated: boolean;
   hasHydrated: boolean;
 
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
   register: (data: { username: string; password: string; inviteCode?: string }) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { data } = await authApi.login({ username, password });
       localStorage.setItem('access_token', data.accessToken);
       set({ user: data.user, token: data.accessToken, isAuthenticated: true, isLoading: false });
+      return data.user;
     } catch (error: any) {
       set({ isLoading: false });
       throw new Error(error.response?.data?.message || '登录失败');

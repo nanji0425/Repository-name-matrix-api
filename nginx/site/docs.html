@@ -1,0 +1,150 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>MatrixAPI Docs</title>
+    <meta name="description" content="MatrixAPI OpenAI-compatible gateway documentation." />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+  </head>
+  <body>
+    <header class="shell nav is-app-shell">
+      <a class="brand" href="/" aria-label="MatrixAPI home">
+        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+        <span>MatrixAPI算力中心</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">主页</a>
+        <a href="/console">控制台</a>
+        <a href="/pricing">模型广场</a>
+        <a href="/rankings">排行榜</a>
+        <a href="/docs" aria-current="page">文档</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="button" href="/sign-in">登录</a>
+        <a class="button primary" href="/sign-up">注册</a>
+      </div>
+    </header>
+
+    <main class="shell doc-layout">
+      <aside class="rail" aria-label="Docs sections">
+        <strong>MatrixAPI Docs</strong>
+        <a href="#quick-start">Quick start</a>
+        <a href="#endpoints">Endpoints</a>
+        <a href="#clients">Client import</a>
+        <a href="#billing">Billing</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+      </aside>
+
+      <section class="content" style="display:grid; gap:18px; min-width:0;">
+        <article class="doc-hero">
+          <p class="eyebrow">OpenAI compatible gateway</p>
+          <h1>MatrixAPI integration docs</h1>
+          <p>
+            Use MatrixAPI as a single OpenAI-compatible endpoint for chat, model listing, image generation,
+            token management, usage logs, and balance top-up. These docs describe MatrixAPI only.
+          </p>
+          <div class="hero-badges" style="margin-top:22px;">
+            <a class="button primary" href="/console/token">Create token</a>
+            <a class="button" href="#quick-start">Quick start</a>
+            <span class="pill">Base URL: https://matrixapi.online/v1</span>
+          </div>
+        </article>
+
+        <article id="quick-start" class="doc-card">
+          <p class="eyebrow">01</p>
+          <h2>Quick start</h2>
+          <div class="grid-3">
+            <div class="feature">
+              <strong>1. Create an account</strong>
+              <p>Open the dashboard and sign in or create a MatrixAPI account.</p>
+            </div>
+            <div class="feature">
+              <strong>2. Create a token</strong>
+              <p>Go to Tokens, create an API token, then copy it once and store it securely.</p>
+            </div>
+            <div class="feature">
+              <strong>3. Call the API</strong>
+              <p>Use the base URL below with OpenAI-compatible SDKs and tools.</p>
+            </div>
+          </div>
+        </article>
+
+        <article id="endpoints" class="doc-card">
+          <p class="eyebrow">02</p>
+          <h2>Endpoints</h2>
+          <p>Use the same host for all OpenAI-compatible requests.</p>
+          <div class="endpoint">
+            <span>https://matrixapi.online/v1</span>
+            <button class="button" type="button" data-copy="https://matrixapi.online/v1">Copy</button>
+          </div>
+          <pre>POST https://matrixapi.online/v1/chat/completions
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "model": "gpt-5.4",
+  "messages": [
+    { "role": "user", "content": "Hello MatrixAPI" }
+  ]
+}</pre>
+        </article>
+
+        <article id="clients" class="doc-card">
+          <p class="eyebrow">03</p>
+          <h2>Client import</h2>
+          <p>MatrixAPI tokens work with OpenAI-compatible clients. Use the dashboard token import panel for supported tools.</p>
+          <div class="grid-3">
+            <div class="feature"><strong>CC Switch</strong><p>Import MatrixAPI as an OpenAI-compatible provider.</p></div>
+            <div class="feature"><strong>Cherry Studio</strong><p>Use the same API key and base URL from MatrixAPI.</p></div>
+            <div class="feature"><strong>OpenAI SDKs</strong><p>Set the SDK base URL to the MatrixAPI /v1 endpoint.</p></div>
+          </div>
+        </article>
+
+        <article id="billing" class="doc-card">
+          <p class="eyebrow">04</p>
+          <h2>Billing and top-up</h2>
+          <p>
+            Online top-up is Alipay only. MatrixAPI uses balance-based billing and displays model costs in
+            the dashboard pricing pages. A top-up quantity of 100 corresponds to an actual payment of 10 CNY.
+          </p>
+          <a class="button primary" href="/wallet">Open wallet</a>
+        </article>
+
+        <article id="troubleshooting" class="doc-card">
+          <p class="eyebrow">05</p>
+          <h2>Troubleshooting</h2>
+          <p>
+            If a request fails, check that your token is enabled, your selected model is available to the
+            token group, and your client base URL ends with /v1. Contact support without sharing full tokens.
+          </p>
+          <a class="button" href="mailto:3315419516@qq.com">Contact support</a>
+        </article>
+      </section>
+    </main>
+
+    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <script>
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            button.textContent = "Copied";
+          } catch (_) {
+            button.textContent = value;
+          }
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1600);
+        });
+      });
+    </script>
+  </body>
+</html>
+
+
+

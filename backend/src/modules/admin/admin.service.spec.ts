@@ -116,6 +116,11 @@ async function run() {
   assert.equal(stats.commissions.amount, 65);
   assert.equal(stats.teams.members, 12);
   assert.equal(stats.announcements, 5);
+  assert.equal(stats.site.status, 'ONLINE');
+  assert.equal(stats.site.environment, process.env.NODE_ENV || 'development');
+  assert.equal(typeof stats.site.checkedAt, 'string');
+  assert.equal(stats.site.management.users, true);
+  assert.equal(stats.site.management.settings, true);
 
   const commissions = await service.listAllCommissions(1, 20, 'PENDING');
   assert.equal(commissions.total, 14);

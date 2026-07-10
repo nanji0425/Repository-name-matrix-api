@@ -104,12 +104,15 @@ interface LocaleState {
 
 function readBrowserLocale(): Locale {
   if (typeof window === 'undefined') return 'zh';
-  return localStorage.getItem('matrix_locale') === 'en' ? 'en' : 'zh';
+  const stored = localStorage.getItem('matrix_locale') || localStorage.getItem('locale');
+  if (stored === 'zh' || stored === 'en') return stored as Locale;
+  return 'zh';
 }
 
 function applyBrowserLocale(locale: Locale) {
   if (typeof window === 'undefined') return;
   localStorage.setItem('matrix_locale', locale);
+  localStorage.setItem('locale', locale);
   document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
 }
 
@@ -122,7 +125,8 @@ export const useLocaleStore = create<LocaleState>((set, get) => ({
     set({ locale, hasHydrated: true });
   },
   toggleLocale: () => {
-    const next: Locale = get().locale === 'zh' ? 'en' : 'zh';
+    const current = get().locale;
+    const next = current === 'zh' ? 'en' : 'zh';
     applyBrowserLocale(next);
     set({ locale: next, hasHydrated: true });
   },

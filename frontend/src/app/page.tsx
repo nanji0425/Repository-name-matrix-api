@@ -53,33 +53,57 @@ export default function HomePage() {
 
   return (
     <MarketingLayout>
-      <section className="relative mx-auto flex min-h-[85vh] max-w-[1200px] flex-col items-center justify-center px-6 pb-20 pt-40 text-center md:pb-32 md:pt-48">
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:80px_80px] opacity-50" />
-        <Link href="/api-gateway" className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black text-white shadow-xl shadow-black/30">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.9)]" />
+      {/* Hero Section - 紫粉渐变 */}
+      <section className="hero-section relative mx-auto flex min-h-[85vh] max-w-[1200px] flex-col items-center justify-center px-6 pb-20 pt-40 text-center md:pb-32 md:pt-48">
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(168,85,247,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(168,85,247,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-40" />
+        <Link href="/api-gateway" className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-white/90 px-4 py-2 text-xs font-bold text-purple-700 shadow-soft backdrop-blur-sm">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
           {text.status}
         </Link>
-        <h1 className="max-w-5xl text-6xl font-black leading-[0.95] tracking-tight text-slate-950 dark:text-white sm:text-7xl lg:text-8xl">
+        <h1 className="hero-title max-w-5xl text-6xl font-black leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">
           {text.titleTop}
           <br />
           {text.titleBottom}
         </h1>
-        <p className="mt-8 max-w-3xl text-lg font-semibold leading-8 text-slate-600 dark:text-slate-400">{text.desc}</p>
+        <p className="hero-description mt-8 max-w-3xl text-lg font-semibold leading-8">{text.desc}</p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <Link href="/register" className="button-primary px-8 py-4 text-base">
+            立即开始
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+          <Link href="/docs" className="button-secondary px-8 py-4 text-base">
+            查看文档
+          </Link>
+        </div>
       </section>
 
       <ModelMarquee title={text.marquee} />
 
+      {/* Infrastructure Section */}
       <section className="mx-auto max-w-[1200px] px-6 py-24 md:py-32">
         <SectionHeader title={text.infraTitle} desc={text.infraDesc} />
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {infrastructureCards[locale].map((card, index) => {
             const Icon = card.icon;
-            return <MarketingCard key={card.title} href={infrastructureLinks[index]} icon={<Icon className="h-6 w-6" />} title={card.title} desc={card.desc} />;
+            return (
+              <Link
+                key={card.title}
+                href={infrastructureLinks[index]}
+                className="group console-card hover:border-purple-300"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 font-bold text-gray-900 dark:text-white">{card.title}</h3>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{card.desc}</p>
+              </Link>
+            );
           })}
         </div>
       </section>
 
-      <section className="w-full border-y border-white/10 bg-white/[0.035] py-24 md:py-32">
+      {/* Developer Section */}
+      <section className="w-full border-y border-purple-100 bg-gradient-to-br from-purple-50/50 to-pink-50/30 py-24 md:py-32">
         <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <SectionHeader center={false} title={text.devTitle} desc={text.devDesc} />
@@ -87,13 +111,15 @@ export default function HomePage() {
               {developerFeatures[locale].map((feature) => {
                 const Icon = feature.icon;
                 return (
-                  <Link key={feature.title} href="/docs" className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.045] p-4 transition hover:border-cyan-300/30">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-300/10 text-cyan-300">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-950 dark:text-white">{feature.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">{feature.desc}</p>
+                  <Link key={feature.title} href="/docs" className="console-card hover:border-purple-300">
+                    <div className="flex gap-4">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{feature.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{feature.desc}</p>
+                      </div>
                     </div>
                   </Link>
                 );
@@ -104,27 +130,42 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Steps Section */}
       <section className="mx-auto max-w-[1200px] px-6 py-24 md:py-32">
         <SectionHeader title={text.stepsTitle} />
         <StepsBlock />
       </section>
 
-      <section className="w-full border-y border-white/10 bg-white/[0.035] py-24 md:py-32">
+      {/* Solutions Section */}
+      <section className="w-full border-y border-purple-100 bg-gradient-to-br from-purple-50/50 to-pink-50/30 py-24 md:py-32">
         <div className="mx-auto max-w-[1200px] px-6">
           <SectionHeader title={text.scenesTitle} desc={text.scenesDesc} />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
             {solutionCards[locale].map((card, index) => {
               const Icon = card.icon;
-              return <MarketingCard key={card.title} href={solutionLinks[index]} icon={<Icon className="h-6 w-6" />} title={card.title} desc={card.desc} />;
+              return (
+                <Link
+                  key={card.title}
+                  href={solutionLinks[index]}
+                  className="console-card hover:border-purple-300"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-4 font-bold text-gray-900 dark:text-white">{card.title}</h3>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{card.desc}</p>
+                </Link>
+              );
             })}
           </div>
         </div>
       </section>
 
+      {/* News Section */}
       <section className="mx-auto max-w-[1200px] px-6 py-24 md:py-32">
         <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <SectionHeader center={false} title={text.newsTitle} desc={text.newsDesc} />
-          <Link href="/news" className="inline-flex items-center gap-2 text-sm font-black text-cyan-300">
+          <Link href="/news" className="inline-flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-700">
             {text.moreNews} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -132,13 +173,13 @@ export default function HomePage() {
           {newsPosts.map((post) => {
             const localizedPost = post[locale];
             return (
-            <Link key={post.slug} href={`/news/${post.slug}`} className="rounded-[24px] border border-white/10 bg-white/[0.045] p-6 transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-300">
+            <Link key={post.slug} href={`/news/${post.slug}`} className="console-card hover:border-purple-300">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
                 <CheckCircle className="h-3.5 w-3.5" />
                 {localizedPost.category}
               </div>
-              <div className="mb-3 text-xs font-bold text-slate-500">{localizedPost.date}</div>
-              <h3 className="text-lg font-black leading-7 text-slate-950 dark:text-white">{localizedPost.title}</h3>
+              <div className="mb-3 text-xs font-bold text-gray-500">{localizedPost.date}</div>
+              <h3 className="text-lg font-bold leading-7 text-gray-900 dark:text-white">{localizedPost.title}</h3>
             </Link>
             );
           })}

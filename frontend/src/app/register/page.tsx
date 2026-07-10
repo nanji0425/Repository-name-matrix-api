@@ -4,96 +4,179 @@ import Link from 'next/link';
 import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { KeyRound, Lock, User, X } from 'lucide-react';
-import LanguageToggle from '@/components/LanguageToggle';
-import ThemeToggle from '@/components/ThemeToggle';
+import { Lock, Mail, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useLocaleStore } from '@/stores/localeStore';
-
-const copy = {
-  zh: {
-    usernameShort: '用户名至少需要 3 个字符',
-    passwordShort: '密码至少需要 6 个字符',
-    close: '关闭',
-  },
-  en: {
-    usernameShort: 'Username must be at least 3 characters',
-    passwordShort: 'Password must be at least 6 characters',
-    close: 'Close',
-  },
-} as const;
 
 export default function RegisterPage() {
   const locale = useLocaleStore((state) => state.locale);
   const localeHydrated = useLocaleStore((state) => state.hasHydrated);
   const hydrateLocale = useLocaleStore((state) => state.hydrateLocale);
   const t = useLocaleStore((state) => state.t);
-  const text = copy[locale];
-  const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', inviteCode: '' });
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agree, setAgree] = useState(false);
   const { register, isLoading } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
     if (!localeHydrated) hydrateLocale();
-    const invite = new URLSearchParams(window.location.search).get('invite');
-    if (invite) setForm((current) => ({ ...current, inviteCode: invite }));
   }, [localeHydrated, hydrateLocale]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (form.username.trim().length < 3) return toast.error(text.usernameShort);
-    if (form.password.length < 6) return toast.error(text.passwordShort);
-    if (form.password !== form.confirmPassword) return toast.error(t('passwordMismatch'));
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
 
-    try {
-      await register({ username: form.username.trim(), password: form.password, inviteCode: form.inviteCode.trim() || undefined });
-      toast.success(t('registerSuccess'));
-      router.push('/dashboard/api-keys');
-    } catch (error: any) {
-      toast.error(error.message || t('registerFailed'));
+    if (password !== confirmPassword) {
+      toast.error('两次密码输入不一致');
+      return;
+    }
+
+    if (!agree) {
+      toast.error('请同意服务条款');
+      return;
+    }
+
+    const success = await register(username, email, password);
+    if (success) {
+      toast.success('注册成功！');
+      router.push('/dashboard');
+    } else {
+      toast.error('注册失败，请重试');
     }
   };
 
+  if (!localeHydrated) return null;
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black px-4 text-white" data-locale={locale}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(13,24,67,0.9),transparent_30%),radial-gradient(circle_at_48%_54%,rgba(17,24,39,0.85),transparent_28%)]" />
-      <div className="absolute right-6 top-6 z-20 flex items-center gap-3">
-        <ThemeToggle />
-        <LanguageToggle />
+    <div className="flex min-h-screen">
+      {/* 左侧 - 渐变背景 + 品牌信息 */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.2),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.15),transparent_60%)]" />
+
+        <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
+          <div className="max-w-md text-center">
+            <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm">
+              <span className="text-4xl font-bold text-white">M</span>
+            </div>
+            <h1 className="text-4xl font-bold mb-4">加入 MatrixAPI</h1>
+            <p className="text-lg text-white/90 mb-8">开启你的 AI 开发之旅</p>
+            <div className="space-y-4 text-left">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">🚀</div>
+                <div>
+                  <div className="font-semibold">即刻开始</div>
+                  <div className="text-sm text-white/80">注册即送体验额度</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">💰</div>
+                <div>
+                  <div className="font-semibold">灵活计费</div>
+                  <div className="text-sm text-white/80">用多少付多少</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">🎁</div>
+                <div>
+                  <div className="font-semibold">邀请返佣</div>
+                  <div className="text-sm text-white/80">分享即可获得收益</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center">
-        <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
-        <div className="relative z-10 w-full max-w-[470px] rounded-[24px] border border-white/10 bg-[#151518] p-8 shadow-2xl shadow-black/60">
-          <button onClick={() => router.push('/')} className="absolute right-6 top-6 text-slate-500 transition hover:text-white" aria-label={text.close}>
-            <X className="h-5 w-5" />
-          </button>
-          <h1 className="text-3xl font-black text-white">{t('authRegisterTitle')}</h1>
-          <p className="mt-2 text-sm text-slate-400">{t('authRegisterDesc')}</p>
 
-          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-            <Field label={t('username')} icon={<User className="h-4 w-4" />}>
-              <input value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} className="matrix-auth-input" placeholder={t('usernamePlaceholder')} required />
-            </Field>
-            <Field label={t('password')} icon={<Lock className="h-4 w-4" />}>
-              <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className="matrix-auth-input" placeholder={t('passwordPlaceholder')} required />
-            </Field>
-            <Field label={t('confirmPassword')} icon={<Lock className="h-4 w-4" />}>
-              <input type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className="matrix-auth-input" placeholder={t('confirmPasswordPlaceholder')} required />
-            </Field>
-            <Field label={t('inviteCode')} icon={<KeyRound className="h-4 w-4" />}>
-              <input value={form.inviteCode} onChange={(event) => setForm({ ...form, inviteCode: event.target.value })} className="matrix-auth-input" placeholder={t('invitePlaceholder')} />
-            </Field>
-            <button type="submit" disabled={isLoading} className="h-12 w-full rounded-full bg-white text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:opacity-60">
-              {isLoading ? t('submitting') : t('createAccount')}
-            </button>
-          </form>
+      {/* 右侧 - 注册表单 */}
+      <div className="flex flex-1 items-center justify-center p-8 lg:w-1/2 bg-gradient-to-br from-purple-50/50 to-pink-50/30">
+        <div className="w-full max-w-md">
+          <div className="console-card">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold gradient-text mb-2">{t('register')}</h2>
+              <p className="text-gray-600">创建您的 MatrixAPI 账户</p>
+            </div>
 
-          <p className="mt-6 text-center text-sm text-slate-400">
-            {t('hasAccount')}
-            <Link href="/login" className="ml-1 font-black text-white hover:underline">
-              {t('login')}
-            </Link>
-          </p>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <Field label={t('username')} icon={<User className="h-5 w-5" />}>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="input-field pl-12"
+                  placeholder="请输入用户名"
+                  autoComplete="username"
+                  required
+                />
+              </Field>
+
+              <Field label={t('email')} icon={<Mail className="h-5 w-5" />}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-field pl-12"
+                  placeholder="请输入邮箱"
+                  autoComplete="email"
+                  required
+                />
+              </Field>
+
+              <Field label={t('password')} icon={<Lock className="h-5 w-5" />}>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field pl-12"
+                  placeholder="请输入密码"
+                  autoComplete="new-password"
+                  required
+                />
+              </Field>
+
+              <Field label="确认密码" icon={<Lock className="h-5 w-5" />}>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="input-field pl-12"
+                  placeholder="请再次输入密码"
+                  autoComplete="new-password"
+                  required
+                />
+              </Field>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                  required
+                />
+                <span className="text-sm text-gray-600">
+                  我已阅读并同意
+                  <Link href="/terms" className="text-purple-600 hover:text-purple-700 font-semibold">《服务条款》</Link>
+                  和
+                  <Link href="/privacy" className="text-purple-600 hover:text-purple-700 font-semibold">《隐私政策》</Link>
+                </span>
+              </label>
+
+              <button type="submit" disabled={isLoading} className="button-primary w-full py-3">
+                {isLoading ? '注册中...' : '立即注册'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-gray-600">
+              已有账户？
+              <Link href="/login" className="ml-1 font-semibold text-purple-600 hover:text-purple-700">
+                立即登录
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -103,9 +186,9 @@ export default function RegisterPage() {
 function Field({ label, icon, children }: { label: string; icon: ReactNode; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-300">{label}</span>
+      <span className="mb-2 block text-sm font-semibold text-gray-700">{label}</span>
       <span className="relative block">
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">{icon}</span>
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>
         {children}
       </span>
     </label>

@@ -72,6 +72,7 @@ model Model {
   status       String   @default("ACTIVE")
   sortOrder    Int      @default(0)
   groupId      String?
+  category     String?  @default("general")
   createdAt    DateTime @default(now())
 
   provider     Provider    @relation(fields: [providerId], references: [id])

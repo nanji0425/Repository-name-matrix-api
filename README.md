@@ -1,71 +1,120 @@
-﻿# MatrixAPI - AI Model Aggregation Platform
+# MatrixAPI
 
-Unified API for GPT, Claude, Gemini, DeepSeek, Qwen, Grok and more.
+MatrixAPI uses `QuantumNous/new-api` as the production gateway, console, token, pricing, log, wallet, and admin core. The previous custom NestJS/Next.js stack is kept as `docker-compose.legacy.yml` for rollback.
 
-## Production deployment
+## What Is Included
 
-### Deployment target
-Run the full stack on your server with Docker Compose:
+- MatrixAPI branded dynamic homepage served by Nginx at `/`
+- New API console at `/console`
+- OpenAI-compatible `/v1/*` gateway
+- Token management, token copy/import, token groups and model restrictions
+- Model marketplace, pricing filters, usage logs and task logs
+- Upstream channel routing through `https://api.bblabu.chat`
+- ZPay EPay-compatible payment with Alipay only
+- Default retail markup: upstream price times `1.4`
 
-- `frontend`: Next.js standalone server on port `3001`
-- `backend`: NestJS API and OpenAI-compatible gateway on port `3000`
-- `nginx`: public reverse proxy on port `80`
-- `postgres` and `redis`: internal dependencies
+New API is AGPLv3. Keep the required attribution and original project link visible unless you obtain a separate commercial authorization.
 
-### Required server environment
-Copy `.env.production.example` to `.env` on the server and fill real secrets. Do not commit `.env` or `.env.production`.
+## Production Deployment
 
-Required variables: `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `UPSTREAM_API_KEY`, `NEXT_PUBLIC_API_URL`, `FRONTEND_URL`, `FRONTEND_URLS`, `API_PUBLIC_URL`, `ZPAY_PID`, `ZPAY_KEY`, `ZPAY_NOTIFY_URL`, `ZPAY_RETURN_URL`.
+Required `.env` values:
 
-Keep `ENABLE_DEMO_DATA=false` in production. Demo accounts and demo API keys are only created when `ENABLE_DEMO_DATA=true` and `DEMO_PASSWORD` is explicitly set.
+```bash
+DB_PASSWORD=...
+REDIS_PASSWORD=...
+SESSION_SECRET=...
+CRYPTO_SECRET=...
+SESSION_COOKIE_SECURE=true
+SESSION_COOKIE_TRUSTED_URL=https://matrixapi.online,https://www.matrixapi.online
+```
 
 Deploy:
+
 ```bash
 ./deploy.sh
 ```
 
-The deploy script builds images, starts PostgreSQL and Redis first, applies the Prisma schema in a one-off backend container, runs seed data, starts the app services, waits for `/api/health/ready`, and prints logs if readiness times out.
+Public entry points:
 
-Health checks:
+- Site: `https://matrixapi.online`
+- Console: `https://matrixapi.online/console`
+- Pricing: `https://matrixapi.online/pricing`
+- OpenAI-compatible API: `https://matrixapi.online/v1`
+- Status: `https://matrixapi.online/api/status`
+
+The public homepage lives in `nginx/site/`. New API still owns `/console`, `/pricing`, `/login`, `/register`, `/api/*`, and `/v1/*`.
+
+## Bootstrap
+
+Optional bootstrap after deploy:
+
 ```bash
-curl http://matrixapi.online/api/health
-curl http://matrixapi.online/api/health/ready
-curl http://matrixapi.online/v1/models
+set -a
+. ./.env
+set +a
+node scripts/bootstrap-new-api.mjs
 ```
 
-ZPay callback URL:
-```bash
-https://matrixapi.online/api/wallet/zpay/notify
+The API bootstrap can create the first root account, configure ZPay Alipay, set the default group markup to `1.4`, and create the `bblabu-upstream` OpenAI-compatible channel. If New API rejects API-based admin option writes because of sensitive-action authorization, `deploy.sh` falls back to `scripts/bootstrap-new-api-db.sh`, which writes the same production options directly to the New API database.
+
+## Upstream Setup
+
+The upstream OpenAI-compatible channel should use:
+
+- Base URL: `https://api.bblabu.chat`
+- Key: upstream account API key
+- Group: `default`
+- Status: enabled
+- Weight: `100`
+
+Pricing rule:
+
+```text
+MatrixAPI price = upstream price * 1.4
 ```
 
-The ZPay callback must be reachable from the public internet and must return the plain text `success` after a valid paid notification.
+After configuration, verify `/pricing`, create a token, and call:
 
-### API base URL
 ```bash
-https://matrixapi.online/api
+curl https://matrixapi.online/v1/models -H "Authorization: Bearer <MatrixAPI token>"
 ```
 
-### OpenAI-compatible gateway
-```bash
-https://matrixapi.online/v1/chat/completions
+## ZPay / Alipay Setup
+
+New API has an EPay-compatible payment provider. Configure ZPay in Admin Console -> System Settings -> Billing / Payment Gateway:
+
+- PayAddress: `https://zpayz.cn/`
+- EpayId: your ZPay PID
+- EpayKey: your ZPay merchant key
+- PayMethods: only Alipay
+
+Payment method JSON:
+
+```json
+[
+  {
+    "name": "Alipay",
+    "icon": "SiAlipay",
+    "type": "alipay"
+  }
+]
 ```
 
-### Production go-live checklist
+ZPay callback paths:
 
-Before opening the site to users:
+```text
+https://matrixapi.online/api/user/epay/notify
+https://matrixapi.online/api/subscription/epay/notify
+```
 
-1. Point the domain DNS `A` record to the server IP.
-2. Fill `.env` with real values from `.env.production.example`; the deploy script rejects placeholders.
-3. Run `./deploy.sh` on the server.
-4. Verify `https://matrixapi.online`, `/api/health/ready`, and `/v1/models`.
-5. Issue TLS certificates for `matrixapi.online` and `www.matrixapi.online` into `/etc/letsencrypt/live/matrixapi.online`.
-   Example:
-   ```bash
-   certbot certonly --webroot -w /var/www/certbot -d matrixapi.online -d www.matrixapi.online
-   ```
-6. Change public URLs in `.env` to `https://...`, including `FRONTEND_URL`, `NEXT_PUBLIC_API_URL`, `API_PUBLIC_URL`, `ZPAY_NOTIFY_URL`, and `ZPAY_RETURN_URL`.
-7. Run `./deploy.sh` again; it enables `nginx/conf.d/ssl.conf` and HTTP-to-HTTPS redirect automatically when the certificate files exist.
-8. Verify `https://matrixapi.online`, `https://matrixapi.online/api/health/ready`, and `https://matrixapi.online/v1/models`.
-9. Register or log in, create an API key, and call `/v1/chat/completions`.
-10. Create a recharge order and confirm the ZPay cashier URL opens.
-11. Complete a real small payment and confirm the callback credits the wallet exactly once.
+Run a small real Alipay top-up before opening the site publicly. The callback should return `success`, create a successful top-up record, and credit quota exactly once.
+
+## Rollback
+
+The old custom implementation is preserved:
+
+```bash
+docker compose -f docker-compose.legacy.yml up -d
+```
+
+Before rollback, back up the current New API database volume and logs, then restore the legacy `.env` values used by the old stack.

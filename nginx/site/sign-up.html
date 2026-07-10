@@ -1,0 +1,178 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>MatrixAPI Register</title>
+    <meta name="description" content="创建 MatrixAPI 账号并进入控制台。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+  </head>
+  <body class="auth-gate-page">
+    <header>
+      <a class="auth-gate-brand" href="/" aria-label="MatrixAPI home">
+        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+        <span>MatrixAPI算力中心</span>
+      </a>
+    </header>
+    <a class="auth-gate-link" href="/sign-in">登录</a>
+
+    <main class="auth-gate-main">
+      <section class="auth-gate-card" aria-labelledby="signup-title">
+        <h1 id="signup-title">注册</h1>
+        <p>已有账号？ <a href="/sign-in" style="text-decoration:underline; text-underline-offset:4px;">登录</a></p>
+        <form data-auth-form>
+          <input name="inviteCode" type="hidden" />
+          <label>
+            用户名
+            <input name="username" type="text" autocomplete="username" minlength="3" placeholder="输入用户名" required />
+          </label>
+          <label>
+            密码
+            <input name="password" type="password" autocomplete="new-password" minlength="6" placeholder="设置密码" required />
+          </label>
+          <label>
+            确认密码
+            <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" placeholder="再次输入密码" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" placeholder="name@example.com" />
+          </label>
+          <label>
+            验证码
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input name="verificationCode" type="text" autocomplete="one-time-code" placeholder="输入验证码" style="flex:1;" />
+              <button class="button" type="button" disabled>发送验证码</button>
+            </div>
+          </label>
+          <label class="agreement-box">
+            <input name="agree" type="checkbox" required />
+            <span>我已阅读并同意 用户协议 和 隐私政策。</span>
+          </label>
+          <div class="tabs" style="justify-content:space-between;">
+            <span class="muted">同一账号可用于钱包、文档和控制台。</span>
+            <a class="card-link" href="/sign-in">已有账号?</a>
+          </div>
+          <button class="button primary" type="submit" style="width:100%;">注册</button>
+          <div class="status" role="status" data-status>就绪。</div>
+        </form>
+        <div class="quick-links" style="margin-top:18px;">
+          <a href="/user-agreement">用户协议</a>
+          <a href="/privacy-policy">隐私政策</a>
+          <a href="/forgot-password">忘记密码</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+
+    <script>
+      const form = document.querySelector("[data-auth-form]");
+      const statusNode = document.querySelector("[data-status]");
+      const invite = new URLSearchParams(window.location.search).get("invite");
+      if (invite) form.inviteCode.value = invite;
+
+      function setStatus(message, type = "") {
+        statusNode.textContent = message;
+        statusNode.className = `status ${type}`.trim();
+      }
+
+      function saveSession(user) {
+        if (!user || typeof user !== "object") return;
+        if (user.id != null) localStorage.setItem("uid", String(user.id));
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("locale", "zh");
+        localStorage.setItem("matrix-lang", "zh");
+        sessionStorage.removeItem("matrix-admin-login-redirected");
+      }
+
+      async function doRegister(username, password, inviteCode, email, verificationCode) {
+        const payloads = [
+          { username, password, password2: password, inviteCode: inviteCode || undefined, email: email || undefined, verificationCode: verificationCode || undefined },
+          { username, password, confirmPassword: password, inviteCode: inviteCode || undefined, email: email || undefined, verificationCode: verificationCode || undefined },
+        ];
+        const paths = ["/api/user/register", "/api/user/register?turnstile="];
+        let lastError = "注册失败。";
+
+        for (const path of paths) {
+          for (const payload of payloads) {
+            const response = await fetch(path, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const json = await response.json().catch(() => null);
+            if (response.ok && json?.success) return json;
+            lastError = json?.message || lastError;
+          }
+        }
+
+        throw new Error(lastError);
+      }
+
+      async function doLogin(username, password) {
+        const response = await fetch("/api/user/login", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const json = await response.json().catch(() => null);
+        if (!response.ok || !json?.success || !json?.data) {
+          throw new Error(json?.message || "注册后登录失败。");
+        }
+        return json.data;
+      }
+
+      async function signUp(event) {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        const username = form.username.value.trim();
+        const password = form.password.value;
+        const confirmPassword = form.confirmPassword.value;
+        const inviteCode = form.inviteCode.value.trim();
+        const email = form.email.value.trim();
+        const verificationCode = form.verificationCode.value.trim();
+
+        if (!form.agree.checked) {
+          setStatus("请先同意用户协议和隐私政策。", "error");
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setStatus("两次输入的密码不一致。", "error");
+          return;
+        }
+
+        button.disabled = true;
+        setStatus("正在创建账号...");
+        try {
+          await doRegister(username, password, inviteCode, email, verificationCode);
+          const user = await doLogin(username, password);
+          saveSession(user);
+          setStatus("注册成功，正在进入控制台...", "ok");
+          window.location.href = "/console";
+        } catch (error) {
+          setStatus(error.message || "注册失败。", "error");
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", signUp);
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
+
+

@@ -1,0 +1,107 @@
+﻿<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbf7fb" />
+    <title>MatrixAPI Wallet</title>
+    <meta name="description" content="登录 MatrixAPI 后管理钱包、兑换码和支付宝充值。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+    <script defer src="/matrix-assets/brand-init.js?v=2026070813"></script>
+  </head>
+  <body class="auth-gate-page">
+    <a class="auth-gate-brand" href="/" aria-label="MatrixAPI home">
+      <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+      <span>MatrixAPI算力中心</span>
+    </a>
+
+    <main class="auth-gate-main">
+      <section class="auth-gate-card" aria-labelledby="wallet-login-title">
+        <h1 id="wallet-login-title">登录</h1>
+        <p>登录后管理余额、兑换码和支付宝充值。没有账号？ <a href="/sign-up">注册</a>。</p>
+        <form data-auth-form>
+          <label>
+            用户名或电子邮件
+            <input name="username" type="text" autocomplete="username" placeholder="输入您的用户名或电子邮件" required />
+          </label>
+          <label>
+            密码
+            <input name="password" type="password" autocomplete="current-password" placeholder="输入密码" required />
+          </label>
+          <label class="agreement-box">
+            <input name="agree" type="checkbox" required />
+            <span>我已阅读并同意 <a href="/user-agreement">用户协议</a> 和 <a href="/privacy-policy">隐私政策</a>。</span>
+          </label>
+          <button class="button primary" type="submit">登录并进入钱包</button>
+          <div class="status" role="status" data-status>就绪。</div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const form = document.querySelector("[data-auth-form]");
+      const statusNode = document.querySelector("[data-status]");
+
+      function setStatus(message, type = "") {
+        statusNode.textContent = message;
+        statusNode.className = `status ${type}`.trim();
+      }
+
+      function normalizeAuthError(message) {
+        if (/username|password|incorrect|banned/i.test(message || "")) {
+          return "用户名或密码错误，或账号已被禁用。";
+        }
+        if (/network|fetch/i.test(message || "")) {
+          return "网络错误，请稍后重试。";
+        }
+        return message || "登录失败。";
+      }
+
+      function saveSession(user) {
+        if (!user || typeof user !== "object") return;
+        if (user.id != null) localStorage.setItem("uid", String(user.id));
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("locale", "zh");
+        localStorage.setItem("matrix-lang", "zh");
+        sessionStorage.removeItem("matrix-admin-login-redirected");
+      }
+
+      async function signIn(event) {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        const username = form.username.value.trim();
+        const password = form.password.value;
+        if (!form.agree.checked) {
+          setStatus("请先同意用户协议和隐私政策。", "error");
+          return;
+        }
+        button.disabled = true;
+        setStatus("正在登录...");
+        try {
+          const response = await fetch("/api/user/login", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const json = await response.json().catch(() => null);
+          if (!response.ok || !json?.success || !json?.data) {
+            throw new Error(json?.message || "登录失败。");
+          }
+          saveSession(json.data);
+          setStatus("登录成功，正在进入钱包...", "ok");
+          window.location.href = "/console/topup";
+        } catch (error) {
+          setStatus(normalizeAuthError(error.message), "error");
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", signIn);
+    </script>
+  </body>
+</html>

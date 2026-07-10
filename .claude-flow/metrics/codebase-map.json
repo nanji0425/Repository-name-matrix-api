@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-09T02:55:00.181Z",
+  "projectRoot": "E:\\token_API",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1783565700182
+}

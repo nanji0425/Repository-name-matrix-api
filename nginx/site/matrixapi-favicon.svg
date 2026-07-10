@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="MatrixAPI">
+  <defs>
+    <linearGradient id="matrix-gradient" x1="14" y1="112" x2="114" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16d9e3"/>
+      <stop offset="0.52" stop-color="#5b7cfa"/>
+      <stop offset="1" stop-color="#ff4fb8"/>
+    </linearGradient>
+    <radialGradient id="matrix-core" cx="64" cy="62" r="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1b2c60"/>
+      <stop offset="1" stop-color="#071426"/>
+    </radialGradient>
+    <filter id="matrix-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="#061423"/>
+  <path d="M22 89V39c0-8.5 9.8-13.2 16.5-7.9L64 51.3l25.5-20.2C96.2 25.8 106 30.5 106 39v50c0 8.4-9.6 13.1-16.3 8L64 77.1 38.3 97C31.6 102.1 22 97.4 22 89Z" fill="url(#matrix-core)" stroke="url(#matrix-gradient)" stroke-width="7" filter="url(#matrix-glow)"/>
+  <path d="M38 82V47l26 20.7L90 47v35" fill="none" stroke="url(#matrix-gradient)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <g class="matrix-node" fill="#f7fbff" stroke="#061423" stroke-width="4">
+    <circle cx="38" cy="47" r="8"/>
+    <circle cx="64" cy="68" r="8"/>
+    <circle cx="90" cy="47" r="8"/>
+    <circle cx="38" cy="82" r="7"/>
+    <circle cx="90" cy="82" r="7"/>
+  </g>
+</svg>

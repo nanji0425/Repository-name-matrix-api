@@ -1,0 +1,222 @@
+﻿<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#faf5fb" />
+    <title>MatrixAPI Model Plaza</title>
+    <meta name="description" content="MatrixAPI 模型广场，按供应商、分组、类型和计费方式浏览模型价格。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+    <script defer src="/matrix-assets/brand-init.js?v=2026070813"></script>
+  </head>
+  <body>
+    <header class="catalog-shell nav is-app-shell">
+      <a class="brand" href="/" aria-label="MatrixAPI home">
+        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+        <span>MatrixAPI算力中心</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="/">主页</a>
+        <a href="/console">控制台</a>
+        <a href="/pricing" aria-current="page">模型广场</a>
+        <a href="/rankings">排行榜</a>
+        <a href="/docs">教程文档</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="icon-button" href="/docs" aria-label="语言与文档">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path>
+          </svg>
+        </a>
+        <a class="icon-button" href="/console" aria-label="控制台">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path>
+          </svg>
+        </a>
+        <a class="button primary" href="/sign-in">登录</a>
+      </div>
+    </header>
+
+    <main class="catalog-shell catalog-main">
+      <section class="catalog-hero" aria-labelledby="pricing-title">
+        <h1 id="pricing-title">模型广场</h1>
+        <p>本站当前已启用模型，总计 10 个</p>
+        <p>探索精选 AI 模型，清晰比较价格与能力，为不同场景选择合适的 MatrixAPI 线路。</p>
+        <label class="catalog-search" aria-label="搜索模型">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M21 21l-4.3-4.3"></path>
+          </svg>
+          <input type="search" placeholder="搜索模型名称、供应商、端点或标签..." />
+          <span class="nav-shortcut">⌘K</span>
+        </label>
+      </section>
+
+      <div class="catalog-layout">
+        <aside class="catalog-filter" aria-label="模型筛选">
+          <div class="filter-head">
+            <strong>筛选</strong>
+            <button class="filter-reset" type="button">重置</button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title"><span>分组</span><span>⌃</span></div>
+            <div class="filter-pills">
+              <a class="filter-pill" href="#models" aria-current="true">所有分组 <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#claude">Claude <span class="filter-count">2</span></a>
+              <a class="filter-pill" href="#openai">OpenAI <span class="filter-count">1</span></a>
+              <a class="filter-pill" href="#pro">OpenAI pro分组 <span class="filter-count">2</span></a>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title"><span>所有供应商</span><span>⌃</span></div>
+            <div class="filter-pills">
+              <a class="filter-pill" href="#models" aria-current="true">所有供应商 <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#claude">Anthropic <span class="filter-count">5</span></a>
+              <a class="filter-pill" href="#openai">OpenAI <span class="filter-count">5</span></a>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title"><span>模型标签</span><span>⌃</span></div>
+            <div class="filter-pills">
+              <a class="filter-pill" href="#models" aria-current="true">所有标签 <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#long">压缩上下文专用 <span class="filter-count">2</span></a>
+              <a class="filter-pill" href="#claude">anthropic <span class="filter-count">5</span></a>
+              <a class="filter-pill" href="#openai">openai <span class="filter-count">5</span></a>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title"><span>定价类型</span><span>⌃</span></div>
+            <div class="filter-pills">
+              <a class="filter-pill" href="#models" aria-current="true">所有模型 <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#token">按量计费 <span class="filter-count">9</span></a>
+              <a class="filter-pill" href="#image">按请求 <span class="filter-count">1</span></a>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title"><span>端点类型</span><span>⌃</span></div>
+            <div class="filter-pills">
+              <a class="filter-pill" href="#models" aria-current="true">所有类型 <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#chat">Chat <span class="filter-count">10</span></a>
+              <a class="filter-pill" href="#image">图片 <span class="filter-count">1</span></a>
+            </div>
+          </div>
+        </aside>
+
+        <section class="catalog-content" id="models">
+          <div class="catalog-toolbar">
+            <div><strong>10 个模型</strong> <span class="muted">升级分组可解锁高配模型免费调用</span></div>
+            <div class="toolbar-actions">
+              <span class="toolbar-pill is-active">标准</span>
+              <a class="toolbar-pill" href="/wallet">充值</a>
+              <span class="toolbar-pill is-active">/1M</span>
+              <span class="toolbar-pill">/1K</span>
+              <span class="toolbar-pill">↕ 名称</span>
+              <span class="toolbar-pill is-active">▦</span>
+              <span class="toolbar-pill">▤</span>
+            </div>
+          </div>
+
+          <div class="model-grid">
+            <article class="catalog-model" id="openai">
+              <header>
+                <div class="model-brand">
+                  <span class="vendor-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4Z"></path></svg>
+                  </span>
+                  <div><span class="model-title">gpt-5.4</span><div class="model-price-line">输入 $3.5　输出 $21</div></div>
+                </div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>缓存 $0.25</p>
+              <div class="model-meta"><strong>OpenAI ×1　按量计费</strong><span>延迟<br />17s</span><span>吞吐<br />80t</span><span class="signal" aria-label="状态良好"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model" id="pro">
+              <header>
+                <div class="model-brand"><span class="vendor-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4Z"></path></svg></span><div><span class="model-title">gpt-5.4-openai-compact</span><div class="model-price-line">输入 $3.5　输出 $21</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>缓存 $0.25</p>
+              <div class="model-meta"><strong>OpenAI ×1　按量计费</strong><span>延迟<br />13s</span><span>吞吐<br />106t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model">
+              <header>
+                <div class="model-brand"><span class="vendor-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4Z"></path></svg></span><div><span class="model-title">gpt-5.5</span><div class="model-price-line">输入 $7　输出 $42</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>旗舰模型，复杂代码与 Agent 工作流优先推荐调用。</p>
+              <div class="model-meta"><strong>OpenAI ×2　按量计费</strong><span>延迟<br />19s</span><span>吞吐<br />102t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model">
+              <header>
+                <div class="model-brand"><span class="vendor-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4Z"></path></svg></span><div><span class="model-title">gpt-5.5-openai-compact</span><div class="model-price-line">输入 $7　输出 $42</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>高频重复调用与低延迟工作流。</p>
+              <div class="model-meta"><strong>OpenAI ×2　按量计费</strong><span>延迟<br />40s</span><span>吞吐<br />139t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model" id="image">
+              <header>
+                <div class="model-brand"><span class="vendor-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4Z"></path></svg></span><div><span class="model-title">gpt-image2</span><div class="model-price-line">$2 / 请求</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>图片生成按请求计费，适合视觉内容批量生成。</p>
+              <div class="model-meta"><strong>OpenAI ×1　按请求</strong><span>延迟<br />10ms</span><span>吞吐<br />—</span><span class="signal is-warn"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model" id="claude">
+              <header>
+                <div class="model-brand"><span class="vendor-mark anthropic" aria-hidden="true">✺</span><div><span class="model-title">claude-fable-5</span><div class="model-price-line">输入 $10　输出 $60</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>高并发 claude 专用，长上下文代码理解与重构分析。</p>
+              <div class="model-meta"><strong>Anthropic ×2　按量计费</strong><span>延迟<br />7s</span><span>吞吐<br />162t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model">
+              <header>
+                <div class="model-brand"><span class="vendor-mark anthropic" aria-hidden="true">✺</span><div><span class="model-title">claude-opus-4-7</span><div class="model-price-line">输入 $10　输出 $60</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>缓存 $3.5</p>
+              <div class="model-meta"><strong>Claude ×1　按量计费</strong><span>延迟<br />12s</span><span>吞吐<br />90t</span><span class="signal is-warn"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model">
+              <header>
+                <div class="model-brand"><span class="vendor-mark anthropic" aria-hidden="true">✺</span><div><span class="model-title">claude-opus-4-8</span><div class="model-price-line">输入 $10　输出 $60</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>旗舰模型，代码理解和复杂规划。</p>
+              <div class="model-meta"><strong>Claude ×1　按量计费</strong><span>延迟<br />11s</span><span>吞吐<br />115t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model">
+              <header>
+                <div class="model-brand"><span class="vendor-mark anthropic" aria-hidden="true">✺</span><div><span class="model-title">claude-sonnet-4-6</span><div class="model-price-line">输入 $6　输出 $36</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>均衡型高并发 claude 专用。</p>
+              <div class="model-meta"><strong>Claude ×1　按量计费</strong><span>延迟<br />8s</span><span>吞吐<br />108t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+
+            <article class="catalog-model" id="long">
+              <header>
+                <div class="model-brand"><span class="vendor-mark anthropic" aria-hidden="true">✺</span><div><span class="model-title">claude-sonnet-5</span><div class="model-price-line">输入 $6　输出 $36</div></div></div>
+                <div class="model-actions"><a class="detail-button" href="/console/token">详情 ›</a><button class="copy-button" type="button" aria-label="复制模型名">□</button></div>
+              </header>
+              <p>压缩上下文专用，适合大型代码库连续分析。</p>
+              <div class="model-meta"><strong>Claude ×1　按量计费</strong><span>延迟<br />9s</span><span>吞吐<br />111t</span><span class="signal"><i></i><i></i><i></i></span></div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

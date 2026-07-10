@@ -1,7 +1,7 @@
-# MatrixAPI deployment - new server 47.82.105.81
+# MatrixAPI deployment - New API core
 $ErrorActionPreference = "Stop"
 
-Write-Host "Starting MatrixAPI deployment..."
+Write-Host "Starting MatrixAPI New API deployment..."
 
 function Get-EnvValue($Name) {
   if (-not $envMap.ContainsKey($Name)) {
@@ -12,7 +12,7 @@ function Get-EnvValue($Name) {
 
 function Reject-Placeholder($Name) {
   $value = Get-EnvValue $Name
-  if ($value -match '^(change-me|sk-change-me|your-|example|example-|test|test-|demo|demo-)') {
+  if ($value -match '^(change-me|your-|example|example-|test|test-|demo|demo-)') {
     throw "$Name still contains a placeholder value. Fill a real production value in .env."
   }
 }
@@ -24,10 +24,27 @@ function Require-MinLength($Name, $Min) {
   }
 }
 
-function Require-HttpUrl($Name) {
-  $value = Get-EnvValue $Name
-  if ($value -notmatch '^https?://') {
-    throw "$Name must start with http:// or https://"
+function Backup-LegacyDatabase {
+  $containerNames = docker ps --format "{{.Names}}"
+  if ($containerNames -contains "matrixapi-db") {
+    docker exec matrixapi-db psql -U matrixapi -d matrix_api -tAc "select 1" *> $null
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "matrixapi-db is running, but the legacy matrix_api database is not present; skipping legacy DB backup."
+      return
+    }
+
+    $backupDir = if ($envMap["LEGACY_BACKUP_DIR"]) { $envMap["LEGACY_BACKUP_DIR"] } else { "/root/matrixapi-backups" }
+    $stamp = Get-Date -Format "yyyyMMddHHmmss"
+    $backupFile = "$backupDir/matrix_api_legacy_$stamp.sql"
+
+    New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+    Write-Host "Backing up legacy MatrixAPI database to $backupFile..."
+    cmd /c "docker exec matrixapi-db pg_dump -U matrixapi matrix_api > `"$backupFile`""
+    if ($LASTEXITCODE -ne 0) {
+      Remove-Item $backupFile -Force -ErrorAction SilentlyContinue
+      throw "Legacy database backup failed. Stop here instead of risking a migration without a fallback."
+    }
+    Write-Host "Legacy database backup created."
   }
 }
 
@@ -44,34 +61,17 @@ Get-Content ".env" | ForEach-Object {
   }
 }
 
-@("DB_PASSWORD", "JWT_SECRET", "ADMIN_PASSWORD", "UPSTREAM_API_KEY", "NEXT_PUBLIC_API_URL", "FRONTEND_URL", "FRONTEND_URLS", "API_PUBLIC_URL", "ZPAY_PID", "ZPAY_KEY", "ZPAY_NOTIFY_URL", "ZPAY_RETURN_URL") | ForEach-Object {
+@("DB_PASSWORD", "REDIS_PASSWORD", "SESSION_SECRET", "CRYPTO_SECRET") | ForEach-Object {
   if (-not $envMap.ContainsKey($_) -or [string]::IsNullOrWhiteSpace($envMap[$_])) {
     throw "$_ is missing in .env"
   }
-}
-
-@("DB_PASSWORD", "JWT_SECRET", "ADMIN_PASSWORD", "UPSTREAM_API_KEY", "NEXT_PUBLIC_API_URL", "FRONTEND_URL", "FRONTEND_URLS", "API_PUBLIC_URL", "ZPAY_PID", "ZPAY_KEY", "ZPAY_NOTIFY_URL", "ZPAY_RETURN_URL") | ForEach-Object {
   Reject-Placeholder $_
 }
 
-Require-MinLength "JWT_SECRET" 32
-Require-MinLength "ADMIN_PASSWORD" 12
 Require-MinLength "DB_PASSWORD" 12
-Require-MinLength "ZPAY_KEY" 16
-Require-MinLength "ZPAY_PID" 8
-Require-MinLength "UPSTREAM_API_KEY" 20
-
-@("NEXT_PUBLIC_API_URL", "FRONTEND_URL", "API_PUBLIC_URL", "ZPAY_NOTIFY_URL", "ZPAY_RETURN_URL") | ForEach-Object {
-  Require-HttpUrl $_
-}
-
-if ($envMap.ContainsKey("UPSTREAM_BASE_URL") -and -not [string]::IsNullOrWhiteSpace($envMap["UPSTREAM_BASE_URL"])) {
-  Require-HttpUrl "UPSTREAM_BASE_URL"
-}
-
-if ($envMap.ContainsKey("ZPAY_GATEWAY") -and -not [string]::IsNullOrWhiteSpace($envMap["ZPAY_GATEWAY"])) {
-  Require-HttpUrl "ZPAY_GATEWAY"
-}
+Require-MinLength "REDIS_PASSWORD" 12
+Require-MinLength "SESSION_SECRET" 32
+Require-MinLength "CRYPTO_SECRET" 32
 
 $compose = "docker compose"
 docker compose version *> $null
@@ -89,15 +89,20 @@ Remove-Item "nginx/conf.d/ssl.conf" -Force -ErrorAction SilentlyContinue
 Remove-Item "nginx/conf.d/https-redirect.conf" -Force -ErrorAction SilentlyContinue
 if ((Test-Path "/etc/letsencrypt/live/matrixapi.online/fullchain.pem") -and (Test-Path "/etc/letsencrypt/live/matrixapi.online/privkey.pem")) {
   Copy-Item "nginx/ssl.conf.template" "nginx/conf.d/ssl.conf" -Force
-  Copy-Item "nginx/https-redirect.conf.template" "nginx/conf.d/https-redirect.conf" -Force
   Write-Host "HTTPS is enabled with /etc/letsencrypt/live/matrixapi.online certificates."
 } else {
   Write-Host "HTTPS certificates were not found on the host; starting HTTP only."
   Write-Host "After issuing certificates, rerun this script to enable port 443."
 }
 
-Write-Host "Building images and starting dependencies..."
-Invoke-Expression "$compose build backend frontend"
+Backup-LegacyDatabase
+
+Write-Host "Pulling images and starting dependencies..."
+Invoke-Expression "$compose pull"
+
+Write-Host "Stopping legacy containers if they exist..."
+docker rm -f matrixapi-backend matrixapi-frontend matrixapi-nginx matrixapi-db matrixapi-redis *> $null
+
 Invoke-Expression "$compose up -d postgres redis"
 
 Write-Host "Waiting for database and cache..."
@@ -105,11 +110,11 @@ for ($attempt = 1; $attempt -le 60; $attempt++) {
   $postgresReady = $false
   $redisReady = $false
   try {
-    Invoke-Expression "$compose exec -T postgres pg_isready -U matrixapi" | Out-Null
+    Invoke-Expression "$compose exec -T postgres pg_isready -U matrixapi -d new_api" | Out-Null
     if ($LASTEXITCODE -eq 0) { $postgresReady = $true }
   } catch {}
   try {
-    Invoke-Expression "$compose exec -T redis redis-cli ping" | Out-Null
+    Invoke-Expression "$compose exec -T redis redis-cli -a `"$($envMap["REDIS_PASSWORD"])`" ping" | Out-Null
     if ($LASTEXITCODE -eq 0) { $redisReady = $true }
   } catch {}
 
@@ -128,23 +133,19 @@ for ($attempt = 1; $attempt -le 60; $attempt++) {
   Start-Sleep -Seconds 2
 }
 
-Write-Host "Initializing database..."
-Invoke-Expression "$compose run --rm --no-deps backend npx prisma db push --accept-data-loss"
-Invoke-Expression "$compose run --rm --no-deps backend node dist/prisma/seed.js"
+Write-Host "Starting application..."
+Invoke-Expression "$compose up -d --remove-orphans new-api nginx"
 
-Write-Host "Starting application services..."
-Invoke-Expression "$compose up -d backend frontend nginx"
-
-Write-Host "Waiting for services..."
-for ($attempt = 1; $attempt -le 60; $attempt++) {
+Write-Host "Waiting for New API..."
+for ($attempt = 1; $attempt -le 90; $attempt++) {
   try {
-    Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/health/ready" -TimeoutSec 5 | Out-Null
-    Write-Host "Backend is ready."
+    Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/status" -TimeoutSec 5 | Out-Null
+    Write-Host "New API is ready."
     break
   } catch {
-    if ($attempt -eq 60) {
-      Write-Host "Backend did not become ready in time."
-      Invoke-Expression "$compose logs --tail=120 backend"
+    if ($attempt -eq 90) {
+      Write-Host "New API did not become ready in time."
+      Invoke-Expression "$compose logs --tail=160 new-api"
       throw
     }
     Start-Sleep -Seconds 2
@@ -154,13 +155,57 @@ for ($attempt = 1; $attempt -le 60; $attempt++) {
 Invoke-Expression "$compose ps"
 
 Write-Host "Smoke checks:"
-Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/health" | Select-Object -ExpandProperty Content
-Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/health/ready" | Select-Object -ExpandProperty Content
-Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/v1/models" | Out-Null
-Write-Host "Gateway model list is reachable."
+Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/status" | Select-Object -ExpandProperty Content
+Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/pricing" | Out-Null
+
+if ($envMap["NEW_API_ADMIN_USERNAME"] -and $envMap["NEW_API_ADMIN_PASSWORD"] -and $envMap["UPSTREAM_API_KEY"] -and $envMap["ZPAY_PID"] -and $envMap["ZPAY_KEY"]) {
+  Write-Host "Running optional New API bootstrap..."
+  $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1" }
+  $env:NEW_API_ADMIN_USERNAME = $envMap["NEW_API_ADMIN_USERNAME"]
+  $env:NEW_API_ADMIN_PASSWORD = $envMap["NEW_API_ADMIN_PASSWORD"]
+  $env:UPSTREAM_BASE_URL = $envMap["UPSTREAM_BASE_URL"]
+  $env:UPSTREAM_API_KEY = $envMap["UPSTREAM_API_KEY"]
+  $env:ZPAY_GATEWAY = $envMap["ZPAY_GATEWAY"]
+  $env:ZPAY_PID = $envMap["ZPAY_PID"]
+  $env:ZPAY_KEY = $envMap["ZPAY_KEY"]
+  $env:NEW_API_GROUP_RATIO = $envMap["NEW_API_GROUP_RATIO"]
+  $env:NEW_API_TOPUP_GROUP_RATIO = $envMap["NEW_API_TOPUP_GROUP_RATIO"]
+  $env:NEW_API_DEFAULT_MODELS = $envMap["NEW_API_DEFAULT_MODELS"]
+  $env:NEW_API_MIN_TOPUP = $envMap["NEW_API_MIN_TOPUP"]
+  $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+  if ($nodeCommand) {
+    node scripts/bootstrap-new-api.mjs
+  } else {
+    docker run --rm --network host --env-file .env -e "MATRIXAPI_URL=$($env:MATRIXAPI_URL)" -v "${PWD}/scripts:/scripts:ro" node:22-alpine node /scripts/bootstrap-new-api.mjs
+  }
+} else {
+  Write-Host "Skipping optional bootstrap. Set NEW_API_ADMIN_USERNAME, NEW_API_ADMIN_PASSWORD, UPSTREAM_API_KEY, ZPAY_PID, and ZPAY_KEY in .env to enable it."
+}
+
+if ($envMap["NEW_API_ADMIN_USERNAME"]) {
+  Write-Host "Ensuring configured admin account has administrator access..."
+  $env:NEW_API_ADMIN_USERNAME = $envMap["NEW_API_ADMIN_USERNAME"]
+  if ($envMap["NEW_API_ADMIN_PASSWORD"]) {
+    $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1" }
+    $env:NEW_API_ADMIN_PASSWORD = $envMap["NEW_API_ADMIN_PASSWORD"]
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    if ($nodeCommand) {
+      node scripts/ensure-new-api-admin.mjs
+    } else {
+      docker run --rm --network host `
+        -v "${PWD}/scripts:/scripts:ro" `
+        -e "MATRIXAPI_URL=$($env:MATRIXAPI_URL)" `
+        -e "NEW_API_ADMIN_USERNAME=$($env:NEW_API_ADMIN_USERNAME)" `
+        -e "NEW_API_ADMIN_PASSWORD=$($env:NEW_API_ADMIN_PASSWORD)" `
+        node:22-alpine node /scripts/ensure-new-api-admin.mjs
+    }
+  }
+  bash scripts/ensure-new-api-admin-db.sh
+}
 
 Write-Host ""
-Write-Host "MatrixAPI deployment complete."
-Write-Host "Frontend: https://matrixapi.online"
-Write-Host "API docs: https://matrixapi.online/api/docs"
+Write-Host "MatrixAPI New API deployment complete."
+Write-Host "Site: https://matrixapi.online"
+Write-Host "Console: https://matrixapi.online/console"
+Write-Host "Pricing: https://matrixapi.online/pricing"
 Write-Host "OpenAI-compatible API: https://matrixapi.online/v1"

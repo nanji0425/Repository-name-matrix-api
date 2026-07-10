@@ -193,6 +193,28 @@ export class AdminService {
         members: totalTeamMembers,
       },
       announcements: totalAnnouncements,
+      site: {
+        status: 'ONLINE',
+        checkedAt: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        apiAddress: process.env.API_PUBLIC_URL || '/api',
+        maintenanceMode: process.env.MAINTENANCE_MODE === 'true',
+        registration: process.env.ALLOW_REGISTRATION === 'false' ? 'CLOSED' : 'OPEN',
+        paymentMethods: {
+          alipay: true,
+        },
+        management: {
+          users: true,
+          apiKeys: true,
+          models: true,
+          providers: true,
+          orders: true,
+          finance: true,
+          commissions: true,
+          announcements: true,
+          settings: true,
+        },
+      },
       legacy: {
         users: totalUsers,
         orders: completedOrders,

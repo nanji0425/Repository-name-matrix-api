@@ -5,10 +5,10 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
-import LanguageToggle from '@/components/LanguageToggle';
 import { useLocaleStore } from '@/stores/localeStore';
 import { Users, Key, Brain, Globe, DollarSign, ShoppingCart, Gift, Bell, Settings, Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isAdminUser } from '@/lib/adminAccess';
 
 const adminLinks = [
   { href: '/admin', labelKey: 'adminOverview', icon: Shield },
@@ -50,12 +50,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       fetchProfile();
       return;
     }
-    if (user.role !== 'ADMIN') {
+    if (!isAdminUser(user)) {
       router.replace('/dashboard');
     }
   }, [fetchProfile, hasHydrated, isAuthenticated, router, user]);
 
-  if (!hasHydrated || !isAuthenticated || !user || user.role !== 'ADMIN') {
+  if (!hasHydrated || !isAuthenticated || !user || !isAdminUser(user)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,#f8fbff_0%,#eef7f6_45%,#f7f2ff_100%)] text-slate-600 dark:bg-[linear-gradient(135deg,#020617_0%,#07111f_45%,#0f172a_100%)]">
         <div className="tech-surface flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl shadow-slate-900/10 backdrop-blur">
@@ -115,7 +115,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <LanguageToggle />
           </div>
         </header>
         <div className="p-8">{children}</div>

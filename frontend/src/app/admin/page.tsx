@@ -43,6 +43,16 @@ type AdminStats = {
   commissions?: { total?: number; amount?: number };
   teams?: { total?: number; members?: number };
   announcements?: number;
+  site?: {
+    status?: string;
+    checkedAt?: string;
+    environment?: string;
+    apiAddress?: string;
+    maintenanceMode?: boolean;
+    registration?: string;
+    paymentMethods?: { alipay?: boolean };
+    management?: Record<string, boolean>;
+  };
   legacy?: { users?: number; orders?: number; revenue?: number; models?: number; totalRequests?: number };
 };
 
@@ -59,6 +69,7 @@ const copy = {
       resources: '资源与渠道',
       finance: '资金与订单',
       traffic: '流量与性能',
+      site: '网站状态',
       team: '团队与协作',
     },
     labels: {
@@ -85,6 +96,14 @@ const copy = {
       teams: '团队数量',
       members: '团队成员',
       commissionRecords: '邀请返佣记录',
+      siteStatus: '网站状态',
+      environment: '运行环境',
+      apiAddress: 'API 地址',
+      registration: '注册状态',
+      maintenanceMode: '维护模式',
+      payment: '支付方式',
+      checkedAt: '检查时间',
+      managedModules: '管理模块',
     },
     actions: [
       { href: '/admin/models', title: '模型管理', desc: '同步上游模型、维护价格和上下架状态。' },
@@ -107,6 +126,7 @@ const copy = {
       resources: 'Resources & Channels',
       finance: 'Finance & Orders',
       traffic: 'Traffic & Performance',
+      site: 'Website Status',
       team: 'Teams & Collaboration',
     },
     labels: {
@@ -133,6 +153,14 @@ const copy = {
       teams: 'Teams',
       members: 'Team Members',
       commissionRecords: 'Invite Commission Records',
+      siteStatus: 'Site Status',
+      environment: 'Environment',
+      apiAddress: 'API URL',
+      registration: 'Registration',
+      maintenanceMode: 'Maintenance Mode',
+      payment: 'Payment',
+      checkedAt: 'Checked At',
+      managedModules: 'Managed Modules',
     },
     actions: [
       { href: '/admin/models', title: 'Models', desc: 'Sync upstream models and maintain pricing and availability.' },
@@ -156,6 +184,10 @@ function money(value: unknown) {
 
 function formatCompact(value: unknown, locale: 'zh' | 'en') {
   return new Intl.NumberFormat(locale === 'zh' ? 'zh-CN' : 'en-US', { maximumFractionDigits: 2 }).format(numberValue(value));
+}
+
+function formatSwitch(value: boolean | undefined, enabled = 'Enabled', disabled = 'Disabled') {
+  return value ? enabled : disabled;
 }
 
 export default function AdminOverview() {
@@ -225,6 +257,20 @@ export default function AdminOverview() {
         ['Completion Token', formatCompact(stats.requests?.completionTokens, locale)],
         [text.labels.requestCost, money(stats.requests?.cost)],
         [text.labels.avgLatency, `${formatCompact(stats.requests?.avgLatency, locale)} ms`],
+      ],
+    },
+    {
+      title: text.sections.site,
+      icon: Globe,
+      items: [
+        [text.labels.siteStatus, stats.site?.status || 'UNKNOWN'],
+        [text.labels.environment, stats.site?.environment || '-'],
+        [text.labels.apiAddress, stats.site?.apiAddress || '/api'],
+        [text.labels.registration, stats.site?.registration || 'OPEN'],
+        [text.labels.maintenanceMode, formatSwitch(stats.site?.maintenanceMode, 'Enabled', 'Disabled')],
+        [text.labels.payment, stats.site?.paymentMethods?.alipay ? 'Alipay' : 'Disabled'],
+        [text.labels.checkedAt, stats.site?.checkedAt ? new Date(stats.site.checkedAt).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US') : '-'],
+        [text.labels.managedModules, formatCompact(Object.values(stats.site?.management || {}).filter(Boolean).length, locale)],
       ],
     },
     {

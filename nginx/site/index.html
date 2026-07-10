@@ -1,0 +1,1177 @@
+﻿<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6edf5" />
+    <title>MatrixAPI算力中心</title>
+    <meta
+      name="description"
+      content="MatrixAPI 算力中心，高性能 AI 模型 API 中转平台，支持 OpenAI 兼容接入、模型广场、充值与控制台管理。"
+    />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
+    <style>
+      :root {
+        --home-bg-a: #fff7fc;
+        --home-bg-b: #f7f4ff;
+        --home-text-strong: #202033;
+        --home-text-soft: #746b7d;
+        --home-line: rgba(222, 151, 196, 0.22);
+        --home-shadow: 0 22px 48px rgba(88, 56, 94, 0.1);
+        --home-card: rgba(255, 255, 255, 0.96);
+        --home-card-2: rgba(255, 255, 255, 0.78);
+        --home-accent: #a719ff;
+        --home-accent-2: #ef2f91;
+        --home-accent-3: #8a74ff;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 14% 5%, rgba(239, 92, 168, 0.18), transparent 30%),
+          radial-gradient(circle at 88% 0%, rgba(167, 25, 255, 0.2), transparent 26%),
+          linear-gradient(180deg, var(--home-bg-a) 0%, #fbf7fb 46%, var(--home-bg-b) 100%);
+      }
+
+      body::before {
+        opacity: 0.12;
+      }
+
+      .home-shell {
+        width: min(1240px, calc(100% - 32px));
+      }
+
+      .home-nav {
+        position: sticky;
+        top: 18px;
+        z-index: 30;
+        gap: 14px;
+        padding: 10px 14px;
+        border: 1px solid var(--home-line);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.76);
+        backdrop-filter: blur(22px);
+      }
+
+      .home-brand {
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .home-brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        object-fit: cover;
+      }
+
+      .home-nav-links {
+        gap: 6px;
+        padding: 4px;
+        border-radius: 999px;
+        background: rgba(255, 245, 251, 0.74);
+      }
+
+      .home-nav-links a {
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #706678;
+      }
+
+      .home-nav-links a[aria-current="page"],
+      .home-nav-links a:hover {
+        color: #111827;
+        background: rgba(255, 255, 255, 0.94);
+      }
+
+      .home-nav-actions {
+        gap: 10px;
+      }
+
+      .home-lang-group {
+        position: relative;
+      }
+
+      .home-icon-button {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        background: rgba(255, 255, 255, 0.9);
+        color: #1f2937;
+        box-shadow: 0 10px 20px rgba(23, 32, 51, 0.05);
+      }
+
+      .home-icon-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .home-notice-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--home-accent), var(--home-accent-2));
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 18px;
+        box-shadow: 0 10px 18px rgba(178, 61, 245, 0.24);
+      }
+
+      .home-dropdown {
+        position: absolute;
+        top: 46px;
+        left: 0;
+        min-width: 140px;
+        padding: 8px;
+        border: 1px solid rgba(139, 92, 246, 0.14);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: var(--home-shadow);
+        display: none;
+      }
+
+      .home-dropdown.is-open {
+        display: grid;
+        gap: 6px;
+      }
+
+      .home-dropdown button {
+        justify-content: flex-start;
+        min-height: 36px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .home-dropdown button[aria-pressed="true"] {
+        background: rgba(178, 61, 245, 0.08);
+        color: var(--home-accent);
+      }
+
+      .home-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
+        gap: 22px;
+        align-items: center;
+        padding: 38px;
+        min-height: 720px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 22% 18%, rgba(239, 92, 168, 0.11), transparent 25%),
+          radial-gradient(circle at 82% 20%, rgba(167, 25, 255, 0.12), transparent 23%),
+          linear-gradient(180deg, rgba(255, 249, 253, 0.95), rgba(247, 244, 255, 0.98));
+      }
+
+      .home-hero-copy {
+        max-width: 620px;
+      }
+
+      .home-badges,
+      .home-actions,
+      .home-pills,
+      .home-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .home-badge,
+      .home-pill,
+      .home-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #475467;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .home-kicker {
+        margin: 18px 0 12px;
+        color: var(--home-accent);
+        font-size: 12px;
+        font-weight: 950;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .home-hero h1 {
+        margin: 0 0 16px;
+        max-width: 600px;
+        font-size: clamp(52px, 6.8vw, 92px);
+        line-height: 0.94;
+        letter-spacing: 0;
+        color: var(--home-text-strong);
+      }
+
+      .home-title-word {
+        display: block;
+        white-space: nowrap;
+      }
+
+      .home-title-accent {
+        display: block;
+        background: linear-gradient(135deg, var(--home-accent) 0%, var(--home-accent-2) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .home-hero p {
+        margin: 0;
+        max-width: 560px;
+        color: var(--home-text-soft);
+        line-height: 1.8;
+      }
+
+      .home-actions {
+        margin-top: 28px;
+      }
+
+      .home-actions .button {
+        min-height: 42px;
+        padding: 0 18px;
+      }
+
+      .home-preview {
+        display: grid;
+        gap: 14px;
+      }
+
+      .home-hero-card,
+      .home-rates-card,
+      .home-stats-strip {
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: 0 24px 44px rgba(23, 32, 51, 0.08);
+        backdrop-filter: blur(18px);
+      }
+
+      .home-hero-card {
+        padding: 16px;
+      }
+
+      .home-hero-card-inner {
+        display: grid;
+        gap: 12px;
+        min-height: 250px;
+        padding: 18px;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 76% 14%, rgba(242, 47, 143, 0.14), transparent 20%),
+          radial-gradient(circle at 22% 82%, rgba(91, 124, 247, 0.18), transparent 20%),
+          linear-gradient(135deg, #ffffff 0%, #f5f4ff 58%, #fff3fa 100%);
+      }
+
+      .home-window-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .home-window-dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .home-window-dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+
+      .home-window-dots span:nth-child(1) { background: #ff5f57; }
+      .home-window-dots span:nth-child(2) { background: #febc2e; }
+      .home-window-dots span:nth-child(3) { background: #28c840; }
+
+      .home-mini-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(238, 242, 255, 0.98);
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        color: #6d28d9;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .home-mini-panel {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(23, 32, 51, 0.06);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .home-mini-panel strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #111827;
+      }
+
+      .home-mini-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .home-mini-list span {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #475467;
+        font-size: 13px;
+      }
+
+      .home-rates-card {
+        padding: 18px 20px 20px;
+      }
+
+      .home-rates-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .home-summary-card {
+        padding: 16px 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .home-summary-card strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 26px;
+        line-height: 1;
+        color: var(--home-text-strong);
+      }
+
+      .home-summary-card span {
+        color: var(--home-text-soft);
+        font-size: 13px;
+      }
+
+      .home-section {
+        margin-top: 18px;
+        padding: 28px;
+      }
+
+      .home-section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .home-section-head h2 {
+        margin: 0 0 10px;
+        color: var(--home-text-strong);
+        font-size: 34px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .home-section-head p {
+        margin: 0;
+        max-width: 820px;
+        color: var(--home-text-soft);
+        line-height: 1.75;
+      }
+
+      .home-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        min-width: 0;
+      }
+
+      .home-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        min-width: 0;
+      }
+
+      .home-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        min-width: 0;
+      }
+
+      .home-card,
+      .home-model-card,
+      .home-topup-card,
+      .home-feature-card,
+      .home-step-card,
+      .home-doc-card,
+      .home-network-card {
+        padding: 20px;
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        border-radius: 24px;
+        background: var(--home-card);
+        box-shadow: var(--home-shadow);
+        min-width: 0;
+      }
+
+      .home-model-card header,
+      .home-topup-card header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .home-model-name {
+        font-size: 18px;
+        font-weight: 900;
+        color: var(--home-text-strong);
+      }
+
+      .home-model-ratio {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(178, 61, 245, 0.08);
+        border: 1px solid rgba(178, 61, 245, 0.16);
+        color: var(--home-accent);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .home-card p,
+      .home-model-card p,
+      .home-topup-card p,
+      .home-feature-card p,
+      .home-step-card p,
+      .home-doc-card p,
+      .home-network-card p {
+        margin: 0;
+        color: var(--home-text-soft);
+        line-height: 1.76;
+      }
+
+      .home-price-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .home-price {
+        padding: 12px;
+        border-radius: 16px;
+        background: rgba(248, 250, 255, 0.98);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+      }
+
+      .home-price span {
+        display: block;
+        color: var(--home-text-soft);
+        font-size: 13px;
+      }
+
+      .home-price strong {
+        display: block;
+        margin-top: 4px;
+        color: var(--home-text-strong);
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .home-tag-row,
+      .home-pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .home-tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(238, 242, 255, 0.96);
+        color: #475467;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .home-topup-card {
+        min-height: 196px;
+      }
+
+      .home-topup-card strong {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 24px;
+        line-height: 1.1;
+        color: var(--home-text-strong);
+      }
+
+      .home-topup-meta {
+        margin-top: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .home-topup-meta .home-pill {
+        width: fit-content;
+      }
+
+      .home-card-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        margin-top: 14px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: rgba(247, 245, 255, 0.98);
+        color: #2563eb;
+        font-weight: 800;
+      }
+
+      .home-network-card {
+        min-height: 196px;
+      }
+
+      .home-endpoint {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(248, 250, 255, 0.96);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        color: #0f766e;
+        font: 900 15px/1.5 "JetBrains Mono", Consolas, monospace;
+      }
+
+      .home-step-card {
+        min-height: 152px;
+      }
+
+      .home-step-index {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(178, 61, 245, 0.1), rgba(242, 47, 143, 0.1));
+        color: var(--home-accent);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .home-cta {
+        padding: 30px;
+        border: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #8b5cf6 0%, #b23df5 44%, #f22f8f 100%);
+        box-shadow: 0 24px 48px rgba(139, 92, 246, 0.18);
+      }
+
+      .home-cta .home-section-head h2,
+      .home-cta .home-section-head p,
+      .home-cta .home-kicker {
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .home-cta .button {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .home-cta .home-pill {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .home-faq-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .home-footer {
+        padding: 24px 0 34px;
+        color: var(--home-text-soft);
+        text-align: center;
+      }
+
+      .home-toast {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 60;
+        max-width: min(360px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(139, 92, 246, 0.14);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.96);
+        color: #111827;
+        box-shadow: var(--home-shadow);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 180ms ease, transform 180ms ease;
+        pointer-events: none;
+      }
+
+      .home-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 1080px) {
+        .home-hero {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .home-grid-4,
+        .home-grid-3,
+        .home-grid-2,
+        .home-faq-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .home-shell {
+          width: min(540px, calc(100% - 20px));
+        }
+
+        .home-nav {
+          gap: 8px;
+          padding: 8px 10px;
+          width: min(540px, calc(100% - 20px));
+        }
+
+        .home-brand {
+          flex: 1 0 100%;
+          justify-content: center;
+        }
+
+        .home-nav-links,
+        .home-nav-actions {
+          width: 100%;
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+
+        .home-nav-links::-webkit-scrollbar,
+        .home-nav-actions::-webkit-scrollbar {
+          display: none;
+        }
+
+        .home-hero,
+        .home-section {
+          padding: 22px;
+        }
+
+        .home-hero h1 {
+          font-size: clamp(40px, 13vw, 64px);
+        }
+
+        .home-title-word {
+          white-space: normal;
+        }
+
+        .home-section-head h2 {
+          font-size: 26px;
+        }
+
+        .home-grid-4,
+        .home-grid-3,
+        .home-grid-2,
+        .home-faq-grid,
+        .home-rates-grid,
+        .home-price-grid {
+          grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        .home-doc-card,
+        .home-doc-card pre {
+          min-width: 0;
+          max-width: 100%;
+        }
+
+        .home-endpoint {
+          flex-wrap: wrap;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="shell nav home-nav">
+      <a class="brand home-brand" href="/" aria-current="page" aria-label="MatrixAPI home">
+        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
+        <span>MatrixAPI算力中心</span>
+      </a>
+      <nav class="nav-links home-nav-links" aria-label="Main navigation">
+        <a href="/" aria-current="page">主页</a>
+        <a href="/console">控制台</a>
+        <a href="/pricing">模型广场</a>
+        <a href="/rankings">排行榜</a>
+        <a href="/docs">教程文档</a>
+      </nav>
+      <div class="nav-actions home-nav-actions">
+        <div class="home-lang-group">
+          <button class="home-icon-button" type="button" data-lang-toggle aria-haspopup="menu" aria-expanded="false" aria-label="更改语言" title="更改语言">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m5 8 6 6"></path>
+              <path d="m4 14 6-6 2-3"></path>
+              <path d="M2 5h12"></path>
+              <path d="M7 2h1"></path>
+              <path d="m22 22-5-10-5 10"></path>
+              <path d="M14 18h6"></path>
+            </svg>
+          </button>
+          <div class="home-dropdown" data-lang-menu role="menu" aria-label="Language menu">
+            <button type="button" role="menuitemradio" aria-pressed="true" data-lang-choice="zh">中文</button>
+            <button type="button" role="menuitemradio" aria-pressed="false" data-lang-choice="en">English</button>
+          </div>
+        </div>
+        <button class="home-icon-button" type="button" data-theme-toggle aria-label="系统" title="系统">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="20" height="14" x="2" y="3" rx="2"></rect>
+            <line x1="8" x2="16" y1="21" y2="21"></line>
+            <line x1="12" x2="12" y1="17" y2="21"></line>
+          </svg>
+        </button>
+        <a class="button" href="/sign-in">登录</a>
+        <a class="button primary" href="/sign-up">注册</a>
+      </div>
+    </header>
+
+    <main class="shell home-shell">
+      <section class="hero home-hero">
+        <article class="home-hero-copy">
+          <div class="home-badges">
+            <span class="home-badge">GPT-5.6 · Claude 4.8 Fable 5</span>
+          </div>
+          <p class="home-kicker">全球智能调度 API 网关</p>
+          <h1>
+            <span class="home-title-word">MatrixAPI</span>
+            <span class="home-title-accent">中转平台</span>
+          </h1>
+          <p>
+            高性能 AI 模型 API 中转平台，部署亚太地区 100 余个节点，总带宽 120Gbps+，全线 CN2 优化，全球智能调度自动选择最优路线。兼容 OpenAI 协议，多模型一键接入，支持 Codex、Claude Code 编程工具以及各类智能 Agent 接入，适配开发建站、自动化与长期业务调用。
+          </p>
+          <div class="home-actions">
+            <a class="button primary" href="/sign-up">立即注册</a>
+            <a class="button" href="/pricing">查看套餐</a>
+            <a class="button" href="/sign-in">登录</a>
+          </div>
+          <div class="home-pills" style="margin-top: 22px;">
+            <span class="home-pill">⚡ GPT-5.6 · 1× 倍率</span>
+            <span class="home-pill">🧠 Claude 4.8 Fable 5 · 2× 倍率</span>
+            <span class="home-pill">📚 支持 1M 上下文</span>
+            <span class="home-pill">🌏 100+ 节点智能调度</span>
+          </div>
+        </article>
+
+        <aside class="home-preview">
+          <section class="home-hero-card" aria-label="hero preview">
+            <div class="home-hero-card-inner">
+              <div class="home-window-row">
+                <div class="home-window-dots" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
+                <span class="home-mini-chip">api.matrixapi.online / models</span>
+              </div>
+              <div class="home-mini-panel">
+                <strong>RMB 充值 · USD 额度</strong>
+                <div class="home-mini-list">
+                  <span><em>G5</em><em>GPT-5.6</em></span>
+                  <span><em>C4</em><em>Claude 4.8 Fable 5</em></span>
+                  <span><em>¥</em><em>人民币充值，美元额度消耗</em></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="home-rates-card">
+            <div class="home-rates-grid">
+              <div class="home-summary-card"><strong>¥</strong><span>RMB 充值 · USD 额度</span></div>
+              <div class="home-summary-card"><strong>0.03</strong><span>最低 0.03 元/刀</span></div>
+              <div class="home-summary-card"><strong>12,847,392</strong><span>今日调用</span></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">MODELS AND BILLING</p>
+            <h2>强模型上线，计费规则清。</h2>
+            <p>首页重点展示当前可用模型、倍率规则、充值方式和适合的使用场景，所见即所得。</p>
+          </div>
+          <a class="mini-link" href="/pricing">查看全部模型</a>
+        </div>
+        <div class="home-grid-3">
+          <article class="home-model-card">
+            <header><span class="home-model-name">GPT-5.6</span><span class="home-model-ratio">官方 1×</span></header>
+            <p>官方 1:1 计费标准，平台 1× 倍率消耗，编程与 Agent 工作流首选。完全兼容 OpenAI 协议，现有项目零成本迁移。</p>
+            <div class="home-price-grid">
+              <div class="home-price"><span>适合</span><strong>Codex / OpenClaw / Hermes</strong></div>
+              <div class="home-price"><span>上下文</span><strong>1M</strong></div>
+            </div>
+            <div class="home-tag-row" style="margin-top: 12px;">
+              <span class="home-tag">OpenAI</span><span class="home-tag">agent</span><span class="home-tag">reasoning</span>
+            </div>
+          </article>
+          <article class="home-model-card">
+            <header><span class="home-model-name">Claude 4.8 Fable 5</span><span class="home-model-ratio">官方 2×</span></header>
+            <p>官方计费 2× 倍率，大型代码库理解、重构与长文本分析利器。适合 Claude Code、项目重构、长文本分析。</p>
+            <div class="home-price-grid">
+              <div class="home-price"><span>适合</span><strong>Claude Code / 重构</strong></div>
+              <div class="home-price"><span>日志</span><strong>统一控制台</strong></div>
+            </div>
+            <div class="home-tag-row" style="margin-top: 12px;">
+              <span class="home-tag">claude</span><span class="home-tag">code</span><span class="home-tag">long context</span>
+            </div>
+          </article>
+          <article class="home-model-card">
+            <header><span class="home-model-name">RMB 充值 · USD 额度</span><span class="home-model-ratio">按刀计费</span></header>
+            <p>人民币充值，按美元额度消耗，常用套餐约 0.03 – 0.06 元/刀。充值套餐最低享受 0.03 元/刀汇率。</p>
+            <div class="home-price-grid">
+              <div class="home-price"><span>充值</span><strong>支付宝</strong></div>
+              <div class="home-price"><span>汇率</span><strong>0.03 – 0.06 元/刀</strong></div>
+            </div>
+            <div class="home-tag-row" style="margin-top: 12px;">
+              <span class="home-tag">wallet</span><span class="home-tag">top-up</span><span class="home-tag">usd credits</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">TOP-UP PLANS</p>
+            <h2>常用额度，直接下单。</h2>
+            <p>选择额度后跳转到 MatrixAPI 发卡站，自动发货；购买卡密后回到控制台钱包管理里兑换充值。</p>
+          </div>
+          <a class="mini-link" href="/wallet">打开钱包</a>
+        </div>
+        <div class="home-grid-3">
+          <article class="home-topup-card">
+            <header><strong>500</strong><span class="home-model-ratio">自动发货</span></header>
+            <div class="home-topup-meta">
+              <span class="home-pill">¥29.90</span>
+              <span class="home-pill">约 0.06 元/刀</span>
+            </div>
+            <p>轻量调试、日常对话和小型代码任务入门套餐。</p>
+            <a class="home-card-link" href="/wallet">购买 500 刀额度</a>
+          </article>
+          <article class="home-topup-card">
+            <header><strong>1000</strong><span class="home-model-ratio">推荐</span></header>
+            <div class="home-topup-meta">
+              <span class="home-pill">¥54.90</span>
+              <span class="home-pill">约 0.05 元/刀</span>
+            </div>
+            <p>适合 Codex、Claude Code 和 Agent 高频开发，性价比最优。</p>
+            <a class="home-card-link" href="/wallet">购买 1000 刀额度</a>
+          </article>
+          <article class="home-topup-card">
+            <header><strong>2000</strong><span class="home-model-ratio">更划算</span></header>
+            <div class="home-topup-meta">
+              <span class="home-pill">¥98.00</span>
+              <span class="home-pill">约 0.05 元/刀</span>
+            </div>
+            <p>更适合长期项目、自动化脚本和团队共享调用。</p>
+            <a class="home-card-link" href="/wallet">购买 2000 刀额度</a>
+          </article>
+        </div>
+        <div class="home-card" style="margin-top: 14px;">
+          <p>发卡站还有 3000 刀、5000 刀、10000 刀等更多选择，企业级方案可联系客服定制。</p>
+          <a class="home-card-link" href="/pricing">查看全部额度</a>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">NETWORK</p>
+            <h2>全球智能调度，一个域名自动选择最优节点。</h2>
+            <p>部署 亚太 欧美 等地区共 100+ 节点，全线 cn2 线路，系统自动选择最优路线，生产业务与长期任务都能保持顺畅体验。</p>
+          </div>
+        </div>
+        <div class="home-grid-2">
+          <article class="home-network-card">
+            <strong style="display:block;margin-bottom:8px;color:#111827;font-size:18px;">MatrixAPI 主线路</strong>
+            <div class="home-tag-row">
+              <span class="home-tag">智能调度</span>
+              <span class="home-tag">cn2 线路</span>
+              <span class="home-tag">推荐</span>
+            </div>
+            <div class="home-endpoint">
+              <span>https://matrixapi.online</span>
+              <span class="home-model-ratio">复制</span>
+            </div>
+            <p style="margin-top:12px;">覆盖 亚太 · 欧美 多节点智能调度，系统自动选择最优路线。</p>
+          </article>
+          <article class="home-network-card">
+            <strong style="display:block;margin-bottom:8px;color:#111827;font-size:18px;">MatrixAPI 新增线路</strong>
+            <div class="home-tag-row">
+              <span class="home-tag">智能调度</span>
+              <span class="home-tag">负载小</span>
+              <span class="home-tag">推荐</span>
+            </div>
+            <div class="home-endpoint">
+              <span>https://matrixapi.online/v1</span>
+              <span class="home-model-ratio">复制</span>
+            </div>
+            <p style="margin-top:12px;">与主线路体验一致，适合把服务入口保持在同一域名下。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">AGENT READY</p>
+            <h2>给编程工具和 Agent 助手准备的入口。</h2>
+            <p>不只是网页聊天，更适合把 API 接到开发、自动化、项目分析和多步骤 Agent 流程里。</p>
+          </div>
+        </div>
+        <div class="home-grid-4">
+          <article class="home-step-card"><span class="home-step-index">01 / CODEX</span><strong>Codex</strong><p>适合代码生成、项目修改、自动化开发和长时间编程辅助。</p></article>
+          <article class="home-step-card"><span class="home-step-index">02 / CLAUDE</span><strong>Claude Code</strong><p>Claude 4.8 适合代码理解、重构分析和项目级开发任务。</p></article>
+          <article class="home-step-card"><span class="home-step-index">03 / CLAW</span><strong>OpenClaw 小龙虾</strong><p>面向 Agent 助手和自动化工作流，按项目配置独立令牌。</p></article>
+          <article class="home-step-card"><span class="home-step-index">04 / HERMES</span><strong>Hermes 爱马仕</strong><p>适合长期任务、工具调用和多步骤 Agent 助手接入。</p></article>
+        </div>
+        <div class="home-pill-row" style="margin-top: 16px;">
+          <span class="home-pill">Codex</span>
+          <span class="home-pill">Claude Code</span>
+          <span class="home-pill">OpenClaw 小龙虾</span>
+          <span class="home-pill">Hermes 爱马仕</span>
+          <span class="home-pill">OpenAI SDK</span>
+          <span class="home-pill">Anthropic SDK</span>
+          <span class="home-pill">Cursor</span>
+          <span class="home-pill">Cline</span>
+          <span class="home-pill">Continue</span>
+          <span class="home-pill">Aider</span>
+          <span class="home-pill">LangChain</span>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">QUICKSTART</p>
+            <h2>替换 API 入口，就能开始。</h2>
+          </div>
+          <a class="mini-link" href="/console/token">打开令牌管理</a>
+        </div>
+        <div class="home-grid-2">
+          <article class="home-doc-card">
+            <h3 style="margin:0 0 12px;color:#111827;">~/quickstart.sh</h3>
+            <div class="home-tag-row" style="margin-bottom:12px;">
+              <span class="home-tag">GPT-5.5 / Claude 4.8</span>
+            </div>
+            <pre>export OPENAI_API_KEY="sk-..."
+export OPENAI_BASE_URL="https://matrixapi.online/v1"
+
+# 保持 OpenAI 兼容请求格式
+curl "$OPENAI_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-5.5","messages":[{"role":"user","content":"你好"}]}'</pre>
+          </article>
+          <article class="home-doc-card">
+            <h3 style="margin:0 0 12px;color:#111827;">3 个步骤</h3>
+            <div class="home-step-card" style="padding: 0; border: 0; box-shadow: none; background: transparent; min-height: auto;">
+              <span class="home-step-index">01</span><strong>注册并进入控制台</strong><p>通过控制台顶部的注册或登录入口进入 MatrixAPI 算力中心，账户、额度、模型和日志都在控制台管理。</p>
+            </div>
+            <div class="home-step-card" style="padding: 0; border: 0; box-shadow: none; background: transparent; min-height: auto; margin-top: 12px;">
+              <span class="home-step-index">02</span><strong>创建项目令牌</strong><p>给 Codex、Claude Code、网站后端或 Agent 助手创建独立 API Key，方便隔离消耗与权限管理。</p>
+            </div>
+            <div class="home-step-card" style="padding: 0; border: 0; box-shadow: none; background: transparent; min-height: auto; margin-top: 12px;">
+              <span class="home-step-index">03</span><strong>选择模型与倍率</strong><p>GPT-5.6 按平台 1× 倍率，Claude 4.8 按平台 2× 倍率；具体模型名称以控制台显示为准。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">PLATFORM</p>
+            <h2>长期调用需要的能力都在。</h2>
+            <p>围绕真实调用体验设计：更快接入、更清楚的消耗、更稳定的线路和更适合长期使用的账户管理。</p>
+          </div>
+        </div>
+        <div class="home-grid-4">
+          <article class="home-feature-card"><strong>OpenAI 兼容</strong><p>常见 SDK、CLI 工具和自建应用可快速迁移，减少重新适配成本。</p></article>
+          <article class="home-feature-card"><strong>令牌管理</strong><p>按项目创建、查看和管理 API Key，便于团队协作和消耗隔离。</p></article>
+          <article class="home-feature-card"><strong>调用日志</strong><p>集中查看请求记录、消耗情况和异常定位，开发调试更容易追踪。</p></article>
+          <article class="home-feature-card"><strong>智能调度</strong><p>100+ 节点全球部署，cn2 线路智能调度，自动选择最优路线。</p></article>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head" style="margin-bottom: 10px;">
+          <div>
+            <p class="home-kicker">AGENT READY</p>
+            <h2>开箱即用，主流工具与框架全部兼容。</h2>
+            <p>已有项目几乎零修改，替换 BASE_URL 和 API Key 即可使用。</p>
+          </div>
+        </div>
+        <div class="home-pill-row">
+          <span class="home-pill">Codex</span>
+          <span class="home-pill">Claude Code</span>
+          <span class="home-pill">VSCode</span>
+          <span class="home-pill">OpenClaw</span>
+          <span class="home-pill">Hermes</span>
+          <span class="home-pill">OpenAI SDK</span>
+          <span class="home-pill">Anthropic SDK</span>
+          <span class="home-pill">Cursor</span>
+          <span class="home-pill">Cline</span>
+          <span class="home-pill">Continue</span>
+          <span class="home-pill">Aider</span>
+          <span class="home-pill">LangChain</span>
+        </div>
+      </section>
+
+      <section class="section home-section home-cta">
+        <div class="home-section-head">
+          <div>
+            <h2>立即接入，几行代码即可上线。</h2>
+            <p>注册账号 → 创建 API Key → 替换 BASE_URL，3 步完成接入。首单更有新人专享额度包。</p>
+          </div>
+          <a class="button primary" href="/console/token">进入控制台</a>
+        </div>
+        <div class="home-pills">
+          <span class="home-pill">🛡️ 5 分钟 完成接入</span>
+          <span class="home-pill">💳 支持支付宝</span>
+          <span class="home-pill">🔁 随时退款</span>
+          <span class="home-pill">📞 7×24 技术支持</span>
+        </div>
+      </section>
+
+      <section class="section home-section">
+        <div class="home-section-head">
+          <div>
+            <p class="home-kicker">FAQ</p>
+            <h2>常见问题。</h2>
+            <p>把用户上手前最容易问的问题放在底部，避免首页变成说明书。</p>
+          </div>
+        </div>
+        <div class="home-faq-grid">
+          <article class="home-feature-card"><strong>API 地址应该填哪个？</strong><p>默认建议使用 https://matrixapi.online 主站点；也可以使用 https://matrixapi.online/v1 作为 OpenAI 兼容入口。</p></article>
+          <article class="home-feature-card"><strong>两个模型怎么计费？</strong><p>GPT-5.6 采用官方 1:1 计费标准，Claude 4.8 Fable 5 采用官方计费标准的 2× 倍率计费。</p></article>
+          <article class="home-feature-card"><strong>购买套餐后怎么兑换？</strong><p>在发卡站购买额度卡，拿到卡密后进入控制台钱包管理，选择额度充值里的兑换码充值，额度会实时到账。</p></article>
+          <article class="home-feature-card"><strong>支持哪些 SDK 和工具？</strong><p>OpenAI 兼容 SDK、Anthropic SDK、Cursor、Cline、Continue、Aider、LangChain 都可接入。</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="home-footer shell">MatrixAPI © 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <div class="home-toast" data-toast role="status" aria-live="polite"></div>
+
+    <script>
+      (function () {
+        const body = document.body;
+        const toast = document.querySelector('[data-toast]');
+        const langButton = document.querySelector('[data-lang-toggle]');
+        const langMenu = document.querySelector('[data-lang-menu]');
+        const themeButton = document.querySelector('[data-theme-toggle]');
+
+        function showToast(message) {
+          if (!toast) return;
+          toast.textContent = message;
+          toast.classList.add('is-visible');
+          window.clearTimeout(window.__homeToastTimer);
+          window.__homeToastTimer = window.setTimeout(() => {
+            toast.classList.remove('is-visible');
+          }, 1600);
+        }
+
+        function setTheme(nextDark) {
+          body.classList.toggle('matrix-dark-skin', nextDark);
+          localStorage.setItem('theme-mode', nextDark ? 'dark' : 'light');
+        }
+
+        const savedTheme = localStorage.getItem('theme-mode') === 'dark';
+        setTheme(savedTheme);
+
+        themeButton?.addEventListener('click', () => {
+          const nextDark = !body.classList.contains('matrix-dark-skin');
+          setTheme(nextDark);
+          showToast(nextDark ? '已切换到深色模式' : '已切换到浅色模式');
+        });
+
+        langButton?.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const open = langMenu?.classList.toggle('is-open');
+          langButton.setAttribute('aria-expanded', String(Boolean(open)));
+        });
+
+        langMenu?.querySelectorAll('[data-lang-choice]').forEach((choice) => {
+          choice.addEventListener('click', (event) => {
+            event.preventDefault();
+            const selected = choice.getAttribute('data-lang-choice') || 'zh';
+            localStorage.setItem('matrix-lang', selected);
+            langMenu.querySelectorAll('[data-lang-choice]').forEach((item) => {
+              item.setAttribute('aria-pressed', String(item === choice));
+            });
+            showToast(selected === 'zh' ? '已保存中文偏好' : 'Saved English preference');
+            langMenu.classList.remove('is-open');
+            langButton.setAttribute('aria-expanded', 'false');
+          });
+        });
+
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest('[data-lang-toggle]')) {
+            langMenu?.classList.remove('is-open');
+            langButton?.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
