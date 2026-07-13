@@ -331,11 +331,6 @@ const TopUp = () => {
             let url = res.data.url;
             let targetWindow = paymentTab?.window;
             let ownerDocument = document;
-            try {
-              if (targetWindow) ownerDocument = targetWindow.document;
-            } catch (error) {
-              ownerDocument = document;
-            }
             let form = ownerDocument.createElement('form');
             form.action = url;
             form.method = 'POST';

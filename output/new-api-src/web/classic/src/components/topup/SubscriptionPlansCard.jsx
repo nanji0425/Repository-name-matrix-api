@@ -61,12 +61,8 @@ function closePaymentTab(paymentTab) {
 }
 
 function submitEpayForm({ url, params, target = '_blank', targetWindow = null }) {
-  let ownerDocument = document;
-  try {
-    if (targetWindow) ownerDocument = targetWindow.document;
-  } catch (error) {
-    ownerDocument = document;
-  }
+  void targetWindow;
+  const ownerDocument = document;
   const form = ownerDocument.createElement('form');
   form.action = url;
   form.method = 'POST';
