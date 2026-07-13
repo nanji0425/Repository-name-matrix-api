@@ -27,7 +27,7 @@ await page.route('https://matrixapi.test/static/js/index.slow.js', async () => {
   await new Promise(() => {});
 });
 
-await page.route('https://matrixapi.test/console/deployment', async (route) => {
+await page.route('https://matrixapi.test/dashboard/overview', async (route) => {
   await route.fulfill({
     status: 200,
     contentType: 'text/html; charset=utf-8',
@@ -48,7 +48,7 @@ await page.route('https://matrixapi.test/console/deployment', async (route) => {
   });
 });
 
-await page.goto('https://matrixapi.test/console/deployment', { waitUntil: 'commit' });
+await page.goto('https://matrixapi.test/dashboard/overview', { waitUntil: 'commit' });
 
 await page.waitForTimeout(700);
 
@@ -70,7 +70,46 @@ const afterRender = await page.evaluate(() => ({
 }));
 
 await page.goto('about:blank');
-await page.route('https://matrixapi.test/console/deployment-empty', async (route) => {
+await page.route('https://matrixapi.test/dashboard/timeout', async (route) => {
+  await route.fulfill({
+    status: 200,
+    contentType: 'text/html; charset=utf-8',
+    body: `
+      <!doctype html>
+      <html><head><script defer src="https://matrixapi.test/static/js/index.slow.js"></script><script src="https://matrixapi.test/matrix-assets/brand-init.js"></script></head>
+      <body><div id="root"></div></body></html>
+    `,
+  });
+});
+await page.route('https://matrixapi.test/static/js/index.slow.js', async () => {
+  await new Promise(() => {});
+});
+await page.route('https://matrixapi.test/matrix-assets/brand-init.js', async (route) => {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/javascript',
+    body: brandInit,
+  });
+});
+await page.goto('https://matrixapi.test/dashboard/timeout', { waitUntil: 'commit' });
+await page.waitForTimeout(16000);
+const timedOutShell = await page.evaluate(() => ({
+  hasShell: Boolean(document.querySelector('[data-matrix-cold-start-shell]')),
+  timedOut: Boolean(document.querySelector('[data-matrix-cold-start-timeout]')),
+  text: document.querySelector('[data-matrix-cold-start-shell]')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+}));
+
+await page.evaluate(() => {
+  document.querySelector('#root').innerHTML = '<main>Late console render</main>';
+});
+await page.waitForTimeout(300);
+const afterLateRender = await page.evaluate(() => ({
+  hasShell: Boolean(document.querySelector('[data-matrix-cold-start-shell]')),
+  rootText: document.querySelector('#root')?.textContent?.trim() || '',
+}));
+
+await page.goto('about:blank');
+await page.route('https://matrixapi.test/models/deployments-empty', async (route) => {
   await route.fulfill({
     status: 200,
     contentType: 'text/html; charset=utf-8',
@@ -92,21 +131,21 @@ await page.route('https://matrixapi.test/console/deployment-empty', async (route
   });
 });
 
-await page.goto('https://matrixapi.test/console/deployment-empty', { waitUntil: 'domcontentloaded' });
+await page.goto('https://matrixapi.test/models/deployments-empty', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(300);
 
 const deploymentGuide = await page.evaluate(() => {
   const guide = document.querySelector('[data-matrix-deployment-guide]');
   return {
     hasGuide: Boolean(guide),
-    hasChannelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/channel'),
-    hasModelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/models'),
-    hasTokenLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/token'),
+    hasChannelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/channels'),
+    hasModelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/models/metadata'),
+    hasTokenLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/keys'),
     text: guide?.textContent?.replace(/\s+/g, ' ').trim().slice(0, 300) || '',
   };
 });
 
-await page.route('https://matrixapi.test/console/models-empty', async (route) => {
+await page.route('https://matrixapi.test/models/metadata-empty', async (route) => {
   await route.fulfill({
     status: 200,
     contentType: 'text/html; charset=utf-8',
@@ -126,7 +165,7 @@ await page.route('https://matrixapi.test/console/models-empty', async (route) =>
   });
 });
 
-await page.goto('https://matrixapi.test/console/models-empty', { waitUntil: 'domcontentloaded' });
+await page.goto('https://matrixapi.test/models/metadata-empty', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(300);
 
 const modelsGuide = await page.evaluate(() => {
@@ -134,7 +173,7 @@ const modelsGuide = await page.evaluate(() => {
   return {
     hasGuide: Boolean(guide),
     hasPricingLink: [...document.querySelectorAll('[data-matrix-models-guide] a')].some((link) => link.getAttribute('href') === '/pricing'),
-    hasChannelLink: [...document.querySelectorAll('[data-matrix-models-guide] a')].some((link) => link.getAttribute('href') === '/console/channel'),
+    hasChannelLink: [...document.querySelectorAll('[data-matrix-models-guide] a')].some((link) => link.getAttribute('href') === '/channels'),
     text: guide?.textContent?.replace(/\s+/g, ' ').trim().slice(0, 300) || '',
   };
 });
@@ -143,9 +182,13 @@ await browser.close();
 
 const failures = [];
 if (!report.hasShell) failures.push('Cold-start shell is missing while deferred app bundle is still loading');
-if (!/MatrixAPI/.test(report.shellText)) failures.push('Cold-start shell does not identify MatrixAPI');
+if (!/Matrix\s*API/.test(report.shellText)) failures.push('Cold-start shell does not identify Matrix API');
 if (report.rootTextLength !== 0) failures.push('Test fixture root should stay empty before the app bundle loads');
 if (afterRender.hasShell) failures.push('Cold-start shell was not removed after the app rendered root content');
+if (!timedOutShell.timedOut) failures.push('Cold-start shell did not leave the loading state after a stalled app bundle');
+if (/Loading console assets/.test(timedOutShell.text)) failures.push('Cold-start shell stayed in the loading state after the timeout');
+if (afterLateRender.hasShell) failures.push('Cold-start shell was not removed when the app rendered after the timeout');
+if (afterLateRender.rootText !== 'Late console render') failures.push('Late app render fixture did not reach the root');
 if (!deploymentGuide.hasGuide) failures.push('Deployment guide is missing on an empty deployment page');
 if (!deploymentGuide.hasChannelLink || !deploymentGuide.hasModelLink || !deploymentGuide.hasTokenLink) failures.push('Deployment guide links are incomplete on an empty deployment page');
 if (!modelsGuide.hasGuide) failures.push('Models guide is missing on an empty models page');
@@ -153,8 +196,8 @@ if (!modelsGuide.hasPricingLink || !modelsGuide.hasChannelLink) failures.push('M
 if (errors.length) failures.push(`Console errors: ${[...new Set(errors)].join(' | ')}`);
 
 if (failures.length) {
-  console.error(JSON.stringify({ failures, report, afterRender, deploymentGuide, modelsGuide, consoleErrors: [...new Set(errors)] }, null, 2));
+  console.error(JSON.stringify({ failures, report, afterRender, timedOutShell, afterLateRender, deploymentGuide, modelsGuide, consoleErrors: [...new Set(errors)] }, null, 2));
   process.exit(1);
 }
 
-console.log(JSON.stringify({ report, afterRender, deploymentGuide, modelsGuide, consoleErrors: [...new Set(errors)] }, null, 2));
+console.log(JSON.stringify({ report, afterRender, timedOutShell, afterLateRender, deploymentGuide, modelsGuide, consoleErrors: [...new Set(errors)] }, null, 2));
