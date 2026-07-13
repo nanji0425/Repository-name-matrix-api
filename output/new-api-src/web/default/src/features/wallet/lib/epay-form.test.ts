@@ -220,7 +220,7 @@ test('navigates a delayed ZPay tab with a GET query', () => {
     paymentTab.window
   )
 
-  assert.match(openedWindow.location.href, /^https:\/\/zpayz\.cn\/submit\.php\?/) 
+  assert.match(openedWindow.location.href, /^https:\/\/zpayz\.cn\/submit\.php\?/)
   assert.match(openedWindow.location.href, /type=alipay/)
   assert.match(openedWindow.location.href, /money=1\.00/)
 })
