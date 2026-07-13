@@ -331,6 +331,12 @@ const TopUp = () => {
             let url = res.data.url;
             let targetWindow = paymentTab?.window;
             let ownerDocument = document;
+            if (targetWindow && /^https:\/\/(?:www\.)?zpayz\.cn\/submit\.php\/?$/i.test(url)) {
+              let navigationURL = new URL(url, ownerDocument.baseURI);
+              for (let key in params) navigationURL.searchParams.set(key, String(params[key]));
+              targetWindow.location.href = navigationURL.toString();
+              return;
+            }
             let form = ownerDocument.createElement('form');
             form.action = url;
             form.method = 'POST';

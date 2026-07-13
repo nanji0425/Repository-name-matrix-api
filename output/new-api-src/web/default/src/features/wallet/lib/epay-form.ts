@@ -30,6 +30,18 @@ function createPaymentTarget(): string {
   return `matrixapi-payment-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+function isZPaySubmitURL(url: string): boolean {
+  try {
+    const parsed = new URL(url, document.baseURI)
+    return (
+      (parsed.hostname === 'zpayz.cn' || parsed.hostname === 'www.zpayz.cn') &&
+      parsed.pathname.replace(/\/$/, '').toLowerCase() === '/submit.php'
+    )
+  } catch {
+    return false
+  }
+}
+
 /**
  * Open the payment tab synchronously while still inside the user's click
  * handler. The async payment API response is submitted into this named tab
@@ -59,6 +71,15 @@ export function submitPaymentForm(
   // cross-origin navigation and leave the popup at about:blank in Chromium.
   void targetWindow
   const ownerDocument = document
+
+  if (targetWindow && isZPaySubmitURL(url)) {
+    const navigationURL = new URL(url, ownerDocument.baseURI)
+    Object.entries(params).forEach(([key, value]) => {
+      navigationURL.searchParams.set(key, String(value))
+    })
+    targetWindow.location.href = navigationURL.toString()
+    return
+  }
 
   const form = ownerDocument.createElement('form')
   form.action = url

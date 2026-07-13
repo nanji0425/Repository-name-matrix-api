@@ -63,6 +63,12 @@ function closePaymentTab(paymentTab) {
 function submitEpayForm({ url, params, target = '_blank', targetWindow = null }) {
   void targetWindow;
   const ownerDocument = document;
+  if (targetWindow && /^https:\/\/(?:www\.)?zpayz\.cn\/submit\.php\/?$/i.test(url)) {
+    const navigationURL = new URL(url, ownerDocument.baseURI);
+    Object.keys(params || {}).forEach((key) => navigationURL.searchParams.set(key, String(params[key])));
+    targetWindow.location.href = navigationURL.toString();
+    return;
+  }
   const form = ownerDocument.createElement('form');
   form.action = url;
   form.method = 'POST';

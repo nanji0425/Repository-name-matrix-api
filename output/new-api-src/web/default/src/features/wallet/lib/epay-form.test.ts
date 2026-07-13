@@ -47,6 +47,7 @@ type MockWindow = {
       removeChild: (form: MockElement) => void
     }
   }
+  location: { href: string }
   close: () => void
 }
 
@@ -145,7 +146,7 @@ test('opens a named payment tab before the async request and submits into it', (
   assert.ok(paymentTab.window?.document)
 
   const submitted = submitReturnedEpayForm({
-    url: 'https://zpayz.cn/submit.php',
+    url: 'https://gateway.example/submit.php',
     data: {
       type: 'alipay',
       notify_url: 'https://matrixapi.online/api/user/epay/notify',
@@ -157,7 +158,7 @@ test('opens a named payment tab before the async request and submits into it', (
 
   assert.equal(submitted, true)
   assert.ok(submittedForm)
-  assert.equal(submittedForm.action, 'https://zpayz.cn/submit.php')
+  assert.equal(submittedForm.action, 'https://gateway.example/submit.php')
   assert.equal(submittedForm.method, 'POST')
   assert.equal(submittedForm.target, paymentTab.target)
   assert.equal(createdBy, 'opener')
@@ -177,4 +178,49 @@ test('opens a named payment tab before the async request and submits into it', (
 
   closePaymentTab(paymentTab)
   assert.equal(openedWindow?.closed, true)
+})
+
+test('navigates a delayed ZPay tab with a GET query', () => {
+  const openedWindow = {
+    closed: false,
+    name: 'zpay-target',
+    location: { href: 'about:blank' },
+    document: {
+      createElement: () => {
+        throw new Error('ZPay should not create a cross-document form')
+      },
+      body: { appendChild() {}, removeChild() {} },
+    },
+    close() {},
+  } as unknown as MockWindow
+
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: { open: () => openedWindow },
+  })
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      baseURI: 'https://matrixapi.online/wallet',
+      createElement: () => ({
+        appendChild() {},
+        submit() {},
+      }),
+      body: { appendChild() {}, removeChild() {} },
+    },
+  })
+
+  const paymentTab = openPaymentTab()
+  submitReturnedEpayForm(
+    {
+      url: 'https://zpayz.cn/submit.php',
+      data: { type: 'alipay', money: '1.00' },
+    },
+    paymentTab.target,
+    paymentTab.window
+  )
+
+  assert.match(openedWindow.location.href, /^https:\/\/zpayz\.cn\/submit\.php\?/) 
+  assert.match(openedWindow.location.href, /type=alipay/)
+  assert.match(openedWindow.location.href, /money=1\.00/)
 })
