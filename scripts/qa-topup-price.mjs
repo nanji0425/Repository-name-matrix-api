@@ -25,7 +25,8 @@ const publicGate = await page.evaluate(() => {
     url: location.href,
     title: document.title,
     hasStaticBundle: /\/static\/js\//.test(html),
-    hasAuthGate: Boolean(document.querySelector('.auth-gate-card')),
+    isSignInRedirect: /\/sign-in\?redirect=/i.test(location.href),
+    hasSignInForm: Boolean(document.querySelector('input[type="password"]')),
     hasAmountInput: Boolean(document.querySelector('input[name="amount"]')),
     hasLegalLinks: links.includes('/user-agreement') && links.includes('/privacy-policy'),
     text: text.slice(0, 1200),
@@ -61,10 +62,9 @@ const failures = [];
 if (!statusJson.success) failures.push(`Status API failed: ${statusResponse.status()}`);
 if (Math.abs(price - 1.0) > 0.000001) failures.push(`Expected Price 1.0, got ${price}`);
 if (!response || response.status() >= 400) failures.push(`Wallet page returned HTTP ${response?.status()}`);
-if (publicGate.hasStaticBundle) failures.push('Public wallet gate should not load SPA /static/js bundles');
-if (!publicGate.hasAuthGate) failures.push('Public wallet route should show the unauthenticated login gate');
+if (!publicGate.isSignInRedirect) failures.push('Public wallet route should redirect to the sign-in page');
+if (!publicGate.hasSignInForm) failures.push('Sign-in redirect should render the login form');
 if (publicGate.hasAmountInput) failures.push('Public wallet route should not expose top-up amount controls before sign-in');
-if (!publicGate.mentionsAlipay) failures.push('Public wallet gate should mention Alipay top-up');
 if (publicGate.hasUnsupportedPayment) failures.push('Public wallet gate shows unsupported payment wording');
 if (!publicGate.hasLegalLinks) failures.push('Public wallet gate should link user agreement and privacy policy');
 if (wallet.hasLoginGate) failures.push('Authenticated wallet/top-up route still shows login gate');
