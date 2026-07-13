@@ -156,7 +156,7 @@ report.topup = {
   hasWechat: text.includes('WeChat'),
   hasStripe: text.includes('Stripe'),
   hasZpayWechat: text.includes('ZPay WeChat') || text.includes('WeChat cashier'),
-  hasAmount: /Quantity\s*100\s*->\s*10\s*CNY|Actual payment\s*10\s*CNY/i.test(text),
+  hasAmount: /Quantity\s*100\s*->\s*100\s*CNY|Actual payment\s*100\s*CNY/i.test(text),
   sample: sample(text, 900),
 };
 await safeScreenshot('output/playwright/matrix-topup-page-deep.png');

@@ -59,7 +59,7 @@ await browser.close();
 
 const failures = [];
 if (!statusJson.success) failures.push(`Status API failed: ${statusResponse.status()}`);
-if (Math.abs(price - 0.1) > 0.000001) failures.push(`Expected Price 0.1, got ${price}`);
+if (Math.abs(price - 1.0) > 0.000001) failures.push(`Expected Price 1.0, got ${price}`);
 if (!response || response.status() >= 400) failures.push(`Wallet page returned HTTP ${response?.status()}`);
 if (publicGate.hasStaticBundle) failures.push('Public wallet gate should not load SPA /static/js bundles');
 if (!publicGate.hasAuthGate) failures.push('Public wallet route should show the unauthenticated login gate');
