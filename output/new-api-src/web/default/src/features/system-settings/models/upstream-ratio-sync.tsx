@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { invalidatePricingQueries } from '@/features/pricing/lib/query-invalidation'
 
 import {
   fetchUpstreamRatios,
@@ -84,16 +85,25 @@ type UpstreamRatioSyncProps = {
 // `controller/ratio_sync.go`; matching by ID alone is sufficient and avoids
 // fragile name/base_url comparisons.
 function getDefaultEndpointForChannel(channel: UpstreamChannel): string {
-  if (channel.id === MODELS_DEV_PRESET_ID) return MODELS_DEV_PRESET_ENDPOINT
-  if (channel.id === OFFICIAL_CHANNEL_ID) return OFFICIAL_CHANNEL_ENDPOINT
-  if (channel.type === OPENROUTER_CHANNEL_TYPE) return OPENROUTER_ENDPOINT
+  if (channel.id === MODELS_DEV_PRESET_ID) {
+    return MODELS_DEV_PRESET_ENDPOINT
+  }
+  if (channel.id === OFFICIAL_CHANNEL_ID) {
+    return OFFICIAL_CHANNEL_ENDPOINT
+  }
+  if (channel.type === OPENROUTER_CHANNEL_TYPE) {
+    return OPENROUTER_ENDPOINT
+  }
   return DEFAULT_ENDPOINT
 }
 
 function getBillingCategory(ratioType: string): 'price' | 'ratio' | 'tiered' {
-  if (ratioType === 'model_price') return 'price'
-  if (ratioType === 'billing_mode' || ratioType === 'billing_expr')
+  if (ratioType === 'model_price') {
+    return 'price'
+  }
+  if (ratioType === 'billing_mode' || ratioType === 'billing_expr') {
     return 'tiered'
+  }
   return 'ratio'
 }
 
@@ -222,6 +232,7 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
     onSuccess: () => {
       toast.success(t('Prices synced successfully'))
       queryClient.invalidateQueries({ queryKey: ['system-options'] })
+      invalidatePricingQueries(queryClient)
 
       setDifferences((prevDiffs) => {
         const newDiffs = { ...prevDiffs }
@@ -293,7 +304,7 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
       const category = getBillingCategory(finalType)
 
       setResolutions((prev) => {
-        const newModelRes = { ...(prev[model] || {}) }
+        const newModelRes = { ...prev[model] }
 
         // Clear conflicting categories
         Object.keys(newModelRes).forEach((rt) => {
@@ -371,8 +382,9 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
       currentRatios.ImageRatio[model] !== undefined ||
       currentRatios.AudioRatio[model] !== undefined ||
       currentRatios.AudioCompletionRatio[model] !== undefined
-    )
+    ) {
       return 'ratio'
+    }
     return null
   }
 

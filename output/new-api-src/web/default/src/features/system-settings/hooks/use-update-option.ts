@@ -20,11 +20,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import i18next from 'i18next'
 import { toast } from 'sonner'
 
+import { invalidatePricingQueries } from '@/features/pricing/lib/query-invalidation'
+
 import { updateSystemOption } from '../api'
 import type { UpdateOptionRequest } from '../types'
 
 // Configuration keys that require status refresh
-const STATUS_RELATED_KEYS = [
+const STATUS_RELATED_KEYS = new Set([
   'theme.frontend',
   'HeaderNavModules',
   'SidebarModulesAdmin',
@@ -39,7 +41,18 @@ const STATUS_RELATED_KEYS = [
   'general_setting.custom_currency_exchange_rate',
   'console_setting.announcements',
   'console_setting.announcements_enabled',
-]
+])
+
+const PRICING_RELATED_KEYS = new Set([
+  'ModelRatio',
+  'ModelPrice',
+  'CompletionRatio',
+  'CacheRatio',
+  'CreateCacheRatio',
+  'ImageRatio',
+  'AudioRatio',
+  'AudioCompletionRatio',
+])
 
 export function useUpdateOption() {
   const queryClient = useQueryClient()
@@ -52,13 +65,17 @@ export function useUpdateOption() {
         queryClient.invalidateQueries({ queryKey: ['system-options'] })
 
         // If updating frontend-display-related config, also refresh status
-        if (STATUS_RELATED_KEYS.includes(variables.key)) {
+        if (STATUS_RELATED_KEYS.has(variables.key)) {
           queryClient.invalidateQueries({ queryKey: ['status'] })
           try {
             window.localStorage.removeItem('status')
           } catch {
             /* empty */
           }
+        }
+
+        if (PRICING_RELATED_KEYS.has(variables.key)) {
+          invalidatePricingQueries(queryClient)
         }
 
         toast.success(i18next.t('Setting updated successfully'))

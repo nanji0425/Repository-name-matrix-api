@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting/config"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -153,6 +154,50 @@ func pricingByModelName(pricings []model.Pricing) map[string]model.Pricing {
 		byName[pricing.ModelName] = pricing
 	}
 	return byName
+}
+
+func TestUpdateModelRatioOptionRefreshesPricingImmediately(t *testing.T) {
+	db := setupModelListControllerTestDB(t)
+	require.NoError(t, db.AutoMigrate(&model.Option{}))
+	common.OptionMapRWMutex.RLock()
+	originalOptionMap := make(map[string]string, len(common.OptionMap))
+	for key, value := range common.OptionMap {
+		originalOptionMap[key] = value
+	}
+	common.OptionMapRWMutex.RUnlock()
+	model.InitOptionMap()
+	model.InvalidatePricingCache()
+	originalModelRatio := ratio_setting.ModelRatio2JSONString()
+	t.Cleanup(func() {
+		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(originalModelRatio))
+		common.OptionMapRWMutex.Lock()
+		common.OptionMap = originalOptionMap
+		common.OptionMapRWMutex.Unlock()
+		model.InvalidatePricingCache()
+	})
+
+	const modelName = "zz-price-sync-cache-model"
+	require.NoError(t, db.Create(&model.Channel{
+		Id:     1,
+		Type:   constant.ChannelTypeOpenAI,
+		Key:    "test-key",
+		Status: common.ChannelStatusEnabled,
+		Name:   "test-channel",
+	}).Error)
+	require.NoError(t, db.Create(&model.Ability{
+		Group:     "default",
+		Model:     modelName,
+		ChannelId: 1,
+		Enabled:   true,
+	}).Error)
+
+	require.NoError(t, model.UpdateOption("ModelRatio", fmt.Sprintf(`{"%s":1}`, modelName)))
+	initialPricing := pricingByModelName(model.GetPricing())[modelName]
+	require.Equal(t, 1.0, initialPricing.ModelRatio)
+
+	require.NoError(t, model.UpdateOption("ModelRatio", fmt.Sprintf(`{"%s":1.5}`, modelName)))
+	updatedPricing := pricingByModelName(model.GetPricing())[modelName]
+	require.Equal(t, 1.5, updatedPricing.ModelRatio)
 }
 
 func decodeUserModelsResponse(t *testing.T, recorder *httptest.ResponseRecorder) []string {
