@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   Activity,
+  BarChart3,
   Box,
   CreditCard,
   FileText,
@@ -119,6 +120,11 @@ export function useSidebarData(): SidebarData {
         id: 'admin',
         title: t('Admin'),
         items: [
+          {
+            title: t('Data Panel'),
+            url: '/admin-dashboard',
+            icon: BarChart3,
+          },
           {
             title: t('Channels'),
             url: '/channels',

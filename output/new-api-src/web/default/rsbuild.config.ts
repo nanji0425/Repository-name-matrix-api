@@ -24,7 +24,21 @@ export default defineConfig(({ envMode }) => {
   ) as Record<string, { target: string; changeOrigin: boolean }>
 
   return {
-    plugins: [pluginReact(), pluginTailwindcss({ optimize: false })],
+    plugins: [
+      {
+        name: 'matrix-favicon-html',
+        setup(api) {
+          api.modifyHTML((html: string) =>
+            html.replace(
+              /<link\s+rel=["']icon["'][^>]*href=["']\/favicon\.ico["'][^>]*>/g,
+              ''
+            )
+          )
+        },
+      },
+      pluginReact(),
+      pluginTailwindcss({ optimize: false }),
+    ],
     source: {
       entry: {
         index: './src/main.tsx',

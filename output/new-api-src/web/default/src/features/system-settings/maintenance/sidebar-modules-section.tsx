@@ -130,6 +130,12 @@ export function SidebarModulesSection({
       },
     },
     admin: {
+      dashboard: {
+        title: t('Data Panel'),
+        description: t(
+          'Overview of users, requests, tokens, top-ups, and exceptions.'
+        ),
+      },
       channel: {
         title: t('Channels'),
         description: t('Configure upstream providers and routing.'),
