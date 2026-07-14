@@ -62,8 +62,18 @@ for (const phrase of [
   '教程文档',
   '联系支持',
   '价格中心',
+  '1050365180',
 ]) {
   assert.ok(dbBootstrap.includes(phrase), `console API info must be Chinese: ${phrase}`)
+}
+
+for (const [name, source] of Object.entries({
+  'nginx/site/docs.html': docsHtml,
+  'scripts/bootstrap-new-api.mjs': apiBootstrap,
+  'scripts/bootstrap-new-api-db.sh': dbBootstrap,
+})) {
+  assert.ok(source.includes('3315419516@qq.com'), `${name} must include the support email`)
+  assert.ok(source.includes('1050365180'), `${name} must include the support QQ group`)
 }
 
 const forbiddenPublicWords = [

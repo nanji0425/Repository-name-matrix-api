@@ -338,7 +338,7 @@ async function ensurePricing(cookie) {
       id: 3,
       url: 'mailto:3315419516@qq.com',
       route: '联系支持',
-      description: '遇到账号、支付或接口问题时，请提供时间、路径、状态码和订单信息。',
+      description: '遇到账号、支付或接口问题时，可发邮件 3315419516@qq.com，或加入 QQ 群 1050365180。',
       color: 'green',
     },
     {
@@ -395,7 +395,7 @@ async function ensurePricing(cookie) {
     {
       id: 8,
       question: '如何联系支持？',
-      answer: '请发送邮件到 3315419516@qq.com，并附上问题发生时间、页面路径、状态码、模型名或订单时间。不要发送完整 API Key 或支付密码。',
+      answer: '可发送邮件到 3315419516@qq.com，或加入 QQ 群 1050365180。请附上问题发生时间、页面路径、状态码、模型名或订单时间，不要发送完整 API Key 或支付密码。',
     },
   ]))
 }
@@ -477,7 +477,7 @@ function upstreamChannelPayload(models, id) {
     auto_ban: 1,
     test_model: models[0],
     tag: upstreamChannelTag,
-    remark: 'MatrixAPI upstream channel. Pricing follows the configured group ratio.',
+    remark: 'Matrix API model service. Pricing follows configured Matrix API rules.',
     settings: '{}',
   }
 }
@@ -495,7 +495,7 @@ async function createUpstreamChannel(cookie, models) {
     }),
   })
   if (!result.ok || !result.body?.success) {
-    throw new Error(`Create upstream channel failed: ${channelFailure(result)}`)
+    throw new Error(`Create Matrix API model service failed: ${channelFailure(result)}`)
   }
 }
 
@@ -506,10 +506,10 @@ async function updateUpstreamChannel(cookie, id, models) {
     body: JSON.stringify(upstreamChannelPayload(models, id)),
   })
   if (!result.ok || !result.body?.success) {
-    throw new Error(`Update upstream channel ${id} failed: ${channelFailure(result)}`)
+    throw new Error(`Update Matrix API model service ${id} failed: ${channelFailure(result)}`)
   }
 
-  await updateChannelStatus(cookie, id, 1, 'Enable upstream channel')
+  await updateChannelStatus(cookie, id, 1, 'Enable Matrix API model service')
 }
 
 async function updateChannelStatus(cookie, id, status, action) {
@@ -542,7 +542,7 @@ async function ensureUpstreamChannel(cookie) {
     .sort((left, right) => left.id - right.id)
 
   if (candidates.some((channel) => !Number.isInteger(channel.id) || channel.id <= 0)) {
-    throw new Error('A matching upstream channel has an invalid id')
+    throw new Error('A matching Matrix API model service has an invalid id')
   }
   if (candidates.length === 0) {
     await createUpstreamChannel(cookie, bootstrapModels)
@@ -551,7 +551,7 @@ async function ensureUpstreamChannel(cookie) {
       .map((channel) => ({ ...channel, id: Number(channel.id) }))
       .sort((left, right) => left.id - right.id)
     if (candidates.length === 0) {
-      throw new Error('Created upstream channel could not be reloaded')
+      throw new Error('Created Matrix API model service could not be reloaded')
     }
   }
 
