@@ -17,7 +17,7 @@ server {
     return 404;
   }
 
-  location ~* ^/(docker-compose(\.legacy)?\.yml|PROJECT_[^/]*|AGENTS\.md|ruvector\.db|nginx/|scripts/) {
+  location ~* ^/(docker-compose\.yml|PROJECT_[^/]*|AGENTS\.md|ruvector\.db|nginx/|scripts/) {
     return 404;
   }
 
@@ -26,8 +26,14 @@ server {
   }
 
   location = / {
-    root /usr/share/nginx/matrix-site;
-    try_files /index.html =404;
+    proxy_pass http://new_api;
+    sub_filter_once on;
+    sub_filter '</head>' '<meta name="baidu-site-verification" content="codeva-zfLalJhUJY" /><script src="/matrix-assets/brand-init.js?v=2026071319"></script></head>';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 120s;
   }
 
   location = /robots.txt {
@@ -89,25 +95,7 @@ server {
     add_header X-Matrix-Cache $upstream_cache_status always;
   }
 
-  location = /docs {
-    root /usr/share/nginx/matrix-site;
-    try_files /docs.html =404;
-  }
-
-  location = /docs/ {
-    root /usr/share/nginx/matrix-site;
-    try_files /docs.html =404;
-  }
-
-  location = /wallet {
-    root /usr/share/nginx/matrix-site;
-    try_files /wallet.html =404;
-  }
-
-  location = /wallet/ {
-    root /usr/share/nginx/matrix-site;
-    try_files /wallet.html =404;
-  }
+  include /etc/nginx/conf.d/docs-routes.inc;
 
   location = /topup {
     return 302 /wallet;
@@ -118,13 +106,19 @@ server {
   }
 
   location = /pricing {
-    root /usr/share/nginx/matrix-site;
-    try_files /pricing.html =404;
+    proxy_pass http://new_api;
+    proxy_set_header Accept-Encoding "";
+    sub_filter_once on;
+    sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026071319"></script></head>';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 120s;
   }
 
   location = /pricing/ {
-    root /usr/share/nginx/matrix-site;
-    try_files /pricing.html =404;
+    return 302 /pricing;
   }
 
   location = /rankings {
@@ -183,8 +177,15 @@ server {
   }
 
   location = /sign-up {
-    root /usr/share/nginx/matrix-site;
-    try_files /sign-up.html =404;
+    proxy_pass http://new_api;
+    proxy_set_header Accept-Encoding "";
+    sub_filter_once on;
+    sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026071319"></script></head>';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 120s;
   }
 
   location = /sign-up/ {
@@ -209,137 +210,127 @@ server {
   }
 
   location = /dashboard {
-    return 302 /console;
+    return 302 /dashboard/overview;
   }
 
   location = /dashboard/ {
-    return 302 /console;
-  }
-
-  location = /dashboard/overview {
-    return 302 /console;
+    return 302 /dashboard/overview;
   }
 
   location = /dashboard/topup {
-    return 302 /console/topup;
+    return 302 /wallet;
   }
 
   location = /dashboard/topup/ {
-    return 302 /console/topup;
+    return 302 /wallet;
   }
 
-  location ~ ^/dashboard/(token|log|subscription|personal|models|channel|redemption|setting|deployment|user|task)$ {
-    return 302 /console/$1;
+  location = /dashboard/token {
+    return 302 /keys;
   }
 
-  location /dashboard/ {
-    proxy_pass http://new_api/console/;
-    proxy_cache matrix_static;
-    proxy_cache_valid 200 30s;
-    proxy_cache_lock on;
-    proxy_ignore_headers Cache-Control Expires Set-Cookie;
-    proxy_hide_header Set-Cookie;
-    proxy_set_header Accept-Encoding "";
-    sub_filter_once on;
-    sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026070813"></script></head>';
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 120s;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    include /etc/nginx/conf.d/security-headers.inc;
-    add_header X-Matrix-Cache $upstream_cache_status always;
+  location = /dashboard/log {
+    return 302 /usage-logs/common;
+  }
+
+  location = /dashboard/task {
+    return 302 /usage-logs/task;
+  }
+
+  location = /dashboard/subscription {
+    return 302 /wallet;
+  }
+
+  location = /dashboard/personal {
+    return 302 /profile;
+  }
+
+  location = /dashboard/models {
+    return 302 /models/metadata;
+  }
+
+  location = /dashboard/channel {
+    return 302 /channels;
+  }
+
+  location = /dashboard/redemption {
+    return 302 /redemption-codes;
+  }
+
+  location = /dashboard/setting {
+    return 302 /system-settings/site;
+  }
+
+  location = /dashboard/user {
+    return 302 /users;
+  }
+
+  location = /dashboard/deployment {
+    return 302 /models/deployments;
   }
 
   location = /console {
-    proxy_pass http://new_api;
-    proxy_cache matrix_static;
-    proxy_cache_valid 200 30s;
-    proxy_cache_lock on;
-    proxy_ignore_headers Cache-Control Expires Set-Cookie;
-    proxy_hide_header Set-Cookie;
-    proxy_set_header Accept-Encoding "";
-    sub_filter_once on;
-    sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026070813"></script></head>';
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 120s;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    include /etc/nginx/conf.d/security-headers.inc;
-    add_header X-Matrix-Cache $upstream_cache_status always;
+    return 302 /dashboard/overview;
   }
 
   location = /console/ {
-    return 302 /console;
+    return 302 /dashboard/overview;
+  }
+
+  location = /console/overview {
+    return 302 /dashboard/overview;
+  }
+
+  location = /console/token {
+    return 302 /keys;
+  }
+
+  location = /console/log {
+    return 302 /usage-logs/common;
+  }
+
+  location = /console/task {
+    return 302 /usage-logs/task;
+  }
+
+  location = /console/topup {
+    return 302 /wallet;
+  }
+
+  location = /console/subscription {
+    return 302 /wallet;
+  }
+
+  location = /console/personal {
+    return 302 /profile;
+  }
+
+  location = /console/models {
+    return 302 /models/metadata;
+  }
+
+  location = /console/channel {
+    return 302 /channels;
+  }
+
+  location = /console/redemption {
+    return 302 /redemption-codes;
+  }
+
+  location = /console/setting {
+    return 302 /system-settings/site;
+  }
+
+  location = /console/user {
+    return 302 /users;
+  }
+
+  location = /console/deployment {
+    return 302 /models/deployments;
   }
 
   location /console/ {
-    proxy_pass http://new_api;
-    proxy_cache matrix_static;
-    proxy_cache_valid 200 30s;
-    proxy_cache_lock on;
-    proxy_ignore_headers Cache-Control Expires Set-Cookie;
-    proxy_hide_header Set-Cookie;
-    proxy_set_header Accept-Encoding "";
-    sub_filter_once on;
-    sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026070813"></script></head>';
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 120s;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    include /etc/nginx/conf.d/security-headers.inc;
-    add_header X-Matrix-Cache $upstream_cache_status always;
-  }
-
-  location = /keys {
-    return 302 /console/token;
-  }
-
-  location = /keys/ {
-    return 302 /console/token;
-  }
-
-  location = /profile {
-    return 302 /console/personal;
-  }
-
-  location = /profile/ {
-    return 302 /console/personal;
-  }
-
-  location = /channels {
-    return 302 /console/channel;
-  }
-
-  location = /channels/ {
-    return 302 /console/channel;
-  }
-
-  location = /models {
-    return 302 /pricing;
-  }
-
-  location = /models/metadata {
-    return 302 /console/models;
-  }
-
-  location = /system-settings {
-    return 302 /console/setting;
-  }
-
-  location = /system-settings/site {
-    return 302 /console/setting;
+    return 302 /dashboard/overview;
   }
 
   location = /api/user/epay/notify {
@@ -389,7 +380,7 @@ server {
     proxy_pass http://new_api;
     proxy_set_header Accept-Encoding "";
     sub_filter_once on;
-  sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026070813"></script></head>';
+  sub_filter '</head>' '<script src="/matrix-assets/brand-init.js?v=2026071319"></script></head>';
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
