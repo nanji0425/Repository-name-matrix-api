@@ -20,7 +20,12 @@ import { type QueryClient } from '@tanstack/react-query'
 import i18next from 'i18next'
 import { toast } from 'sonner'
 
-import { updateModelStatus, deleteModel as deleteModelAPI } from '../api'
+import {
+  updateModel,
+  updateModelStatus,
+  deleteModel as deleteModelAPI,
+} from '../api'
+import type { Model } from '../types'
 import { modelsQueryKeys } from './query-keys'
 
 // ============================================================================
@@ -268,5 +273,76 @@ export async function handleBatchDisableModels(
     }
   } catch (error: unknown) {
     toast.error((error as Error)?.message || i18next.t('Batch disable failed'))
+  }
+}
+
+// ============================================================================
+// Batch Field Update Actions
+// ============================================================================
+
+/**
+ * Batch update editable model fields.
+ *
+ * The backend model update endpoint is a full-row update. Always start from the
+ * current row payload and then override the requested fields so omitted fields
+ * are not accidentally written as zero values.
+ */
+export async function handleBatchUpdateModelFields(
+  models: Model[],
+  fields: Partial<Pick<Model, 'vendor_id' | 'tags'>>,
+  queryClient?: QueryClient,
+  onSuccess?: () => void
+): Promise<void> {
+  if (models.length === 0) {
+    toast.error(i18next.t('Please select at least one model'))
+    return
+  }
+
+  if (Object.keys(fields).length === 0) {
+    toast.error(i18next.t('Please choose at least one field to update'))
+    return
+  }
+
+  try {
+    const updatePromises = models.map((model) =>
+      updateModel({ ...model, id: model.id, ...fields })
+    )
+    const results = await Promise.all(updatePromises)
+
+    let successCount = 0
+    let failedCount = 0
+
+    results.forEach((res, index) => {
+      if (res.success) {
+        successCount++
+      } else {
+        failedCount++
+        // eslint-disable-next-line no-console
+        console.error(
+          `Failed to update model ${models[index]?.id}:`,
+          res.message
+        )
+      }
+    })
+
+    if (successCount > 0) {
+      toast.success(
+        i18next.t('Successfully updated {{count}} model(s)', {
+          count: successCount,
+        })
+      )
+      queryClient?.invalidateQueries({ queryKey: modelsQueryKeys.lists() })
+      onSuccess?.()
+    }
+
+    if (failedCount > 0) {
+      toast.error(
+        i18next.t('Failed to update {{count}} model(s)', {
+          count: failedCount,
+        })
+      )
+    }
+  } catch (error: unknown) {
+    toast.error((error as Error)?.message || i18next.t('Batch update failed'))
   }
 }

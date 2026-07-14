@@ -18,14 +18,25 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useQueryClient } from '@tanstack/react-query'
 import { type Table } from '@tanstack/react-table'
-import { Power, PowerOff, Trash2, Copy } from 'lucide-react'
+import { Copy, PencilLine, Power, PowerOff, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { Dialog } from '@/components/dialog'
+import { TagInput } from '@/components/tag-input'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Tooltip,
   TooltipContent,
@@ -37,19 +48,30 @@ import {
   handleBatchEnableModels,
   handleBatchDisableModels,
   handleBatchDeleteModels,
+  handleBatchUpdateModelFields,
 } from '../lib'
-import type { Model } from '../types'
+import type { Model, Vendor } from '../types'
 
 interface DataTableBulkActionsProps<TData> {
   table: Table<TData>
+  vendors: Vendor[]
 }
+
+const BULK_VENDOR_UNCHANGED = '__unchanged__'
 
 export function DataTableBulkActions<TData>({
   table,
+  vendors,
 }: DataTableBulkActionsProps<TData>) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showBatchEdit, setShowBatchEdit] = useState(false)
+  const [selectedVendorId, setSelectedVendorId] = useState(
+    BULK_VENDOR_UNCHANGED
+  )
+  const [replaceTags, setReplaceTags] = useState(false)
+  const [batchTags, setBatchTags] = useState<string[]>([])
 
   const selectedRows = table.getFilteredSelectedRowModel().rows
   const selectedIds = selectedRows.reduce<number[]>((ids, row) => {
@@ -79,6 +101,33 @@ export function DataTableBulkActions<TData>({
   const handleDeleteAll = () => {
     handleBatchDeleteModels(selectedIds, queryClient, () => {
       setShowDeleteConfirm(false)
+      handleClearSelection()
+    })
+  }
+
+  const handleOpenBatchEdit = () => {
+    setSelectedVendorId(BULK_VENDOR_UNCHANGED)
+    setReplaceTags(false)
+    setBatchTags([])
+    setShowBatchEdit(true)
+  }
+
+  const handleApplyBatchEdit = () => {
+    const fields: Partial<Pick<Model, 'vendor_id' | 'tags'>> = {}
+
+    if (selectedVendorId !== BULK_VENDOR_UNCHANGED) {
+      const vendorId = Number.parseInt(selectedVendorId, 10)
+      if (Number.isFinite(vendorId)) {
+        fields.vendor_id = vendorId
+      }
+    }
+
+    if (replaceTags) {
+      fields.tags = batchTags.join(',')
+    }
+
+    handleBatchUpdateModelFields(selectedModels, fields, queryClient, () => {
+      setShowBatchEdit(false)
       handleClearSelection()
     })
   }
@@ -114,6 +163,27 @@ export function DataTableBulkActions<TData>({
           </TooltipTrigger>
           <TooltipContent>
             <p>{t('Enable selected models')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={handleOpenBatchEdit}
+                className='size-8'
+                aria-label={t('Batch edit selected models')}
+                title={t('Batch edit selected models')}
+              />
+            }
+          >
+            <PencilLine />
+            <span className='sr-only'>{t('Batch edit selected models')}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t('Batch edit selected models')}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -206,6 +276,75 @@ export function DataTableBulkActions<TData>({
         }
       >
         {' '}
+      </Dialog>
+
+      <Dialog
+        open={showBatchEdit}
+        onOpenChange={setShowBatchEdit}
+        title={t('Batch edit selected models')}
+        description={t('Apply provider or tag changes to {{count}} model(s).', {
+          count: selectedIds.length,
+        })}
+        contentHeight='auto'
+        footer={
+          <>
+            <Button variant='outline' onClick={() => setShowBatchEdit(false)}>
+              {t('Cancel')}
+            </Button>
+            <Button onClick={handleApplyBatchEdit}>
+              {t('Apply to selected models')}
+            </Button>
+          </>
+        }
+      >
+        <div className='space-y-5'>
+          <div className='space-y-2'>
+            <Label>{t('Provider')}</Label>
+            <Select<string>
+              value={selectedVendorId}
+              onValueChange={(value) =>
+                setSelectedVendorId(value || BULK_VENDOR_UNCHANGED)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('Do not change provider')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value={BULK_VENDOR_UNCHANGED}>
+                    {t('Do not change provider')}
+                  </SelectItem>
+                  {vendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={String(vendor.id)}>
+                      {vendor.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='space-y-3'>
+            <label className='flex items-center gap-2 text-sm font-medium'>
+              <Checkbox
+                checked={replaceTags}
+                onCheckedChange={(checked) => setReplaceTags(Boolean(checked))}
+              />
+              {t('Replace tags for selected models')}
+            </label>
+            <TagInput
+              value={batchTags}
+              onChange={setBatchTags}
+              disabled={!replaceTags}
+              placeholder={t('Add tags...')}
+            />
+            <p className='text-muted-foreground text-xs'>
+              {t(
+                'When enabled, the selected models will use exactly these tags. Leave empty to clear tags.'
+              )}
+            </p>
+          </div>
+        </div>
       </Dialog>
     </>
   )

@@ -103,8 +103,8 @@ insert into options (key, value) values
   ('SystemName', 'Matrix API'),
   ('general_setting.system_name', 'Matrix API'),
   ('ServerAddress', 'https://matrixapi.online'),
-  ('Logo', '/matrix-assets/matrixapi-logo.png?v=2026071212'),
-  ('general_setting.logo', '/matrix-assets/matrixapi-logo.png?v=2026071212'),
+  ('Logo', '/matrix-assets/matrixapi-logo.png?v=2026071419'),
+  ('general_setting.logo', '/matrix-assets/matrixapi-logo.png?v=2026071419'),
   ('DocsLink', '/docs'),
   ('About', '## 鍏充簬 MatrixAPI
 

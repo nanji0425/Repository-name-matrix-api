@@ -106,11 +106,11 @@ a {
 }
 
 .brand img {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
   object-fit: cover;
-  background: rgba(255, 255, 255, 0.72);
+  background: transparent;
   box-shadow: 0 10px 24px rgba(23, 32, 51, 0.14);
 }
 
@@ -1062,8 +1062,8 @@ pre {
 }
 
 .catalog-shell.nav .brand img {
-  width: 32px;
-  height: 32px;
+  width: 46px;
+  height: 46px;
   box-shadow: none;
 }
 
@@ -1437,8 +1437,8 @@ pre {
 }
 
 .auth-gate-brand img {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
 }
 
@@ -1631,7 +1631,7 @@ body.matrix-dark-skin .site-nav {
 }
 
 body.matrix-dark-skin .brand img {
-  background: rgba(17, 24, 39, 0.92);
+  background: transparent;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
 }
 
@@ -1927,8 +1927,8 @@ body.matrix-dark-skin footer {
   }
 
   .brand img {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
   }
 
@@ -2013,8 +2013,8 @@ body.matrix-dark-skin footer {
   }
 
   .auth-gate-brand img {
-    width: 30px;
-    height: 30px;
+    width: 38px;
+    height: 38px;
   }
 
   .auth-gate-link {

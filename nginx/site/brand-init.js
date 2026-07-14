@@ -3,7 +3,7 @@
     name: 'Matrix API',
     origin: 'https://matrixapi.online',
     docs: '/docs',
-    logo: '/matrix-assets/matrixapi-logo.png?v=2026071213',
+    logo: '/matrix-assets/matrixapi-logo.png?v=2026071419',
     favicon: '/matrix-assets/matrixapi-favicon.png?v=2026071212',
   };
 

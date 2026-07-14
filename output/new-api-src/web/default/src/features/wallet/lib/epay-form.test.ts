@@ -118,6 +118,7 @@ test('opens a named payment tab before the async request and submits into it', (
               },
             },
           },
+          location: { href: '' },
           close: () => {
             if (openedWindow) openedWindow.closed = true
           },
