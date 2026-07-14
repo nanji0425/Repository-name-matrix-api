@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const baseUrl = (process.env.MATRIXAPI_URL || 'http://127.0.0.1').replace(/\/$/, '')
+const baseUrl = (process.env.MATRIXAPI_URL || 'http://127.0.0.1:3000').replace(/\/$/, '')
 const username = process.env.NEW_API_ADMIN_USERNAME || process.env.ADMIN_USERNAME
 const password = process.env.NEW_API_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD
 const upstreamKey = process.env.UPSTREAM_API_KEY || process.env.OPENAI_API_KEY

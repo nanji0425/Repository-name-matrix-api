@@ -116,7 +116,7 @@ Invoke-Expression "$compose up -d --remove-orphans new-api nginx"
 Write-Host "Waiting for New API..."
 for ($attempt = 1; $attempt -le 90; $attempt++) {
   try {
-    Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/status" -TimeoutSec 5 | Out-Null
+    Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:3000/api/status" -TimeoutSec 5 | Out-Null
     Write-Host "New API is ready."
     break
   } catch {
@@ -132,12 +132,12 @@ for ($attempt = 1; $attempt -le 90; $attempt++) {
 Invoke-Expression "$compose ps"
 
 Write-Host "Smoke checks:"
-Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/api/status" | Select-Object -ExpandProperty Content
-Invoke-WebRequest -UseBasicParsing "http://127.0.0.1/pricing" | Out-Null
+Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:3000/api/status" | Select-Object -ExpandProperty Content
+Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:3000/pricing" | Out-Null
 
 if ($envMap["NEW_API_ADMIN_USERNAME"] -and $envMap["NEW_API_ADMIN_PASSWORD"] -and $envMap["UPSTREAM_API_KEY"] -and $envMap["ZPAY_PID"] -and $envMap["ZPAY_KEY"]) {
   Write-Host "Running optional New API bootstrap..."
-  $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1" }
+  $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1:3000" }
   $env:NEW_API_ADMIN_USERNAME = $envMap["NEW_API_ADMIN_USERNAME"]
   $env:NEW_API_ADMIN_PASSWORD = $envMap["NEW_API_ADMIN_PASSWORD"]
   $env:UPSTREAM_BASE_URL = $envMap["UPSTREAM_BASE_URL"]
@@ -164,7 +164,7 @@ if ($envMap["NEW_API_ADMIN_USERNAME"]) {
   Write-Host "Ensuring configured admin account has administrator access..."
   $env:NEW_API_ADMIN_USERNAME = $envMap["NEW_API_ADMIN_USERNAME"]
   if ($envMap["NEW_API_ADMIN_PASSWORD"]) {
-    $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1" }
+    $env:MATRIXAPI_URL = if ($envMap["MATRIXAPI_URL"]) { $envMap["MATRIXAPI_URL"] } else { "http://127.0.0.1:3000" }
     $env:NEW_API_ADMIN_PASSWORD = $envMap["NEW_API_ADMIN_PASSWORD"]
     $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
     if ($nodeCommand) {

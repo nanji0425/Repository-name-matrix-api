@@ -104,7 +104,7 @@ $COMPOSE up -d --remove-orphans new-api nginx
 
 echo "Waiting for New API..."
 for attempt in $(seq 1 90); do
-  if curl -fsS http://127.0.0.1/api/status >/dev/null 2>&1; then
+  if curl -fsS http://127.0.0.1:3000/api/status >/dev/null 2>&1; then
     echo "New API is ready."
     break
   fi
@@ -122,21 +122,21 @@ echo "Service status:"
 $COMPOSE ps
 
 echo "Smoke checks:"
-curl -fsS http://127.0.0.1/api/status
+curl -fsS http://127.0.0.1:3000/api/status
 echo
-curl -fsS http://127.0.0.1/pricing >/dev/null
-curl -fsS http://127.0.0.1/console >/dev/null || true
+curl -fsS http://127.0.0.1:3000/pricing >/dev/null
+curl -fsS http://127.0.0.1:3000/console >/dev/null || true
 
 if [ -n "${NEW_API_ADMIN_USERNAME:-}" ] && [ -n "${NEW_API_ADMIN_PASSWORD:-}" ] && \
    [ -n "${UPSTREAM_API_KEY:-}" ] && [ -n "${ZPAY_PID:-}" ] && [ -n "${ZPAY_KEY:-}" ]; then
   echo "Running optional New API bootstrap..."
   if command -v node >/dev/null 2>&1; then
-    MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1}" node scripts/bootstrap-new-api.mjs || {
+    MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1:3000}" node scripts/bootstrap-new-api.mjs || {
       echo "API bootstrap failed; falling back to direct database bootstrap."
       bash scripts/bootstrap-new-api-db.sh
     }
   else
-    docker run --rm --network host --env-file .env -e MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1}" \
+    docker run --rm --network host --env-file .env -e MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1:3000}" \
       -v "$PWD/scripts:/scripts:ro" node:22-alpine node /scripts/bootstrap-new-api.mjs || {
         echo "API bootstrap failed; falling back to direct database bootstrap."
         bash scripts/bootstrap-new-api-db.sh
@@ -150,11 +150,11 @@ if [ -n "${NEW_API_ADMIN_USERNAME:-}" ]; then
   echo "Ensuring configured admin account has administrator access..."
   if [ -n "${NEW_API_ADMIN_PASSWORD:-}" ]; then
     if command -v node >/dev/null 2>&1; then
-      MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1}" node scripts/ensure-new-api-admin.mjs
+      MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1:3000}" node scripts/ensure-new-api-admin.mjs
     else
       docker run --rm --network host \
         -v "$PWD/scripts:/scripts:ro" \
-        -e MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1}" \
+        -e MATRIXAPI_URL="${MATRIXAPI_URL:-http://127.0.0.1:3000}" \
         -e NEW_API_ADMIN_USERNAME="$NEW_API_ADMIN_USERNAME" \
         -e NEW_API_ADMIN_PASSWORD="$NEW_API_ADMIN_PASSWORD" \
         node:22-alpine node /scripts/ensure-new-api-admin.mjs
