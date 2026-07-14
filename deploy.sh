@@ -40,30 +40,6 @@ require_min_length() {
   fi
 }
 
-backup_legacy_database() {
-  if docker ps --format '{{.Names}}' | grep -qx 'matrixapi-db'; then
-    if docker exec matrixapi-db psql -U matrixapi -d matrix_api -tAc 'select 1' >/dev/null 2>&1; then
-      :
-    else
-      echo "matrixapi-db is running, but the legacy matrix_api database is not present; skipping legacy DB backup."
-      return
-    fi
-
-    local backup_dir="${LEGACY_BACKUP_DIR:-/root/matrixapi-backups}"
-    local backup_file="$backup_dir/matrix_api_legacy_$(date +%Y%m%d%H%M%S).sql"
-
-    mkdir -p "$backup_dir"
-    echo "Backing up legacy MatrixAPI database to $backup_file..."
-    if docker exec matrixapi-db pg_dump -U matrixapi matrix_api > "$backup_file"; then
-      echo "Legacy database backup created."
-    else
-      rm -f "$backup_file"
-      echo "Legacy database backup failed. Stop here instead of risking a migration without a fallback."
-      exit 1
-    fi
-  fi
-}
-
 for name in DB_PASSWORD REDIS_PASSWORD SESSION_SECRET CRYPTO_SECRET; do
   reject_placeholder "$name"
 done
@@ -94,13 +70,14 @@ else
   echo "After issuing certificates, rerun this script to enable port 443."
 fi
 
-backup_legacy_database
+echo "Pulling dependency images..."
+$COMPOSE pull postgres redis nginx
 
-echo "Pulling images and starting services..."
-$COMPOSE pull
+echo "Building the MatrixAPI new-api image..."
+$COMPOSE build new-api
 
-echo "Stopping legacy containers if they exist..."
-docker rm -f matrixapi-backend matrixapi-frontend matrixapi-nginx matrixapi-db matrixapi-redis >/dev/null 2>&1 || true
+echo "Replacing existing MatrixAPI containers if they exist..."
+docker rm -f matrixapi-new-api matrixapi-nginx matrixapi-db matrixapi-redis >/dev/null 2>&1 || true
 
 $COMPOSE up -d postgres redis
 
@@ -189,6 +166,6 @@ fi
 echo ""
 echo "MatrixAPI New API deployment complete."
 echo "Site: https://matrixapi.online"
-echo "Console: https://matrixapi.online/console"
+echo "Console: https://matrixapi.online/dashboard/overview"
 echo "Pricing: https://matrixapi.online/pricing"
 echo "OpenAI-compatible API: https://matrixapi.online/v1"

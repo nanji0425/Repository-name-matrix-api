@@ -24,30 +24,6 @@ function Require-MinLength($Name, $Min) {
   }
 }
 
-function Backup-LegacyDatabase {
-  $containerNames = docker ps --format "{{.Names}}"
-  if ($containerNames -contains "matrixapi-db") {
-    docker exec matrixapi-db psql -U matrixapi -d matrix_api -tAc "select 1" *> $null
-    if ($LASTEXITCODE -ne 0) {
-      Write-Host "matrixapi-db is running, but the legacy matrix_api database is not present; skipping legacy DB backup."
-      return
-    }
-
-    $backupDir = if ($envMap["LEGACY_BACKUP_DIR"]) { $envMap["LEGACY_BACKUP_DIR"] } else { "/root/matrixapi-backups" }
-    $stamp = Get-Date -Format "yyyyMMddHHmmss"
-    $backupFile = "$backupDir/matrix_api_legacy_$stamp.sql"
-
-    New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-    Write-Host "Backing up legacy MatrixAPI database to $backupFile..."
-    cmd /c "docker exec matrixapi-db pg_dump -U matrixapi matrix_api > `"$backupFile`""
-    if ($LASTEXITCODE -ne 0) {
-      Remove-Item $backupFile -Force -ErrorAction SilentlyContinue
-      throw "Legacy database backup failed. Stop here instead of risking a migration without a fallback."
-    }
-    Write-Host "Legacy database backup created."
-  }
-}
-
 if (-not (Test-Path ".env")) {
   throw ".env is missing. Copy .env.production.example to .env on the server and fill real secrets."
 }
@@ -95,13 +71,14 @@ if ((Test-Path "/etc/letsencrypt/live/matrixapi.online/fullchain.pem") -and (Tes
   Write-Host "After issuing certificates, rerun this script to enable port 443."
 }
 
-Backup-LegacyDatabase
+Write-Host "Pulling dependency images..."
+Invoke-Expression "$compose pull postgres redis nginx"
 
-Write-Host "Pulling images and starting dependencies..."
-Invoke-Expression "$compose pull"
+Write-Host "Building the MatrixAPI new-api image..."
+Invoke-Expression "$compose build new-api"
 
-Write-Host "Stopping legacy containers if they exist..."
-docker rm -f matrixapi-backend matrixapi-frontend matrixapi-nginx matrixapi-db matrixapi-redis *> $null
+Write-Host "Replacing existing MatrixAPI containers if they exist..."
+docker rm -f matrixapi-new-api matrixapi-nginx matrixapi-db matrixapi-redis *> $null
 
 Invoke-Expression "$compose up -d postgres redis"
 
@@ -172,6 +149,7 @@ if ($envMap["NEW_API_ADMIN_USERNAME"] -and $envMap["NEW_API_ADMIN_PASSWORD"] -an
   $env:NEW_API_TOPUP_GROUP_RATIO = $envMap["NEW_API_TOPUP_GROUP_RATIO"]
   $env:NEW_API_DEFAULT_MODELS = $envMap["NEW_API_DEFAULT_MODELS"]
   $env:NEW_API_MIN_TOPUP = $envMap["NEW_API_MIN_TOPUP"]
+  $env:NEW_API_QUOTA_FOR_NEW_USER = $envMap["NEW_API_QUOTA_FOR_NEW_USER"]
   $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
   if ($nodeCommand) {
     node scripts/bootstrap-new-api.mjs
@@ -206,6 +184,6 @@ if ($envMap["NEW_API_ADMIN_USERNAME"]) {
 Write-Host ""
 Write-Host "MatrixAPI New API deployment complete."
 Write-Host "Site: https://matrixapi.online"
-Write-Host "Console: https://matrixapi.online/console"
+Write-Host "Console: https://matrixapi.online/dashboard/overview"
 Write-Host "Pricing: https://matrixapi.online/pricing"
 Write-Host "OpenAI-compatible API: https://matrixapi.online/v1"
