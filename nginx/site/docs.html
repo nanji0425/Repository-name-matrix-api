@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#faf9ff" />
-    <title>MatrixAPI integration docs</title>
-    <meta name="description" content="MatrixAPI OpenAI-compatible gateway setup, billing, endpoints, and client guides." />
+    <title>Matrix API 文档中心</title>
+    <meta name="description" content="Matrix API 快速开始、OpenAI 兼容接口、客户端配置、模型价格、充值余额和常见问题。" />
     <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png?v=2026071421" />
     <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png?v=2026071421" />
     <link rel="manifest" href="/site.webmanifest?v=2026071421" />
@@ -55,48 +55,46 @@
   </head>
   <body>
     <header class="shell nav doc-nav doc-shell">
-      <a class="brand" href="/" aria-label="MatrixAPI home"><img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="MatrixAPI" /><span><strong>MatrixAPI</strong><small style="display:block;color:#9a8fa1;font-size:10px;font-weight:600">Integration docs</small></span></a>
-      <nav class="nav-links" aria-label="Main navigation">
-        <a href="/">Home</a><a href="/console">Console</a><a href="/pricing">Model Plaza</a><a href="/rankings">Rankings</a><a href="/docs" aria-current="page">Docs</a>
+      <a class="brand" href="/" aria-label="Matrix API 首页"><img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" /><span><strong>Matrix API</strong><small style="display:block;color:#9a8fa1;font-size:10px;font-weight:600">文档中心</small></span></a>
+      <nav class="nav-links" aria-label="主导航">
+        <a href="/">主页</a><a href="/console">控制台</a><a href="/pricing">模型广场</a><a href="/rankings">排行榜</a><a href="/docs" aria-current="page">教程文档</a>
       </nav>
-      <div class="nav-actions"><a class="button" href="/sign-in">Sign in</a><a class="button primary" href="/sign-up">Register</a></div>
+      <div class="nav-actions"><a class="button" href="/sign-in">登录</a><a class="button primary" href="/sign-up">注册</a></div>
     </header>
     <main class="doc-shell doc-layout">
-      <aside class="rail doc-side" aria-label="Docs sections">
-        <div class="doc-mascot"><img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="MatrixAPI" /></div>
-        <strong>MatrixAPI Docs</strong>
-        <p>One OpenAI-compatible gateway for account setup, balance, tokens, models, and client integrations.</p>
-        <div data-doc-nav role="navigation" aria-label="Docs sections">
-          <a href="#purchase-flow"><b>01</b>Purchase flow</a><a href="#overview"><b>02</b>Overview</a><a href="#quick-start"><b>03</b>Quick start</a><a href="#nodejs"><b>04</b>Node.js</a><a href="#endpoints"><b>05</b>Endpoints</a><a href="#clients"><b>06</b>Client setup</a><a href="#cc-switch"><b>07</b>CC Switch</a><a href="#codex-plus-plus"><b>08</b>Codex++</a><a href="#codex"><b>09</b>Codex</a><a href="#claude"><b>10</b>Claude</a><a href="#vscode"><b>11</b>VS Code</a><a href="#billing"><b>12</b>Billing and top-up</a><a href="#errors"><b>13</b>Errors</a>
+      <aside class="rail doc-side" aria-label="文档栏目">
+        <div class="doc-mascot"><img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" /></div>
+        <strong>Matrix API 文档</strong>
+        <p>从注册、充值、创建 API Key，到客户端配置、模型价格和问题排查，一页完成接入。</p>
+        <div data-doc-nav role="navigation" aria-label="文档栏目">
+          <a href="#quick-start"><b>01</b>快速开始</a><a href="#api"><b>02</b>API 接入</a><a href="#clients"><b>03</b>客户端配置</a><a href="#models"><b>04</b>模型与价格</a><a href="#wallet"><b>05</b>充值与余额</a><a href="#logs"><b>06</b>使用日志</a><a href="#faq"><b>07</b>常见问题</a><a href="#security"><b>08</b>账户安全</a><a href="#support"><b>09</b>联系支持</a>
         </div>
       </aside>
       <section class="content doc-content">
         <article class="doc-hero">
-          <div class="doc-kicker">OpenAI compatible gateway</div>
-          <h1>MatrixAPI integration docs</h1>
-          <p>Use Matrix API (MatrixAPI) as a single OpenAI-compatible endpoint for chat, model listing, image generation, token management, usage logs, and balance top-up. These docs describe MatrixAPI only.</p>
-          <div class="doc-actions"><a class="button primary" href="/console/token">Create token</a><a class="button" href="#quick-start">Quick start</a><span class="doc-pill">Base URL: https://matrixapi.online/v1</span></div>
-          <div class="doc-pills"><span class="doc-pill">Windows / macOS / Linux</span><span class="doc-pill">OpenAI-compatible</span><span class="doc-pill">Alipay top-up</span></div>
-        </article>
-        <article id="purchase-flow" class="doc-card">
-          <div class="doc-kicker">01 / Purchase flow</div><h2>Purchase flow</h2><p>Register, add balance, and create a token before the first API request.</p>
-          <div class="doc-step-list">
-            <div class="doc-step"><b>01</b><strong>Create an account</strong><span>Register with a username and password, then sign in to the MatrixAPI console.</span><div class="doc-actions"><a class="button" href="/sign-up">Register</a></div></div>
-            <div class="doc-step"><b>02</b><strong>Top up balance</strong><span>Open Wallet, choose an amount, and complete the Alipay checkout. The balance is credited after the callback.</span><div class="doc-actions"><a class="button" href="/wallet">Open wallet</a></div></div>
-            <div class="doc-step"><b>03</b><strong>Create a token</strong><span>Create a dedicated API token and store it in your client secret manager.</span><div class="doc-actions"><a class="button" href="/console/token">Create token</a></div></div>
-          </div>
-        </article>
-        <article id="overview" class="doc-card">
-          <div class="doc-kicker">02 / Overview</div><h2>Overview</h2><p>MatrixAPI routes compatible requests to the models enabled for your account and records usage against the selected token.</p>
-          <div class="doc-note">Use the model name shown in the MatrixAPI model plaza. Token permissions, balance, and provider availability are checked before a request is forwarded.</div>
+          <div class="doc-kicker">官方使用手册</div>
+          <h1>3 分钟接入 Matrix API</h1>
+          <p>Matrix API 提供 OpenAI 兼容接口。你只需要创建 API Key，把 Base URL 设置为 <code>https://matrixapi.online/v1</code>，即可在常见客户端、SDK 或自己的应用中调用模型。</p>
+          <div class="doc-actions"><a class="button primary" href="/console/token">创建 API Key</a><a class="button" href="/wallet">充值余额</a><span class="doc-pill">Base URL: https://matrixapi.online/v1</span></div>
+          <div class="doc-pills"><span class="doc-pill">快速接入</span><span class="doc-pill">OpenAI 兼容</span><span class="doc-pill">中文教程</span><span class="doc-pill">消费可查</span></div>
         </article>
         <article id="quick-start" class="doc-card">
-          <div class="doc-kicker">03 / Quick start</div><h2>Quick start</h2><p>The shortest path to a successful request is: sign in, create a token, then send an OpenAI-compatible chat call.</p>
-          <div class="doc-card-grid"><div class="doc-feature"><strong>1. Sign in</strong><span>Open the MatrixAPI console and confirm that your wallet has a positive balance.</span></div><div class="doc-feature"><strong>2. Set the base URL</strong><span>Use <code>https://matrixapi.online/v1</code> in your SDK or client provider settings.</span></div><div class="doc-feature"><strong>3. Send a request</strong><span>Pass the token as a Bearer credential and use an enabled model identifier.</span></div></div>
+          <div class="doc-kicker">01 / 快速开始</div><h2>快速开始</h2><p>第一次使用建议按“注册账号 → 充值余额 → 创建 API Key → 发送测试请求”的顺序完成。</p>
+          <div class="doc-step-list">
+            <div class="doc-step"><b>01</b><strong>注册并登录</strong><span>使用账号密码注册 Matrix API，登录后进入控制台。</span><div class="doc-actions"><a class="button" href="/sign-up">立即注册</a></div></div>
+            <div class="doc-step"><b>02</b><strong>充值余额</strong><span>打开钱包页，选择充值金额并完成支付。支付成功后余额会自动入账。</span><div class="doc-actions"><a class="button" href="/wallet">打开钱包</a></div></div>
+            <div class="doc-step"><b>03</b><strong>创建 API Key</strong><span>在控制台创建专用 API Key，并妥善保存到客户端或服务端配置中。</span><div class="doc-actions"><a class="button" href="/console/token">创建 Key</a></div></div>
+          </div>
         </article>
-        <article id="nodejs" class="doc-card">
-          <div class="doc-kicker">04 / Node.js</div><h2>Node.js</h2><p>Install the official OpenAI package and point its base URL at MatrixAPI.</p>
-          <p><a class="button" href="https://nodejs.org/en/download">Download Node.js</a></p>
+        <article id="api" class="doc-card">
+          <div class="doc-kicker">02 / API 接入</div><h2>API 接入</h2><p>Matrix API 使用 OpenAI 兼容格式。大多数支持自定义 OpenAI Base URL 的 SDK 和工具，都可以直接填写下面的地址。</p>
+          <div class="endpoint"><span>https://matrixapi.online/v1</span><button class="button" type="button" data-copy="https://matrixapi.online/v1">复制</button></div>
+          <div class="doc-card-grid" style="margin-top:12px"><div class="doc-feature"><strong>GET /models</strong><span>查看当前 API Key 可用的模型列表。</span></div><div class="doc-feature"><strong>POST /chat/completions</strong><span>使用 OpenAI messages 格式发起对话请求。</span></div><div class="doc-feature"><strong>Authorization</strong><span>请求头填写 <code>Bearer YOUR_API_KEY</code>。</span></div></div>
+          <pre class="doc-code">curl https://matrixapi.online/v1/chat/completions \
+  -H "Authorization: Bearer $MATRIX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-5.4","messages":[{"role":"user","content":"你好，Matrix API"}]}'</pre>
+          <h2 style="margin-top:22px">Node.js 示例</h2>
           <pre class="doc-code">npm install openai
 
 import OpenAI from "openai";
@@ -108,69 +106,56 @@ const client = new OpenAI({
 
 const completion = await client.chat.completions.create({
   model: "gpt-5.4",
-  messages: [{ role: "user", content: "Hello from MatrixAPI" }],
+  messages: [{ role: "user", content: "你好，Matrix API" }],
 });
 
 console.log(completion.choices[0]?.message?.content);</pre>
         </article>
-        <article id="endpoints" class="doc-card">
-          <div class="doc-kicker">05 / Endpoints</div><h2>Endpoints</h2><p>Use the same MatrixAPI host for all OpenAI-compatible requests.</p>
-          <div class="endpoint"><span>https://matrixapi.online/v1</span><button class="button" type="button" data-copy="https://matrixapi.online/v1">Copy</button></div>
-          <div class="doc-card-grid" style="margin-top:12px"><div class="doc-feature"><strong>GET /models</strong><span>List models available to the current token.</span></div><div class="doc-feature"><strong>POST /chat/completions</strong><span>Send a chat completion with OpenAI message format.</span></div><div class="doc-feature"><strong>POST /images/generations</strong><span>Request an image when the selected model supports image generation.</span></div></div>
-          <pre class="doc-code">curl https://matrixapi.online/v1/chat/completions -H "Authorization: Bearer $MATRIX_API_KEY" -H "Content-Type: application/json" -d '{"model":"gpt-5.4","messages":[{"role":"user","content":"Hello MatrixAPI"}]}'</pre>
-        </article>
         <article id="clients" class="doc-card">
-          <div class="doc-kicker">06 / Client setup</div><h2>Client setup</h2><p>Every client below uses the same token and base URL. Keep the token private and rotate it from the console if it is exposed.</p>
-          <div class="doc-card-grid"><div class="doc-feature"><strong>Base URL</strong><span><code>https://matrixapi.online/v1</code></span></div><div class="doc-feature"><strong>Authentication</strong><span><code>Authorization: Bearer YOUR_TOKEN</code></span></div><div class="doc-feature"><strong>Model</strong><span>Choose an enabled model from <a href="/pricing">Model Plaza</a>.</span></div></div>
+          <div class="doc-kicker">03 / 客户端配置</div><h2>客户端配置</h2><p>所有客户端都使用同一套填写方式：服务商类型选择 OpenAI 兼容，Base URL 填 <code>https://matrixapi.online/v1</code>，API Key 填 Matrix API 控制台创建的 Key。</p>
+          <div class="doc-card-grid"><div class="doc-feature"><strong>Cherry Studio</strong><span>设置 → 模型服务 → 添加 OpenAI 兼容服务，填写 Base URL 与 API Key 后测试连接。</span></div><div class="doc-feature"><strong>Chatbox</strong><span>模型提供方选择自定义 OpenAI，填入接口地址和 API Key，再选择模型。</span></div><div class="doc-feature"><strong>LobeChat</strong><span>添加 OpenAI 兼容服务，接口地址使用 Matrix API Base URL。</span></div><div class="doc-feature"><strong>NextChat</strong><span>在自定义接口配置中填写 Base URL 和 API Key，模型名使用模型广场显示的名称。</span></div><div class="doc-feature"><strong>OpenCat / DeepChat</strong><span>选择 OpenAI 兼容或自定义服务商，完成后发送一句测试消息。</span></div><div class="doc-feature"><strong>Cursor / Continue</strong><span>在扩展配置里使用 OpenAI Compatible Provider，并把 Key 放在本地安全配置中。</span></div></div>
+          <div class="doc-note" style="margin-top:14px">如果客户端要求填写完整接口地址，请填写 <code>https://matrixapi.online/v1</code>；如果它会自动拼接 <code>/v1</code>，则按客户端说明填写。</div>
         </article>
-        <article id="cc-switch" class="doc-card">
-          <div class="doc-kicker">07 / CC Switch</div><h2>CC Switch</h2><p>Add MatrixAPI as an OpenAI-compatible provider in CC Switch.</p>
-          <div class="doc-step-list"><div class="doc-step"><b>01</b><strong>Open provider settings</strong><span>Create a new OpenAI-compatible provider profile.</span></div><div class="doc-step"><b>02</b><strong>Enter MatrixAPI values</strong><span>Base URL: <code>https://matrixapi.online/v1</code>. Paste your MatrixAPI token into the API key field.</span></div><div class="doc-step"><b>03</b><strong>Choose and test</strong><span>Select an enabled model and send a short test prompt before saving.</span></div></div>
+        <article id="models" class="doc-card">
+          <div class="doc-kicker">04 / 模型与价格</div><h2>模型与价格</h2><p>模型广场展示的价格为 Matrix API 当前对外价格。实际费用会根据所选模型、输入 Token、输出 Token、任务类型和计费单位自动计算。</p>
+          <div class="doc-card-grid"><div class="doc-feature"><strong>模型名称</strong><span>调用接口时请使用模型广场显示的完整模型名。</span></div><div class="doc-feature"><strong>输入 / 输出价格</strong><span>长上下文、推理、视觉等能力不同，费用也可能不同。</span></div><div class="doc-feature"><strong>如何核对</strong><span>每次请求的模型、Token 和消耗可在使用日志中查看。</span></div></div>
+          <div class="doc-actions"><a class="button" href="/pricing">查看模型广场</a></div>
         </article>
-        <article id="codex-plus-plus" class="doc-card">
-          <div class="doc-kicker">08 / Codex++</div><h2>Codex++</h2><p>Configure Codex++ with the OpenAI-compatible provider profile and MatrixAPI token.</p>
-          <pre class="doc-code">OPENAI_BASE_URL=https://matrixapi.online/v1
-OPENAI_API_KEY=YOUR_MATRIX_API_TOKEN
-OPENAI_MODEL=gpt-5.4</pre>
-          <div class="doc-note">If Codex++ offers a provider selector, choose OpenAI-compatible so the custom base URL is retained.</div>
+        <article id="wallet" class="doc-card">
+          <div class="doc-kicker">05 / 充值与余额</div><h2>充值与余额</h2><p>Matrix API 使用余额计费。当前在线充值支持支付宝，支付完成后系统会根据支付回调自动入账。</p>
+          <div class="doc-step-list"><div class="doc-step"><b>01</b><strong>打开钱包</strong><span>进入钱包页查看当前余额和可选充值金额。</span></div><div class="doc-step"><b>02</b><strong>确认付款</strong><span>点击确认付款后会打开支付页面，请在新页面完成支付。</span></div><div class="doc-step"><b>03</b><strong>检查到账</strong><span>支付成功后返回控制台查看余额；如未到账，请联系支持并提供订单时间。</span></div></div>
+          <div class="doc-actions"><a class="button primary" href="/wallet">打开钱包</a></div>
         </article>
-        <article id="codex" class="doc-card">
-          <div class="doc-kicker">09 / Codex</div><h2>Codex</h2><p>For Codex CLI or an OpenAI-compatible Codex integration, set the base URL and key in the client environment or provider settings.</p>
-          <pre class="doc-code">OPENAI_API_KEY=YOUR_MATRIX_API_TOKEN
-OPENAI_BASE_URL=https://matrixapi.online/v1
-codex</pre>
+        <article id="logs" class="doc-card">
+          <div class="doc-kicker">06 / 使用日志</div><h2>使用日志</h2><p>如果你想核对某次调用的费用或排查错误，请先查看控制台使用日志。</p>
+          <div class="doc-card-grid"><div class="doc-feature"><strong>时间与状态</strong><span>确认请求发生时间、是否成功、是否超时或被拒绝。</span></div><div class="doc-feature"><strong>模型与 Token</strong><span>查看模型名、输入 Token、输出 Token 和请求类型。</span></div><div class="doc-feature"><strong>消耗金额</strong><span>每次请求的实际消耗会记录在日志中，便于核对余额变化。</span></div></div>
+          <div class="doc-actions"><a class="button" href="/usage-logs/common">查看使用日志</a></div>
         </article>
-        <article id="claude" class="doc-card">
-          <div class="doc-kicker">10 / Claude</div><h2>Claude</h2><p>Use the OpenAI-compatible mode in a Claude client that supports custom providers. Set MatrixAPI as the provider base URL and select a model visible in Model Plaza.</p>
-          <div class="doc-note">Do not mix an Anthropic-native endpoint with the MatrixAPI OpenAI-compatible path. The supported MatrixAPI route is <code>https://matrixapi.online/v1</code>.</div>
+        <article id="faq" class="doc-card">
+          <div class="doc-kicker">07 / 常见问题</div><h2>常见问题</h2>
+          <div class="doc-card-grid"><div class="doc-feature"><strong>401 / 403</strong><span>检查 API Key 是否正确、是否启用，复制时不要带空格或引号。</span></div><div class="doc-feature"><strong>余额不足</strong><span>请先充值余额，再重新发起请求。</span></div><div class="doc-feature"><strong>模型不存在</strong><span>使用模型广场或 <code>GET /models</code> 返回的完整模型名。</span></div><div class="doc-feature"><strong>请求超时</strong><span>检查网络、客户端超时设置和模型响应时间，必要时稍后重试。</span></div><div class="doc-feature"><strong>参数错误</strong><span>确认 JSON 格式、message role、endpoint 路径和模型能力是否匹配。</span></div><div class="doc-feature"><strong>支付未到账</strong><span>保留支付时间和订单信息，联系 Matrix API 支持核对。</span></div></div>
         </article>
-        <article id="vscode" class="doc-card">
-          <div class="doc-kicker">11 / VS Code</div><h2>VS Code</h2><p>For a VS Code extension that supports custom OpenAI providers, add a provider with the MatrixAPI base URL and token.</p>
-          <div class="doc-card-grid"><div class="doc-feature"><strong>Provider type</strong><span>OpenAI-compatible / custom endpoint.</span></div><div class="doc-feature"><strong>Endpoint</strong><span><code>https://matrixapi.online/v1</code></span></div><div class="doc-feature"><strong>Secret</strong><span>Use a MatrixAPI token; never commit it to workspace settings.</span></div></div>
+        <article id="security" class="doc-card">
+          <div class="doc-kicker">08 / 账户安全</div><h2>账户安全</h2><p>API Key 等同于调用凭证，请像密码一样保管。</p>
+          <div class="doc-card-grid"><div class="doc-feature"><strong>不要公开 Key</strong><span>不要把完整 API Key 发到截图、群聊、代码仓库或前端页面里。</span></div><div class="doc-feature"><strong>按用途创建</strong><span>不同客户端或项目建议使用不同 API Key，方便单独停用。</span></div><div class="doc-feature"><strong>泄露后处理</strong><span>立即停用或删除旧 Key，创建新 Key 并更新客户端配置。</span></div></div>
         </article>
-        <article id="billing" class="doc-card">
-          <div class="doc-kicker">12 / Billing</div><h2>Billing and top-up</h2><p>MatrixAPI uses balance-based billing. Online top-up currently exposes Alipay only; successful payment callbacks credit the wallet automatically.</p>
-          <div class="doc-note">Review current model pricing and token usage in the console. Keep enough balance for the request type and selected model.</div>
-          <div class="doc-actions"><a class="button primary" href="/wallet">Open wallet</a><a class="button" href="/pricing">View model plaza</a></div>
-        </article>
-        <article id="errors" class="doc-card">
-          <div class="doc-kicker">13 / Errors</div><h2>Errors and troubleshooting</h2>
-          <div class="doc-card-grid"><div class="doc-feature"><strong>401 / 403</strong><span>Check that the Bearer token is valid, enabled, and copied without surrounding quotes.</span></div><div class="doc-feature"><strong>402 / insufficient balance</strong><span>Open Wallet and top up before retrying the request.</span></div><div class="doc-feature"><strong>404 / model not found</strong><span>Use the exact model identifier returned by <code>GET /models</code>.</span></div><div class="doc-feature"><strong>429 / rate limit</strong><span>Slow retries and respect the limits shown for your account or provider.</span></div><div class="doc-feature"><strong>400 / invalid request</strong><span>Validate JSON, message roles, and the endpoint path after <code>/v1</code>.</span></div><div class="doc-feature"><strong>Timeout</strong><span>Confirm the client uses HTTPS and the <code>/v1</code> base URL, then retry once.</span></div></div>
-          <div class="doc-note" style="margin-top:14px">When contacting MatrixAPI support, include the route, timestamp, status code, and a masked token prefix. Never send the full token or payment credentials.</div>
+        <article id="support" class="doc-card">
+          <div class="doc-kicker">09 / 联系支持</div><h2>联系支持</h2><p>联系 Matrix API 支持时，请提供问题发生时间、页面路径、请求状态码、模型名和订单时间；不要发送完整 API Key 或支付密码。</p>
+          <div class="doc-note">支持邮箱：<a href="mailto:3315419516@qq.com">3315419516@qq.com</a></div>
         </article>
       </section>
-      <aside class="doc-toc" aria-label="Current docs section">
-        <strong>On this page</strong>
-        <div data-doc-nav role="navigation" aria-label="Current docs section"><a href="#purchase-flow">Purchase flow</a><a href="#overview">Overview</a><a href="#quick-start">Quick start</a><a href="#nodejs">Node.js</a><a href="#endpoints">Endpoints</a><a href="#cc-switch">CC Switch</a><a href="#codex-plus-plus">Codex++</a><a href="#codex">Codex</a><a href="#claude">Claude</a><a href="#vscode">VS Code</a><a href="#errors">Errors</a></div>
+      <aside class="doc-toc" aria-label="当前页面目录">
+        <strong>本页目录</strong>
+        <div data-doc-nav role="navigation" aria-label="当前页面目录"><a href="#quick-start">快速开始</a><a href="#api">API 接入</a><a href="#clients">客户端配置</a><a href="#models">模型与价格</a><a href="#wallet">充值与余额</a><a href="#logs">使用日志</a><a href="#faq">常见问题</a><a href="#security">账户安全</a><a href="#support">联系支持</a></div>
       </aside>
     </main>
-    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <footer class="shell">Matrix API © 2026 | OpenAI 兼容接口 | 官方文档中心</footer>
     <script>
       document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
         const value = button.getAttribute('data-copy') || '';
-        try { await navigator.clipboard.writeText(value); button.textContent = 'Copied'; }
+        try { await navigator.clipboard.writeText(value); button.textContent = '已复制'; }
         catch { button.textContent = value; }
-        window.setTimeout(() => { button.textContent = 'Copy'; }, 1500);
+        window.setTimeout(() => { button.textContent = '复制'; }, 1500);
       }));
     </script>
   </body>

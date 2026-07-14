@@ -298,23 +298,104 @@ async function ensurePricing(cookie) {
     {
       id: 1,
       type: 'success',
-      content: 'MatrixAPI OpenAI-compatible API routes are available.',
+      content: 'Matrix API 接口已开放：请使用 https://matrixapi.online/v1 作为 OpenAI 兼容 Base URL。',
       publishDate: '2026-07-07T00:00:00+08:00',
       enabled: true,
     },
     {
       id: 2,
       type: 'warning',
-      content: 'Only Alipay top-up is currently enabled.',
+      content: '在线充值当前支持支付宝。支付完成后余额会根据支付结果自动入账。',
       publishDate: '2026-07-07T00:10:00+08:00',
       enabled: true,
     },
     {
       id: 3,
       type: 'ongoing',
-      content: 'MatrixAPI documentation is available on /docs and will continue to be expanded.',
+      content: '教程文档已上线：快速开始、客户端配置、模型价格、充值余额和常见问题均可在 /docs 查看。',
       publishDate: '2026-07-07T00:20:00+08:00',
       enabled: true,
+    },
+  ]))
+  await updateOption(cookie, 'console_setting.api_info_enabled', 'true')
+  await updateOption(cookie, 'console_setting.faq_enabled', 'true')
+  await updateOption(cookie, 'console_setting.api_info', JSON.stringify([
+    {
+      id: 1,
+      url: 'https://matrixapi.online/v1',
+      route: 'OpenAI 兼容接口',
+      description: '用于对话、模型列表、向量、图片和音频等兼容请求的统一入口。',
+      color: 'cyan',
+    },
+    {
+      id: 2,
+      url: 'https://matrixapi.online/docs',
+      route: '教程文档',
+      description: '查看快速开始、客户端配置、模型价格、充值余额和常见问题。',
+      color: 'purple',
+    },
+    {
+      id: 3,
+      url: 'mailto:3315419516@qq.com',
+      route: '联系支持',
+      description: '遇到账号、支付或接口问题时，请提供时间、路径、状态码和订单信息。',
+      color: 'green',
+    },
+    {
+      id: 4,
+      url: 'https://matrixapi.online/console/token',
+      route: 'API Key 管理',
+      description: '创建、复制、限制、停用和轮换你的 API Key。',
+      color: 'blue',
+    },
+    {
+      id: 5,
+      url: 'https://matrixapi.online/pricing',
+      route: '价格中心',
+      description: '查看 Matrix API 当前对外模型价格、上下文和能力标签。',
+      color: 'amber',
+    },
+  ]))
+  await updateOption(cookie, 'console_setting.faq', JSON.stringify([
+    {
+      id: 1,
+      question: '如何创建 API Key？',
+      answer: '进入控制台的 API Key 管理页面，点击创建，按需设置额度、模型权限和有效期，然后复制生成的 Key。请妥善保存，不要公开发送给他人。',
+    },
+    {
+      id: 2,
+      question: '如何在客户端里使用 Matrix API？',
+      answer: '选择 OpenAI 兼容或自定义服务商，Base URL 填写 https://matrixapi.online/v1，API Key 填写控制台创建的 Key，模型名使用模型广场显示的名称。',
+    },
+    {
+      id: 3,
+      question: '当前支持哪些充值方式？',
+      answer: '在线充值当前支持支付宝。支付完成后余额会根据支付结果自动入账；如长时间未到账，请联系支持并提供支付时间和订单信息。',
+    },
+    {
+      id: 4,
+      question: '模型价格如何计算？',
+      answer: '模型广场展示的价格为 Matrix API 当前对外价格。实际费用会根据所选模型、输入 Token、输出 Token、任务类型和计费单位自动计算。',
+    },
+    {
+      id: 5,
+      question: '在哪里查看使用日志？',
+      answer: '进入控制台的使用日志页面，可以查看每次请求的时间、模型、状态、Token 数量、消耗金额和 API Key 信息。',
+    },
+    {
+      id: 6,
+      question: '请求提示余额不足怎么办？',
+      answer: '请先进入钱包页充值余额，到账后重新发起请求。建议在批量调用前确认余额充足。',
+    },
+    {
+      id: 7,
+      question: '模型不存在或无法调用怎么办？',
+      answer: '请确认使用的是模型广场或 /v1/models 返回的完整模型名，并检查 API Key 是否允许调用该模型。',
+    },
+    {
+      id: 8,
+      question: '如何联系支持？',
+      answer: '请发送邮件到 3315419516@qq.com，并附上问题发生时间、页面路径、状态码、模型名或订单时间。不要发送完整 API Key 或支付密码。',
     },
   ]))
 }
