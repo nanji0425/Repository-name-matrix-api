@@ -29,6 +29,7 @@ export type TopNavLink = {
   disabled?: boolean
   requiresAuth?: boolean
   external?: boolean
+  native?: boolean
 }
 
 /**
@@ -93,7 +94,7 @@ export function useTopNavLinks(): TopNavLink[] {
 
   // Docs (always an internal MatrixAPI route)
   if (modules?.docs !== false) {
-    links.push({ title: t('Docs'), href: docsLink })
+    links.push({ title: t('Docs'), href: docsLink, native: true })
   }
 
   // About
