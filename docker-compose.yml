@@ -7,7 +7,7 @@ services:
   new-api:
     build:
       context: ./output/new-api-src
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prebuilt-dist
     image: matrixapi-new-api:v1.0.0-rc.18
     container_name: matrixapi-new-api
     restart: unless-stopped
