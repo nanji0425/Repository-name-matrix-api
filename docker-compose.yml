@@ -1,13 +1,14 @@
 # MatrixAPI - New API based production deployment
 # Server: 47.82.105.81
 #
-# The previous NestJS/Next.js stack is preserved in docker-compose.legacy.yml.
-
 version: '3.8'
 
 services:
   new-api:
-    image: calciumion/new-api:latest
+    build:
+      context: ./output/new-api-src
+      dockerfile: Dockerfile
+    image: matrixapi-new-api:v1.0.0-rc.18
     container_name: matrixapi-new-api
     restart: unless-stopped
     command: --log-dir /app/logs
