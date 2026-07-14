@@ -12,6 +12,7 @@ const brandInit = read('nginx/site/brand-init.js')
 const logoSvg = read('nginx/site/matrixapi-logo.svg')
 const versionedLogo = '/matrix-assets/matrixapi-logo.png?v=2026071419'
 const versionedFavicon = '/matrix-assets/matrixapi-favicon.png?v=2026071421'
+const versionedBrandInit = '/matrix-assets/brand-init.js?v=2026071421'
 const newApiDefaultIndex = read('output/new-api-src/web/default/index.html')
 const newApiClassicIndex = read('output/new-api-src/web/classic/index.html')
 const newApiDefaultDistIndex = read('output/new-api-src/web/default/dist/index.html')
@@ -63,6 +64,18 @@ for (const path of [
   const source = read(path)
   assert.doesNotMatch(source, /\bNew API\b/, `${path} must not expose the old brand name`)
   assert.ok(source.includes('Matrix API'), `${path} must expose the Matrix API brand`)
+}
+
+for (const path of [
+  'nginx/nginx.conf',
+  'nginx/conf.d/ssl.conf',
+  'nginx/ssl.conf.template',
+  'nginx/site/pricing.html',
+  'nginx/site/wallet.html',
+]) {
+  const source = read(path)
+  assert.doesNotMatch(source, /brand-init\.js\?v=2026071319/, `${path} must not serve a stale brand-init cache key`)
+  assert.ok(source.includes(versionedBrandInit), `${path} must serve the cache-busted brand-init script`)
 }
 
 assert.ok(brandInit.includes(`favicon: '${versionedFavicon}'`), 'brand injection must synchronize favicon with the white-background icon')
