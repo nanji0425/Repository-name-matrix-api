@@ -4,19 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#faf5fb" />
-    <title>MatrixAPI Model Plaza</title>
-    <meta name="description" content="MatrixAPI 模型广场，按供应商、分组、类型和计费方式浏览模型价格。" />
-    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
-    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <title>Matrix API Model Plaza</title>
+    <meta name="description" content="Matrix API 模型广场，按供应商、分组、类型和计费方式浏览模型价格。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png?v=2026071421" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png?v=2026071421" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
-    <script defer src="/matrix-assets/brand-init.js?v=2026070813"></script>
+    <script defer src="/matrix-assets/brand-init.js?v=2026071319"></script>
   </head>
   <body>
     <header class="catalog-shell nav is-app-shell">
-      <a class="brand" href="/" aria-label="MatrixAPI home">
-        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
-        <span>MatrixAPI算力中心</span>
+      <a class="brand" href="/" aria-label="Matrix API home">
+        <img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" />
+        <span>Matrix API算力中心</span>
       </a>
       <nav class="nav-links" aria-label="Main navigation">
         <a href="/">主页</a>
@@ -218,5 +218,78 @@
         </section>
       </div>
     </main>
+    <script>
+      (() => {
+        const input = document.querySelector('.catalog-search input');
+        const reset = document.querySelector('.filter-reset');
+        const count = document.querySelector('.catalog-toolbar strong');
+        const cards = [...document.querySelectorAll('.catalog-model')];
+        const pills = [...document.querySelectorAll('.filter-pill')];
+        let activeFilter = 'models';
+
+        const matchesFilter = (card) => {
+          const text = (card.innerText || '').toLowerCase();
+          switch (activeFilter) {
+            case 'claude': return /claude|anthropic/.test(text);
+            case 'openai': return /openai/.test(text);
+            case 'pro': return /×2|x2|pro/.test(text);
+            case 'long': return /压缩上下文|long context/.test(text);
+            case 'token': return /按量计费|token/.test(text);
+            case 'image': return /图片|image|请求/.test(text);
+            case 'chat': return /按量计费|chat/.test(text);
+            default: return true;
+          }
+        };
+
+        const render = () => {
+          const query = (input?.value || '').trim().toLowerCase();
+          let visible = 0;
+          cards.forEach((card) => {
+            const matches = matchesFilter(card) && (!query || (card.innerText || '').toLowerCase().includes(query));
+            card.hidden = !matches;
+            if (matches) visible += 1;
+          });
+          if (count) count.textContent = `${visible} 个模型`;
+        };
+
+        input?.addEventListener('input', render);
+        pills.forEach((pill) => {
+          pill.addEventListener('click', (event) => {
+            event.preventDefault();
+            activeFilter = (pill.getAttribute('href') || '#models').slice(1) || 'models';
+            pills.forEach((item) => item.removeAttribute('aria-current'));
+            pill.setAttribute('aria-current', 'true');
+            document.querySelector('#models')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            render();
+          });
+        });
+
+        reset?.addEventListener('click', () => {
+          activeFilter = 'models';
+          if (input) input.value = '';
+          pills.forEach((item) => item.removeAttribute('aria-current'));
+          pills.find((item) => item.getAttribute('href') === '#models')?.setAttribute('aria-current', 'true');
+          render();
+        });
+
+        cards.forEach((card) => {
+          const button = card.querySelector('.copy-button');
+          const model = card.querySelector('.model-title')?.textContent?.trim();
+          if (!button || !model) return;
+          button.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(model);
+              button.textContent = '✓';
+              window.setTimeout(() => { button.textContent = '□'; }, 1200);
+            } catch {
+              button.textContent = '复制失败';
+              window.setTimeout(() => { button.textContent = '□'; }, 1200);
+            }
+          });
+        });
+
+        render();
+      })();
+    </script>
   </body>
 </html>

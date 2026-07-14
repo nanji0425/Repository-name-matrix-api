@@ -4,18 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" />
-    <title>MatrixAPI Register</title>
-    <meta name="description" content="创建 MatrixAPI 账号并进入控制台。" />
-    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
-    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <title>Matrix API Register</title>
+    <meta name="description" content="创建 Matrix API 账号并进入控制台。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png?v=2026071421" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png?v=2026071421" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
   </head>
   <body class="auth-gate-page">
     <header>
-      <a class="auth-gate-brand" href="/" aria-label="MatrixAPI home">
-        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
-        <span>MatrixAPI算力中心</span>
+      <a class="auth-gate-brand" href="/" aria-label="Matrix API home">
+        <img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" />
+        <span>Matrix API算力中心</span>
       </a>
     </header>
     <a class="auth-gate-link" href="/sign-in">登录</a>
@@ -38,17 +38,6 @@
             确认密码
             <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" placeholder="再次输入密码" required />
           </label>
-          <label>
-            Email
-            <input name="email" type="email" autocomplete="email" placeholder="name@example.com" />
-          </label>
-          <label>
-            验证码
-            <div style="display:flex; gap:10px; align-items:center;">
-              <input name="verificationCode" type="text" autocomplete="one-time-code" placeholder="输入验证码" style="flex:1;" />
-              <button class="button" type="button" disabled>发送验证码</button>
-            </div>
-          </label>
           <label class="agreement-box">
             <input name="agree" type="checkbox" required />
             <span>我已阅读并同意 用户协议 和 隐私政策。</span>
@@ -68,7 +57,7 @@
       </section>
     </main>
 
-    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <footer class="shell">Matrix API (c) 2026 | OpenAI Compatible Gateway | Matrix API-owned gateway</footer>
 
     <script>
       const form = document.querySelector("[data-auth-form]");
@@ -90,10 +79,10 @@
         sessionStorage.removeItem("matrix-admin-login-redirected");
       }
 
-      async function doRegister(username, password, inviteCode, email, verificationCode) {
+      async function doRegister(username, password, inviteCode) {
         const payloads = [
-          { username, password, password2: password, inviteCode: inviteCode || undefined, email: email || undefined, verificationCode: verificationCode || undefined },
-          { username, password, confirmPassword: password, inviteCode: inviteCode || undefined, email: email || undefined, verificationCode: verificationCode || undefined },
+          { username, password, password2: password, inviteCode: inviteCode || undefined },
+          { username, password, confirmPassword: password, inviteCode: inviteCode || undefined },
         ];
         const paths = ["/api/user/register", "/api/user/register?turnstile="];
         let lastError = "注册失败。";
@@ -136,8 +125,6 @@
         const password = form.password.value;
         const confirmPassword = form.confirmPassword.value;
         const inviteCode = form.inviteCode.value.trim();
-        const email = form.email.value.trim();
-        const verificationCode = form.verificationCode.value.trim();
 
         if (!form.agree.checked) {
           setStatus("请先同意用户协议和隐私政策。", "error");
@@ -152,7 +139,7 @@
         button.disabled = true;
         setStatus("正在创建账号...");
         try {
-          await doRegister(username, password, inviteCode, email, verificationCode);
+          await doRegister(username, password, inviteCode);
           const user = await doLogin(username, password);
           saveSession(user);
           setStatus("注册成功，正在进入控制台...", "ok");

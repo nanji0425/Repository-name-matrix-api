@@ -3,14 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="baidu-site-verification" content="codeva-zfLalJhUJY" />
     <meta name="theme-color" content="#f6edf5" />
-    <title>MatrixAPI算力中心</title>
+    <title>Matrix API算力中心</title>
     <meta
       name="description"
-      content="MatrixAPI 算力中心，高性能 AI 模型 API 中转平台，支持 OpenAI 兼容接入、模型广场、充值与控制台管理。"
+      content="Matrix API 算力中心，高性能 AI 模型 API 中转平台，支持 OpenAI 兼容接入、模型广场、充值与控制台管理。"
     />
-    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
-    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png?v=2026071421" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png?v=2026071421" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
     <style>
@@ -62,10 +63,11 @@
       }
 
       .home-brand img {
-        width: 34px;
-        height: 34px;
+        width: 46px;
+        height: 46px;
         border-radius: 999px;
-        object-fit: cover;
+        object-fit: contain;
+        background: transparent;
       }
 
       .home-nav-links {
@@ -392,6 +394,14 @@
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 18px;
+      }
+
+      .home-section-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
       }
 
       .home-section-head h2 {
@@ -745,9 +755,9 @@
   </head>
   <body>
     <header class="shell nav home-nav">
-      <a class="brand home-brand" href="/" aria-current="page" aria-label="MatrixAPI home">
-        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
-        <span>MatrixAPI算力中心</span>
+      <a class="brand home-brand" href="/" aria-current="page" aria-label="Matrix API home">
+        <img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" />
+        <span>Matrix API算力中心</span>
       </a>
       <nav class="nav-links home-nav-links" aria-label="Main navigation">
         <a href="/" aria-current="page">主页</a>
@@ -793,7 +803,7 @@
           </div>
           <p class="home-kicker">全球智能调度 API 网关</p>
           <h1>
-            <span class="home-title-word">MatrixAPI</span>
+            <span class="home-title-word">Matrix API</span>
             <span class="home-title-accent">中转平台</span>
           </h1>
           <p>
@@ -1005,7 +1015,10 @@
             <p class="home-kicker">QUICKSTART</p>
             <h2>替换 API 入口，就能开始。</h2>
           </div>
-          <a class="mini-link" href="/console/token">打开令牌管理</a>
+          <div class="home-section-actions">
+            <a class="mini-link" href="/docs">打开接入文档</a>
+            <a class="mini-link" href="/console/token">打开令牌管理</a>
+          </div>
         </div>
         <div class="home-grid-2">
           <article class="home-doc-card">
@@ -1046,10 +1059,10 @@ curl "$OPENAI_BASE_URL/chat/completions" \
           </div>
         </div>
         <div class="home-grid-4">
-          <article class="home-feature-card"><strong>OpenAI 兼容</strong><p>常见 SDK、CLI 工具和自建应用可快速迁移，减少重新适配成本。</p></article>
-          <article class="home-feature-card"><strong>令牌管理</strong><p>按项目创建、查看和管理 API Key，便于团队协作和消耗隔离。</p></article>
-          <article class="home-feature-card"><strong>调用日志</strong><p>集中查看请求记录、消耗情况和异常定位，开发调试更容易追踪。</p></article>
-          <article class="home-feature-card"><strong>智能调度</strong><p>100+ 节点全球部署，cn2 线路智能调度，自动选择最优路线。</p></article>
+          <article class="home-feature-card"><strong>OpenAI 兼容</strong><p>常见 SDK、CLI 工具和自建应用可快速迁移，减少重新适配成本。</p><a class="home-card-link" href="/docs">查看接入文档</a></article>
+          <article class="home-feature-card"><strong>令牌管理</strong><p>按项目创建、查看和管理 API Key，便于团队协作和消耗隔离。</p><a class="home-card-link" href="/keys">管理 API 密钥</a></article>
+          <article class="home-feature-card"><strong>调用日志</strong><p>集中查看请求记录、消耗情况和异常定位，开发调试更容易追踪。</p><a class="home-card-link" href="/usage-logs/common">查看调用日志</a></article>
+          <article class="home-feature-card"><strong>智能调度</strong><p>100+ 节点全球部署，cn2 线路智能调度，自动选择最优路线。</p><a class="home-card-link" href="/pricing">浏览模型广场</a></article>
         </div>
       </section>
 
@@ -1110,7 +1123,7 @@ curl "$OPENAI_BASE_URL/chat/completions" \
       </section>
     </main>
 
-    <footer class="home-footer shell">MatrixAPI © 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <footer class="home-footer shell">Matrix API © 2026 | OpenAI Compatible Gateway | Matrix API-owned gateway</footer>
     <div class="home-toast" data-toast role="status" aria-live="polite"></div>
 
     <script>

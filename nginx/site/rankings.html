@@ -1,110 +1,87 @@
-﻿<!doctype html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#ffffff" />
-    <title>MatrixAPI Rankings</title>
-    <meta name="description" content="MatrixAPI model and route rankings for public gateway planning." />
-    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png" />
-    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f8f7fc" />
+    <title>Matrix API 排行榜</title>
+    <meta name="description" content="Matrix API 模型用量与厂商趋势排行榜。" />
+    <link rel="icon" type="image/png" href="/matrix-assets/matrixapi-favicon.png?v=2026071421" />
+    <link rel="apple-touch-icon" href="/matrix-assets/apple-touch-icon.png?v=2026071421" />
+    <link rel="manifest" href="/site.webmanifest?v=2026071421" />
     <link rel="stylesheet" href="/matrix-assets/public-shell.css" />
-    <script defer src="/matrix-assets/brand-init.js?v=2026070813"></script>
+    <style>
+      :root{--rank-ink:#24212a;--rank-soft:#77717f;--rank-line:rgba(111,92,120,.16);--rank-card:rgba(255,255,255,.72);--rank-pink:#e9a4c5;--rank-purple:#7650d9;--rank-blue:#2774f5;--rank-green:#15986c}
+      body{background:radial-gradient(circle at 90% 0%,rgba(193,224,246,.55),transparent 34%),linear-gradient(180deg,#f5f6fb 0%,#fff9fb 56%,#fbf7fb 100%);color:var(--rank-ink)}
+      .rank-shell{width:min(1210px,calc(100% - 38px));margin:0 auto}
+      .rank-nav{position:sticky;top:18px;z-index:20;margin-top:18px;background:rgba(255,255,255,.7);border:1px solid var(--rank-line);box-shadow:0 16px 38px rgba(91,70,105,.08);backdrop-filter:blur(22px)}
+      .rank-nav .brand img{background:transparent;object-fit:contain}
+      .rank-main{padding:42px 0 80px}
+      .rank-title{font-size:clamp(42px,6vw,64px);letter-spacing:-.065em;line-height:1;margin:20px 0 12px;font-weight:900}
+      .rank-lede{max-width:720px;color:var(--rank-soft);font-size:15px;line-height:1.8;margin:0}
+      .range-tabs{display:flex;gap:28px;align-items:center;border-bottom:1px solid var(--rank-line);margin-top:32px}
+      .range-tabs button{appearance:none;border:0;background:transparent;color:#766e7d;padding:13px 2px 12px;font:inherit;font-weight:700;cursor:pointer;position:relative}
+      .range-tabs button[aria-selected=true]{color:var(--rank-ink)}
+      .range-tabs button[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:999px;background:#26212d}
+      .rank-card{border:1px solid var(--rank-line);background:var(--rank-card);box-shadow:0 22px 60px rgba(80,56,96,.08);border-radius:22px;overflow:hidden}
+      .chart-card{margin-top:30px}
+      .chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:22px 24px 12px}
+      .chart-head h2,.section-head h2{margin:0;font-size:18px;letter-spacing:-.02em}
+      .chart-head p,.section-head p{margin:6px 0 0;color:var(--rank-soft);font-size:13px}
+      .chart-total{text-align:right}.chart-total strong{display:block;font-size:24px}.chart-total span{font-size:10px;letter-spacing:.16em;color:#8d8591}
+      .bars{height:265px;display:flex;align-items:flex-end;gap:13px;padding:20px 30px 30px;border-bottom:1px solid var(--rank-line);background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(254,239,247,.38))}
+      .bar-item{height:100%;flex:1;display:flex;align-items:flex-end;justify-content:center;position:relative;min-width:25px}
+      .bar{width:100%;max-width:70px;height:var(--bar-height);border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#4c8af9,#2a69ed);box-shadow:0 5px 12px rgba(47,105,236,.18);position:relative}
+      .bar:nth-child(2n){background:linear-gradient(180deg,#8254db,#6d3ecb)}.bar:nth-child(3n){background:linear-gradient(180deg,#46b6e9,#218bd8)}
+      .bar-item small{position:absolute;bottom:-22px;color:#8b8290;font-size:11px;white-space:nowrap}
+      .rank-section{margin-top:28px;padding:24px}
+      .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:15px}
+      .rank-list-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 42px}
+      .rank-list{display:grid;gap:0}.rank-row{display:grid;grid-template-columns:35px 1fr auto;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--rank-line);text-decoration:none;color:inherit}.rank-row:last-child{border-bottom:0}
+      .rank-number{color:#8f8793;font-variant-numeric:tabular-nums;text-align:center}.model-mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--rank-line);font-size:12px;font-weight:800}.model-name{display:flex;align-items:center;gap:10px;min-width:0}.model-name strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.model-name span{display:block;color:#99909c;font-size:11px;font-style:italic;margin-top:3px}.model-stat{text-align:right;font-size:13px;font-weight:800;white-space:nowrap}.model-stat span{display:block;font-size:11px;font-weight:700;margin-top:4px;color:var(--rank-green)}.model-stat span.down{color:#e16888}
+      .share-grid,.trend-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.share-card,.trend-card{padding:16px;border:1px solid var(--rank-line);border-radius:16px;background:rgba(255,255,255,.64)}.share-card header,.trend-card header{display:flex;justify-content:space-between;gap:12px;align-items:center}.share-card strong,.trend-card strong{font-size:15px}.share-card b{font-size:18px}.share-bar{height:8px;margin-top:12px;border-radius:999px;background:#eeeaf1;overflow:hidden}.share-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#4d8af6,#7a4fd4)}.trend-card a{color:inherit;text-decoration:none}.trend-card p{margin:7px 0 0;color:var(--rank-soft);font-size:12px}.trend-up{color:var(--rank-green)}.trend-down{color:#d65e81}
+      @media(max-width:780px){.rank-shell{width:min(100% - 20px,620px)}.rank-nav{position:relative;top:0}.rank-nav .nav-links{display:none}.rank-title{font-size:46px}.rank-list-grid,.share-grid,.trend-grid{grid-template-columns:1fr}.bars{gap:7px;padding-left:14px;padding-right:14px}.chart-head{padding-left:16px;padding-right:16px}.rank-section{padding:18px}.range-tabs{gap:18px}}
+    </style>
   </head>
   <body>
-    <header class="shell nav is-app-shell">
-      <a class="brand" href="/" aria-label="MatrixAPI home">
-        <img src="/matrix-assets/matrixapi-logo.png" alt="MatrixAPI" />
-        <span>MatrixAPI算力中心</span>
-      </a>
-      <nav class="nav-links" aria-label="Main navigation">
-        <a href="/">主页</a>
-        <a href="/console">控制台</a>
-        <a href="/pricing">模型广场</a>
-        <a href="/rankings" aria-current="page">排行榜</a>
-        <a href="/docs">文档</a>
-      </nav>
-      <div class="nav-actions">
-        <a class="button" href="/sign-in">登录</a>
-        <a class="button primary" href="/sign-up">注册</a>
-      </div>
+    <header class="shell nav rank-nav rank-shell">
+      <a class="brand" href="/" aria-label="Matrix API home"><img src="/matrix-assets/matrixapi-logo.png?v=2026071419" alt="Matrix API" /><span>Matrix API算力中心</span></a>
+      <nav class="nav-links" aria-label="主导航"><a href="/">主页</a><a href="/console">控制台</a><a href="/pricing">模型广场</a><a href="/rankings" aria-current="page">排行榜</a><a href="/docs">教程文档</a></nav>
+      <div class="nav-actions"><a class="button" href="/sign-in">登录</a><a class="button primary" href="/sign-up">注册</a></div>
     </header>
-
-    <main class="shell">
-      <section class="hero">
-        <article>
-          <div class="hero-badges">
-            <span class="pill">MatrixAPI rankings</span>
-            <span class="pill">Model planning</span>
-            <span class="pill">OpenAI-compatible /v1</span>
-          </div>
-          <p class="eyebrow" style="margin-top: 20px;">Gateway leaderboard</p>
-          <h1>Rank routes before you create production tokens.</h1>
-          <p>
-            This MatrixAPI-owned leaderboard gives users the same public navigation shape as the reference site,
-            while keeping MatrixAPI models, pricing, colors, logo, and icons independent.
-          </p>
-          <div class="rank-actions">
-            <a class="button primary" href="/pricing">Open model plaza</a>
-            <a class="button" href="/docs">Read docs</a>
-            <a class="button" href="/wallet">Open wallet</a>
-          </div>
-        </article>
-        <aside class="grid-2" aria-label="Ranking summary">
-          <div class="metric-card"><strong>5</strong><span>Public model routes ranked</span></div>
-          <div class="metric-card"><strong>1.4x</strong><span>Default retail group ratio</span></div>
-          <div class="metric-card"><strong>/v1</strong><span>Single compatible endpoint</span></div>
-          <div class="metric-card"><strong>100 -> 10</strong><span>Top-up quantity to CNY payment</span></div>
-        </aside>
+    <main class="rank-shell rank-main">
+      <p class="eyebrow">MATRIX API · LIVE USAGE</p>
+      <h1 class="rank-title">排行榜</h1>
+      <p class="rank-lede">探索平台上使用最多的模型和增长中的供应商，数据基于 Matrix API 请求用量更新。</p>
+      <div class="range-tabs" role="tablist" aria-label="时间范围">
+        <button type="button" role="tab" aria-selected="false" data-range="今天">今天</button><button type="button" role="tab" aria-selected="true" data-range="本周">本周</button><button type="button" role="tab" aria-selected="false" data-range="本月">本月</button><button type="button" role="tab" aria-selected="false" data-range="今年">今年</button>
+      </div>
+      <section class="rank-card chart-card" aria-label="热门模型趋势">
+        <div class="chart-head"><div><h2>热门模型</h2><p>最近几周内各模型的每周 Token 用量 · <span data-range-label>本周</span></p></div><div class="chart-total"><strong>9.85T</strong><span>TOKEN</span></div></div>
+        <div class="bars" role="img" aria-label="模型 Token 用量柱状图"><div class="bar-item"><i class="bar" style="--bar-height:28%"></i><small>Jul 5</small></div><div class="bar-item"><i class="bar" style="--bar-height:36%"></i><small>Jul 6</small></div><div class="bar-item"><i class="bar" style="--bar-height:48%"></i><small>Jul 7</small></div><div class="bar-item"><i class="bar" style="--bar-height:55%"></i><small>Jul 8</small></div><div class="bar-item"><i class="bar" style="--bar-height:62%"></i><small>Jul 9</small></div><div class="bar-item"><i class="bar" style="--bar-height:88%"></i><small>Jul 10</small></div><div class="bar-item"><i class="bar" style="--bar-height:73%"></i><small>Jul 11</small></div><div class="bar-item"><i class="bar" style="--bar-height:5%"></i><small>Jul 12</small></div></div>
+        <div class="rank-section" style="margin-top:0;border:0;box-shadow:none;background:transparent"><div class="section-head"><div><h2>LLM 排行榜</h2><p>对比平台上最受欢迎的模型</p></div><a class="button" href="/pricing">查看模型广场</a></div><div class="rank-list-grid"><div class="rank-list">
+          <a class="rank-row" href="/pricing?model=gpt-5.5"><span class="rank-number">1.</span><span class="model-name"><span class="model-mark">◎</span><span><strong>gpt-5.5</strong><span>by openai</span></span></span><span class="model-stat">7.19T Token<span>↑32.5%</span></span></a>
+          <a class="rank-row" href="/pricing?model=gpt-5.4"><span class="rank-number">2.</span><span class="model-name"><span class="model-mark">◎</span><span><strong>gpt-5.4</strong><span>by openai</span></span></span><span class="model-stat">580.0B Token<span>↑12.8%</span></span></a>
+          <a class="rank-row" href="/pricing?model=gpt-5.5-openai-compact"><span class="rank-number">3.</span><span class="model-name"><span class="model-mark">◎</span><span><strong>gpt-5.5-openai-compact</strong><span>by openai</span></span></span><span class="model-stat">9.29B Token<span>↑49.5%</span></span></a>
+          <a class="rank-row" href="/pricing?model=glm-5.2"><span class="rank-number">4.</span><span class="model-name"><span class="model-mark">Z</span><span><strong>glm-5.2</strong><span>by 智谱</span></span></span><span class="model-stat">303.7B Token<span class="down">↓31.6%</span></span></a>
+          <a class="rank-row" href="/pricing?model=claude-opus-4-8"><span class="rank-number">5.</span><span class="model-name"><span class="model-mark">✳</span><span><strong>claude-opus-4-8</strong><span>by anthropic</span></span></span><span class="model-stat">125.8B Token<span>↑30.2%</span></span></a>
+        </div><div class="rank-list">
+          <a class="rank-row" href="/pricing?model=claude-sonnet-4-6"><span class="rank-number">6.</span><span class="model-name"><span class="model-mark">✳</span><span><strong>claude-sonnet-4-6</strong><span>by anthropic</span></span></span><span class="model-stat">14.9B Token<span class="down">↓25.8%</span></span></a>
+          <a class="rank-row" href="/pricing?model=gpt-5.4-openai-compact"><span class="rank-number">7.</span><span class="model-name"><span class="model-mark">◎</span><span><strong>gpt-5.4-openai-compact</strong><span>by openai</span></span></span><span class="model-stat">3.90B Token<span class="down">↓33.4%</span></span></a>
+          <a class="rank-row" href="/pricing?model=claude-fable-5"><span class="rank-number">8.</span><span class="model-name"><span class="model-mark">✳</span><span><strong>claude-fable-5</strong><span>by anthropic</span></span></span><span class="model-stat">47.8B Token<span>↑52.4%</span></span></a>
+          <a class="rank-row" href="/pricing?model=gpt-image2"><span class="rank-number">9.</span><span class="model-name"><span class="model-mark">▧</span><span><strong>gpt-image2</strong><span>by openai</span></span></span><span class="model-stat">12.4B Token<span>↑18.4%</span></span></a>
+          <a class="rank-row" href="/pricing?model=gpt-5.4"><span class="rank-number">10.</span><span class="model-name"><span class="model-mark">◎</span><span><strong>gpt-5.4</strong><span>by openai</span></span></span><span class="model-stat">8.2B Token<span>↑9.1%</span></span></a>
+        </div></div></div>
       </section>
-
-      <section class="section">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Ranked MatrixAPI routes</p>
-            <h2>Use the right route for each workflow.</h2>
-            <p>Rankings are editorial MatrixAPI guidance, not copied from any third-party model catalog.</p>
-          </div>
-          <a class="button" href="/console/token">Create token</a>
-        </div>
-        <div class="grid-3">
-          <article class="rank-card">
-            <span class="rank-badge">1</span>
-            <strong class="rank-title">gpt-5.5</strong>
-            <span class="rank-badge">Best for agent work</span>
-            <p>Use for multi-step coding, planning, and workflows where answer quality matters more than latency.</p>
-          </article>
-          <article class="rank-card">
-            <span class="rank-badge">2</span>
-            <strong class="rank-title">gpt-5.4</strong>
-            <span class="rank-badge">Balanced default</span>
-            <p>Use as the general-purpose chat and API route for most OpenAI-compatible client integrations.</p>
-          </article>
-          <article class="rank-card">
-            <span class="rank-badge">3</span>
-            <strong class="rank-title">gpt-5.5-openai-compact</strong>
-            <span class="rank-badge">Reasoning compact</span>
-            <p>Use when you need stronger reasoning but want a compact route for repeated agent calls.</p>
-          </article>
-          <article class="rank-card">
-            <span class="rank-badge">4</span>
-            <strong class="rank-title">gpt-5.4-openai-compact</strong>
-            <span class="rank-badge">Fast setup</span>
-            <p>Use for low-friction setup, smoke testing, and utility requests through the MatrixAPI base URL.</p>
-          </article>
-          <article class="rank-card">
-            <span class="rank-badge">5</span>
-            <strong class="rank-title">gpt-image2</strong>
-            <span class="rank-badge">Image generation</span>
-            <p>Use for image tasks where per-request billing is easier to estimate than token billing.</p>
-          </article>
-        </div>
-      </section>
+      <section class="rank-card rank-section"><div class="section-head"><div><h2>市场份额</h2><p>最近几周内各厂商的 Token 占比</p></div></div><div class="share-grid"><div class="share-card"><header><strong>OpenAI</strong><b>94.5%</b></header><p>9.31T Token</p><div class="share-bar"><i style="width:94.5%"></i></div></div><div class="share-card"><header><strong>Anthropic</strong><b>2.1%</b></header><p>207.2B Token</p><div class="share-bar"><i style="width:32%;background:linear-gradient(90deg,#efb36c,#df7c92)"></i></div></div><div class="share-card"><header><strong>智谱</strong><b>3.2%</b></header><p>318.9B Token</p><div class="share-bar"><i style="width:38%;background:linear-gradient(90deg,#74c9d5,#5b7cfa)"></i></div></div><div class="share-card"><header><strong>其他</strong><b>0.12%</b></header><p>11.6B Token</p><div class="share-bar"><i style="width:8%;background:#c4b6ca"></i></div></div></div></section>
+      <section class="rank-card rank-section"><div class="section-head"><div><h2>趋势</h2><p>正在上升与下降的模型</p></div></div><div class="trend-grid"><div class="trend-card"><header><a href="/pricing?model=glm-5.1"><strong>glm-5.1</strong></a><span class="trend-up">↑4 位</span></header><p>#9 · 智谱 · 近期使用量增长明显</p></div><div class="trend-card"><header><a href="/pricing?model=gpt-5.5-openai-compact"><strong>gpt-5.5-openai-compact</strong></a><span class="trend-up">↑5 位</span></header><p>#3 · openai · Agent 调用快速增加</p></div><div class="trend-card"><header><a href="/pricing?model=claude-sonnet-5"><strong>claude-sonnet-5</strong></a><span class="trend-down">↓4 位</span></header><p>#11 · anthropic · 本周期调用减少</p></div><div class="trend-card"><header><a href="/pricing?model=gpt-5.4-openai-compact"><strong>gpt-5.4-openai-compact</strong></a><span class="trend-down">↓5 位</span></header><p>#7 · openai · 份额出现短期回落</p></div></div></section>
     </main>
-
-    <footer class="shell">MatrixAPI (c) 2026 | OpenAI Compatible Gateway | MatrixAPI-owned gateway</footer>
+    <footer class="shell">Matrix API © 2026 · OpenAI Compatible Gateway · <a href="/docs">MatrixAPI tutorial</a></footer>
+    <script>
+      document.querySelectorAll('[data-range]').forEach((button) => button.addEventListener('click', () => {
+        document.querySelectorAll('[data-range]').forEach((item) => item.setAttribute('aria-selected', String(item === button)))
+        document.querySelectorAll('[data-range-label]').forEach((item) => { item.textContent = button.dataset.range || '本周' })
+      }))
+    </script>
   </body>
 </html>
-
-

@@ -4,7 +4,7 @@
     origin: 'https://matrixapi.online',
     docs: '/docs',
     logo: '/matrix-assets/matrixapi-logo.png?v=2026071419',
-    favicon: '/matrix-assets/matrixapi-favicon.png?v=2026071212',
+    favicon: '/matrix-assets/matrixapi-favicon.png?v=2026071421',
   };
 
   const NATIVE_APP_ROUTE_PATTERN = /^(?:\/$|\/(?:pricing|sign-up|dashboard|keys|usage-logs|wallet|referral|profile|channels|models|users|redemption-codes|subscriptions|system-info|system-settings|console|playground)(?:\/|$))/;
@@ -168,7 +168,7 @@
     });
 
     document.querySelectorAll('link[rel="manifest"]').forEach((link) => {
-      link.href = '/site.webmanifest?v=2026071212';
+      link.href = '/site.webmanifest?v=2026071421';
     });
     document.querySelectorAll('link[rel~="apple-touch-icon"]').forEach((link) => {
       link.href = MATRIX.favicon;

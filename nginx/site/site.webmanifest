@@ -1,7 +1,7 @@
 {
-  "name": "MatrixAPI",
-  "short_name": "MatrixAPI",
-  "description": "OpenAI-compatible gateway for tokens, routing, billing, and MatrixAPI docs.",
+  "name": "Matrix API",
+  "short_name": "Matrix API",
+  "description": "OpenAI-compatible gateway for tokens, routing, billing, and Matrix API docs.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "theme_color": "#f5f7fb",
   "icons": [
     {
-      "src": "/matrix-assets/matrixapi-logo.png",
+      "src": "/matrix-assets/matrixapi-favicon.png?v=2026071421",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

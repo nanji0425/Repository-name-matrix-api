@@ -19,8 +19,9 @@ For commercial licensing, please contact support@quantumnous.com
 export function applyFaviconToDom(url: string) {
   if (typeof document === 'undefined' || !url) return
   try {
-    const faviconUrl = /matrixapi-logo(?:\.png|\.svg)(?:\?|$)/i.test(url)
-      ? '/matrix-assets/matrixapi-favicon.png?v=2026071212'
+    const faviconUrl =
+      /(?:matrixapi-logo(?:\.png|\.svg)|\/logo\.png)(?:\?|$)/i.test(url)
+        ? '/matrix-assets/matrixapi-favicon.png?v=2026071421'
       : url
     const next = new URL(faviconUrl, window.location.href).href
     const existing =

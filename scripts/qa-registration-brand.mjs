@@ -11,7 +11,11 @@ const bootstrap = read('scripts/bootstrap-new-api.mjs')
 const brandInit = read('nginx/site/brand-init.js')
 const logoSvg = read('nginx/site/matrixapi-logo.svg')
 const versionedLogo = '/matrix-assets/matrixapi-logo.png?v=2026071419'
-const versionedFavicon = '/matrix-assets/matrixapi-favicon.png?v=2026071212'
+const versionedFavicon = '/matrix-assets/matrixapi-favicon.png?v=2026071421'
+const newApiDefaultIndex = read('output/new-api-src/web/default/index.html')
+const newApiClassicIndex = read('output/new-api-src/web/classic/index.html')
+const newApiDefaultDistIndex = read('output/new-api-src/web/default/dist/index.html')
+const newApiClassicDistIndex = read('output/new-api-src/web/classic/dist/index.html')
 
 assert.ok(bootstrap.includes("JSON.stringify({ confirmed: true })"), 'bootstrap must confirm payment compliance with an explicit JSON body')
 assert.ok(bootstrap.includes("'GroupRatio', groupRatio") && bootstrap.includes("JSON.stringify({ default: 1 })"), 'default model group ratio must be 1.0')
@@ -62,6 +66,19 @@ for (const path of [
 }
 
 assert.ok(brandInit.includes(`favicon: '${versionedFavicon}'`), 'brand injection must synchronize favicon with the white-background icon')
+assert.ok(newApiDefaultIndex.includes(versionedFavicon), 'New API default shell must use the white-background favicon asset')
+assert.ok(newApiClassicIndex.includes(versionedFavicon), 'New API classic shell must use the white-background favicon asset')
+assert.doesNotMatch(newApiDefaultIndex, /rel=["']icon["'][^>]+href=["']\/logo\.png["']/, 'New API default shell must not use the transparent logo as favicon')
+assert.doesNotMatch(newApiClassicIndex, /rel=["']icon["'][^>]+href=["']\/logo\.png["']/, 'New API classic shell must not use the transparent logo as favicon')
+
+for (const [name, source] of Object.entries({
+  'New API default dist shell': newApiDefaultDistIndex,
+  'New API classic dist shell': newApiClassicDistIndex,
+})) {
+  assert.ok(source.includes(versionedFavicon), `${name} must use the cache-busted white-background favicon asset`)
+  assert.doesNotMatch(source, /rel=["']icon["'][^>]+href=["']\/logo\.png["']/, `${name} must not use the transparent logo as favicon`)
+  assert.doesNotMatch(source, /rel=["']icon["'][^>]+href=["']\/favicon\.ico["']/, `${name} must not use the unversioned favicon link`)
+}
 
 for (const path of [
   'nginx/site/index.html',
@@ -104,4 +121,21 @@ assert.equal(favicon.corner[1], 255, 'favicon corner must be white')
 assert.equal(favicon.corner[2], 255, 'favicon corner must be white')
 assert.equal(favicon.corner[3], 255, 'favicon corner must be opaque')
 
-console.log(JSON.stringify({ pass: true, alpha, favicon }))
+const appTabIcons = JSON.parse(execFileSync('python', ['-c', [
+  'import json, os',
+  'from PIL import Image',
+  `root=r'${root}'`,
+  "paths=['output/new-api-src/web/default/public/favicon.ico','output/new-api-src/web/default/dist/favicon.ico','output/new-api-src/web/classic/public/favicon.ico','output/new-api-src/web/classic/dist/favicon.ico']",
+  'out={}',
+  'for path in paths:',
+  '    full=os.path.join(root,path)',
+  '    im=Image.open(full).convert("RGBA")',
+  '    out[path]={"size":im.size,"corner":im.getpixel((0,0))}',
+  'print(json.dumps(out))',
+].join('\n')], { encoding: 'utf8' }))
+
+for (const [path, data] of Object.entries(appTabIcons)) {
+  assert.deepEqual(data.corner, [255, 255, 255, 255], `${path} must have an opaque white favicon background`)
+}
+
+console.log(JSON.stringify({ pass: true, alpha, favicon, appTabIcons }))
