@@ -30,6 +30,7 @@ import {
   getUpstreamChannels,
   updateSystemOption,
 } from '../api'
+import { useSystemOptions } from '../hooks/use-system-options'
 import type {
   DifferencesMap,
   RatioType,
@@ -164,6 +165,7 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
   const [resolutions, setResolutions] = useState<ResolutionsMap>({})
   const [conflictItems, setConflictItems] = useState<ConflictItem[]>([])
   const [confirmLoading, setConfirmLoading] = useState(false)
+  const { data: systemOptionsData } = useSystemOptions()
 
   const { data: channelsData } = useQuery({
     queryKey: ['upstream-channels'],
@@ -175,6 +177,26 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
   // data actually changes, instead of on every render (the `|| []` fallback
   // would otherwise produce a new array reference each render).
   const channels = useMemo(() => channelsData?.data ?? [], [channelsData?.data])
+
+  useEffect(() => {
+    const saved = systemOptionsData?.data?.find(
+      (option) => option.key === 'model_sync.selected_channels'
+    )?.value
+    if (!saved) return
+    try {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        setSelectedChannelIds(
+          parsed.filter(
+            (id): id is number =>
+              typeof id === 'number' && Number.isInteger(id)
+          )
+        )
+      }
+    } catch {
+      setSelectedChannelIds([])
+    }
+  }, [systemOptionsData?.data])
 
   useEffect(() => {
     if (channels.length === 0) return
@@ -260,7 +282,7 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
     setChannelDialogOpen(true)
   }
 
-  const handleConfirmChannelSelection = (selectedIds: number[]) => {
+  const handleConfirmChannelSelection = async (selectedIds: number[]) => {
     const selectedChannels = channels.filter((ch) =>
       selectedIds.includes(ch.id)
     )
@@ -278,7 +300,19 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
       markup_percent: ch.markup_percent || 0,
     }))
 
-    fetchMutation.mutate({ upstreams, timeout: 10 })
+    try {
+      const saveResponse = await updateSystemOption({
+        key: 'model_sync.selected_channels',
+        value: JSON.stringify(selectedIds),
+      })
+      if (!saveResponse.success) {
+        throw new Error(saveResponse.message || t('Failed to save selected channels'))
+      }
+      queryClient.invalidateQueries({ queryKey: ['system-options'] })
+      fetchMutation.mutate({ upstreams, timeout: 10 })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('Failed to save selected channels'))
+    }
   }
 
   const handleSelectValue = useCallback(

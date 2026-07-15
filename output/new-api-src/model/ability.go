@@ -30,13 +30,44 @@ type AbilityWithChannel struct {
 	ChannelType int `json:"channel_type"`
 }
 
+func parseSelectedChannelIDs(raw string) []int {
+	var ids []int
+	if raw == "" || common.Unmarshal([]byte(raw), &ids) != nil {
+		return nil
+	}
+
+	seen := make(map[int]struct{}, len(ids))
+	result := make([]int, 0, len(ids))
+	for _, id := range ids {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		result = append(result, id)
+	}
+	return result
+}
+
+func selectedChannelIDs() []int {
+	common.OptionMapRWMutex.RLock()
+	raw := common.OptionMap["model_sync.selected_channels"]
+	common.OptionMapRWMutex.RUnlock()
+	return parseSelectedChannelIDs(raw)
+}
+
 func GetAllEnableAbilityWithChannels() ([]AbilityWithChannel, error) {
-	var abilities []AbilityWithChannel
-	err := DB.Table("abilities").
+	query := DB.Table("abilities").
 		Select("abilities.*, channels.type as channel_type").
 		Joins("left join channels on abilities.channel_id = channels.id").
-		Where("abilities.enabled = ?", true).
-		Scan(&abilities).Error
+		Where("abilities.enabled = ?", true)
+	if ids := selectedChannelIDs(); len(ids) > 0 {
+		query = query.Where("abilities.channel_id IN ?", ids)
+	}
+	var abilities []AbilityWithChannel
+	err := query.Scan(&abilities).Error
 	return abilities, err
 }
 
@@ -51,14 +82,22 @@ func GetGroupEnabledModels(group string) []string {
 func GetEnabledModels() []string {
 	var models []string
 	// Find distinct models
-	DB.Table("abilities").Where("enabled = ?", true).Distinct("model").Pluck("model", &models)
+	query := DB.Table("abilities").Where("enabled = ?", true)
+	if ids := selectedChannelIDs(); len(ids) > 0 {
+		query = query.Where("channel_id IN ?", ids)
+	}
+	query.Distinct("model").Pluck("model", &models)
 	SortModelNames(models)
 	return models
 }
 
 func GetAllEnableAbilities() []Ability {
 	var abilities []Ability
-	DB.Find(&abilities, "enabled = ?", true)
+	query := DB.Where("enabled = ?", true)
+	if ids := selectedChannelIDs(); len(ids) > 0 {
+		query = query.Where("channel_id IN ?", ids)
+	}
+	query.Find(&abilities)
 	return abilities
 }
 
@@ -95,12 +134,18 @@ func getPriority(group string, model string, retry int) (int, error) {
 func getChannelQuery(group string, model string, retry int) (*gorm.DB, error) {
 	maxPrioritySubQuery := DB.Model(&Ability{}).Select("MAX(priority)").Where(commonGroupCol+" = ? and model = ? and enabled = ?", group, model, true)
 	channelQuery := DB.Where(commonGroupCol+" = ? and model = ? and enabled = ? and priority = (?)", group, model, true, maxPrioritySubQuery)
+	if ids := selectedChannelIDs(); len(ids) > 0 {
+		channelQuery = channelQuery.Where("channel_id IN ?", ids)
+	}
 	if retry != 0 {
 		priority, err := getPriority(group, model, retry)
 		if err != nil {
 			return nil, err
 		} else {
 			channelQuery = DB.Where(commonGroupCol+" = ? and model = ? and enabled = ? and priority = ?", group, model, true, priority)
+			if ids := selectedChannelIDs(); len(ids) > 0 {
+				channelQuery = channelQuery.Where("channel_id IN ?", ids)
+			}
 		}
 	}
 

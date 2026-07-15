@@ -56,9 +56,9 @@ export function useTopNavLinks(): TopNavLink[] {
     )
   }, [status])
 
-  // Documentation is always owned by MatrixAPI and stays in the same tab.
-  // Ignore legacy/external values from older deployments instead of opening
-  // an unrelated documentation host from the public navigation.
+  // Documentation is owned by the new frontend. Ignore legacy/external values
+  // from older deployments instead of opening an unrelated documentation host
+  // from the public navigation.
   const configuredDocsLink = status?.docs_link as string | undefined
   const docsLink = configuredDocsLink && /^\/docs(?:[/?#]|$)/.test(configuredDocsLink)
     ? configuredDocsLink
@@ -94,7 +94,7 @@ export function useTopNavLinks(): TopNavLink[] {
 
   // Docs (always an internal MatrixAPI route)
   if (modules?.docs !== false) {
-    links.push({ title: t('Docs'), href: docsLink, native: true })
+    links.push({ title: t('Docs'), href: docsLink })
   }
 
   // About

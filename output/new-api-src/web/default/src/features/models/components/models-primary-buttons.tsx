@@ -23,6 +23,7 @@ import {
   List,
   Building2,
   AlertCircle,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -63,6 +64,10 @@ export function ModelsPrimaryButtons() {
     setOpen('create-vendor') // Will be a separate vendors management dialog
   }
 
+  const handleUpstreamSync = () => {
+    setOpen('upstream-sync')
+  }
+
   return (
     <div className='flex items-center gap-2'>
       {/* Create Model */}
@@ -96,6 +101,13 @@ export function ModelsPrimaryButtons() {
             {t('Sync Upstream')}
             <DropdownMenuShortcut>
               <RefreshCw className='h-4 w-4' />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={handleUpstreamSync}>
+            {t('Upstream price sync')}
+            <DropdownMenuShortcut>
+              <SlidersHorizontal className='h-4 w-4' />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
 

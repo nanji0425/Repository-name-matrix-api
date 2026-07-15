@@ -9,7 +9,7 @@ MatrixAPI uses `QuantumNous/new-api` as the production gateway, console, token, 
 - OpenAI-compatible `/v1/*` gateway
 - Token management, token copy/import, token groups and model restrictions
 - Model marketplace, pricing filters, usage logs and task logs
-- Upstream channel routing through `https://api.bblabu.chat`
+- Upstream channel routing through `https://kukuai.fyi`
 - ZPay EPay-compatible payment with Alipay only
 - Default retail markup: upstream price times `1.4`
 
@@ -55,13 +55,13 @@ set +a
 node scripts/bootstrap-new-api.mjs
 ```
 
-The API bootstrap can create the first root account, configure ZPay Alipay, set the default group markup to `1.4`, and create the `bblabu-upstream` OpenAI-compatible channel. If New API rejects API-based admin option writes because of sensitive-action authorization, `deploy.sh` falls back to `scripts/bootstrap-new-api-db.sh`, which writes the same production options directly to the New API database.
+The API bootstrap can create the first root account, configure ZPay Alipay, set the default group markup to `1.4`, and create the `kukuai-upstream` OpenAI-compatible channel. If New API rejects API-based admin option writes because of sensitive-action authorization, `deploy.sh` falls back to `scripts/bootstrap-new-api-db.sh`, which writes the same production options directly to the New API database.
 
 ## Upstream Setup
 
 The upstream OpenAI-compatible channel should use:
 
-- Base URL: `https://api.bblabu.chat`
+- Base URL: `https://kukuai.fyi`
 - Key: upstream account API key
 - Group: `default`
 - Status: enabled

@@ -458,11 +458,11 @@ with openai_vendor as (
 ),
 matrix_models(model_name, description, tags, endpoints, status, sync_official, name_rule) as (
   values
-    ('gpt-5.5', 'kukuai upstream flagship chat model exposed through the MatrixAPI OpenAI-compatible gateway.', 'chat,reasoning,kukuai', '[1]', 1, 0, 0),
-    ('gpt-5.5-openai-compact', 'Compact gpt-5.5 variant for lower-latency OpenAI-compatible chat calls.', 'chat,compact,kukuai', '[1]', 1, 0, 0),
-    ('gpt-5.4', 'kukuai upstream general chat model exposed through the MatrixAPI OpenAI-compatible gateway.', 'chat,kukuai', '[1]', 1, 0, 0),
-    ('gpt-5.4-openai-compact', 'Compact gpt-5.4 variant for efficient OpenAI-compatible chat calls.', 'chat,compact,kukuai', '[1]', 1, 0, 0),
-    ('gpt-image2', 'kukuai upstream image generation model billed per request.', 'image,generation,kukuai', '[3]', 1, 0, 0)
+    ('gpt-5.5', '', 'chat,reasoning,kukuai', '[1]', 1, 0, 0),
+    ('gpt-5.5-openai-compact', '', 'chat,compact,kukuai', '[1]', 1, 0, 0),
+    ('gpt-5.4', '', 'chat,kukuai', '[1]', 1, 0, 0),
+    ('gpt-5.4-openai-compact', '', 'chat,compact,kukuai', '[1]', 1, 0, 0),
+    ('gpt-image2', '', 'image,generation,kukuai', '[3]', 1, 0, 0)
 )
 insert into models (
   model_name, description, icon, tags, vendor_id, endpoints, status,
@@ -482,7 +482,6 @@ select
   mm.name_rule
 from matrix_models mm
 on conflict (model_name, deleted_at) do update set
-  description = excluded.description,
   icon = excluded.icon,
   tags = excluded.tags,
   vendor_id = excluded.vendor_id,
@@ -517,7 +516,7 @@ insert into models (
 )
 select
   missing.model_name,
-  'Synced from the kukuai upstream catalog and available through the MatrixAPI OpenAI-compatible gateway.',
+  '',
   case
     when lower(missing.model_name) like 'gemini%' then 'Google'
     when lower(missing.model_name) like 'grok%' then 'xAI'

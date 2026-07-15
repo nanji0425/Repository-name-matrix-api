@@ -120,6 +120,7 @@ const report = {
   containers: [],
   compose: null,
   nginx: null,
+  docsFile: null,
   disk: [],
   database: null,
   redis: null,
@@ -211,7 +212,7 @@ const redisOutput = ssh(
 report.redis = { ping: redisOutput };
 if (redisOutput !== 'PONG') failures.push(`Redis ping failed: ${redisOutput}`);
 
-for (const path of ['/api/status', '/v1/models', '/robots.txt', '/site.webmanifest']) {
+for (const path of ['/api/status', '/v1/models', '/robots.txt', '/site.webmanifest', '/docs', '/docs/']) {
   const endpoint = await fetchJson(path);
   report.endpoints.push(endpoint);
   if (endpoint.status >= 500 || endpoint.status === 0) {
@@ -221,16 +222,34 @@ for (const path of ['/api/status', '/v1/models', '/robots.txt', '/site.webmanife
 
 const statusEndpoint = report.endpoints.find((item) => item.path === '/api/status');
 if (!statusEndpoint?.data?.success) failures.push('/api/status did not return success');
-if (statusEndpoint?.data?.docs_link !== '/docs') {
-  failures.push(`/api/status docs_link is not /docs: ${statusEndpoint?.data?.docs_link}`);
+const docsLink = statusEndpoint?.data?.docs_link;
+if (docsLink !== '/docs') {
+  failures.push(`/api/status docs_link is unexpected: ${docsLink}`);
 }
-if (statusEndpoint?.data?.logo !== '/matrix-assets/matrixapi-logo.png') {
+if (!/^\/matrix-assets\/matrixapi-logo\.png(?:\?v=\d+)?$/.test(statusEndpoint?.data?.logo || '')) {
   failures.push(`/api/status logo is not MatrixAPI asset: ${statusEndpoint?.data?.logo}`);
 }
 
 const modelsEndpoint = report.endpoints.find((item) => item.path === '/v1/models');
 if (![200, 401, 403].includes(modelsEndpoint?.status)) {
   failures.push(`/v1/models returned unexpected status ${modelsEndpoint?.status}`);
+}
+
+for (const path of ['/docs', '/docs/']) {
+  const endpoint = report.endpoints.find((item) => item.path === path);
+  if (endpoint?.status !== 200) failures.push(`${path} returned ${endpoint?.status}`);
+  if (!/text\/html/i.test(endpoint?.contentType || '')) {
+    failures.push(`${path} did not return HTML content`);
+  }
+  if (!/id="root"|\/static\/js\/index\./i.test(endpoint?.sample || '')) {
+    failures.push(`${path} did not return the SPA shell`);
+  }
+  if (/404|糟糕|页面未找到/i.test(endpoint?.sample || '')) {
+    failures.push(`${path} returned a not-found shell`);
+  }
+  if (/docx\.kkkliao\.cn/i.test(endpoint?.sample || '')) {
+    failures.push(`${path} still references the external documentation host`);
+  }
 }
 
 writeFileSync('output/runtime/qa-production-runtime-report.json', JSON.stringify(report, null, 2));

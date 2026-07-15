@@ -52,6 +52,8 @@ export interface Model {
   quota_types?: number[]
   matched_models?: string[]
   matched_count?: number
+  source_channel_id?: number
+  source_channel_name?: string
 }
 
 /**

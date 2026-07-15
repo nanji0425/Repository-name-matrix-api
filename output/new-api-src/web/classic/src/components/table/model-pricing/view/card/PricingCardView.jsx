@@ -240,6 +240,7 @@ const PricingCardView = ({
         {paginatedModels.map((model, index) => {
           const modelKey = getModelKey(model);
           const isSelected = selectedRowKeys.includes(modelKey);
+          const modelDescription = getModelDescription(model).trim();
 
           const priceData = calculateModelPrice({
             record: model,
@@ -304,14 +305,16 @@ const PricingCardView = ({
                 </div>
 
                 {/* 模型描述 - 占据剩余空间 */}
-                <div className='flex-1 mb-4'>
-                  <p
-                    className='text-xs line-clamp-2 leading-relaxed'
-                    style={{ color: 'var(--semi-color-text-2)' }}
-                  >
-                    {getModelDescription(model)}
-                  </p>
-                </div>
+                {modelDescription && (
+                  <div className='flex-1 mb-4'>
+                    <p
+                      className='text-xs line-clamp-2 leading-relaxed'
+                      style={{ color: 'var(--semi-color-text-2)' }}
+                    >
+                      {modelDescription}
+                    </p>
+                  </div>
+                )}
 
                 {/* 底部区域 */}
                 <div className='mt-auto'>

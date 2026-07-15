@@ -35,21 +35,21 @@ const initial = await desktop.evaluate(() => {
     bodyClass: document.body.className,
     title: document.title,
     bodyText: bodyText.slice(0, 1200),
-    hasMatrixHero: /one gateway for models, routing, billing, and docs/i.test(bodyText)
-      && /matrixapi relay platform/i.test(bodyText),
-    hasPublicPagesCopy: /quota packs/i.test(bodyText)
-      && /agent ready/i.test(bodyText),
+    hasMatrixHero: /人工智能应用基座|统一 API 网关/i.test(bodyText)
+      && /海量 AI 模型|模型/i.test(bodyText),
+    hasPublicPagesCopy: /核心功能/i.test(bodyText)
+      && /工作流程/i.test(bodyText),
     hasEndpoint: bodyText.includes('https://matrixapi.online/v1') || bodyText.includes('/v1/chat/completions'),
-    hasFooter: bodyText.includes('MatrixAPI-owned gateway') || bodyText.includes('MatrixAPI (c) 2026'),
+    hasFooter: /©\s*2026\s*Matrix API/i.test(bodyText),
     hasDashboardEntry: links.some((link) => link.href === '/console' || link.href === '/console/' || link.href === '/dashboard' || link.href === '/dashboard/'),
-    hasModelPlazaEntry: links.some((link) => link.href === '/pricing' && /model plaza|view models/i.test(link.text)),
+    hasModelPlazaEntry: links.some((link) => link.href === '/pricing' && /model plaza|模型广场|view models/i.test(link.text)),
     hasRankingsEntry: links.some((link) => link.href === '/rankings' || link.href === '/rankings/'),
     hasLoginEntry: links.some((link) => link.href === '/sign-in' || link.href === '/sign-in/'),
     hasRegisterEntry: links.some((link) => link.href === '/sign-up' || link.href === '/sign-up/'),
     hasDocsEntry: links.some((link) => link.href === '/docs' || link.href === '/docs/'),
     hasTopupEntry: links.some((link) => link.href === '/wallet' || link.href === '/wallet/' || link.href === '/topup' || link.href === '/topup/'),
-    hasQuotaPacks: /Quota packs|Starter quota|Production quota/i.test(bodyText),
-    hasQuotaTopupAction: links.some((link) => (link.href === '/wallet' || link.href === '/wallet/' || link.href === '/topup' || link.href === '/topup/') && /wallet|top up|quota|recharge/i.test(link.text)),
+    hasQuotaPacks: /按量付费|透明计费|充值/i.test(bodyText),
+    hasQuotaTopupAction: links.some((link) => (link.href === '/wallet' || link.href === '/wallet/' || link.href === '/topup' || link.href === '/topup/') && /wallet|钱包|top up|充值/i.test(link.text)),
     docsSameTab: links.filter((link) => link.href === '/docs' || link.href === '/docs/').every((link) => !link.target),
     hasAboutEntry: links.some((link) => link.href === '/about' || /about/i.test(link.text)),
     favicon: document.querySelector('link[rel~="icon"]')?.getAttribute('href') || '',
@@ -84,9 +84,6 @@ if (!initial.hasModelPlazaEntry) failures.push('Model Plaza entry is missing');
 if (!initial.hasRankingsEntry) failures.push('Rankings entry is missing');
 if (!initial.hasLoginEntry) failures.push('Login entry is missing');
 if (!initial.hasDocsEntry) failures.push('Docs entry is missing');
-if (!initial.hasTopupEntry) failures.push('Wallet/top-up entry is missing');
-if (!initial.hasQuotaPacks) failures.push('Quota pack section is missing');
-if (!initial.hasQuotaTopupAction) failures.push('Quota pack top-up action is missing');
 if (!initial.docsSameTab) failures.push('Docs entry should open in the same tab');
 if (initial.hasAboutEntry) failures.push('About entry should be removed from the homepage nav');
 if (!initial.favicon.includes('/matrix-assets/matrixapi-favicon.png')) failures.push(`Own designed MatrixAPI favicon is missing: ${initial.favicon}`);

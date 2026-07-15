@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 
 import { BadgeCell, BadgeListCell } from '@/components/data-table'
@@ -149,6 +149,24 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
       minSize: 200,
     },
 
+    // Selected upstream source column. Duplicate model names intentionally
+    // remain separate rows so administrators can distinguish their origins.
+    {
+      accessorKey: 'source_channel_name',
+      header: t('Upstream Source'),
+      cell: ({ row }) => (
+        <StatusBadge
+          label={row.original.source_channel_name || t('Unknown')}
+          variant='info'
+          size='sm'
+          copyable={false}
+          className='-ml-1.5 max-w-[180px] truncate'
+        />
+      ),
+      size: 180,
+      enableSorting: false,
+    },
+
     // Name Rule column
     {
       accessorKey: 'name_rule',
@@ -185,8 +203,8 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
           model.matched_models &&
           model.matched_models.length > 0
         ) {
-          const matchedBadges = model.matched_models.map((m, idx) => (
-            <StatusBadge key={idx} label={m} autoColor={m} size='sm' />
+          const matchedBadges = model.matched_models.map((m) => (
+            <StatusBadge key={m} label={m} autoColor={m} size='sm' />
           ))
 
           return (
@@ -296,8 +314,8 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
         const tagArray = parseModelTags(tags)
         return (
           <BadgeListCell
-            items={tagArray.map((tag, idx) => (
-              <StatusBadge key={idx} label={tag} autoColor={tag} size='sm' />
+            items={tagArray.map((tag) => (
+              <StatusBadge key={tag} label={tag} autoColor={tag} size='sm' />
             ))}
           />
         )
@@ -316,8 +334,8 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
         const endpointArray = formatEndpointsDisplay(endpoints)
         return (
           <BadgeListCell
-            items={endpointArray.map((ep, idx) => (
-              <StatusBadge key={idx} label={ep} autoColor={ep} size='sm' />
+            items={endpointArray.map((ep) => (
+              <StatusBadge key={ep} label={ep} autoColor={ep} size='sm' />
             ))}
           />
         )
@@ -340,9 +358,9 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
         }>
         return (
           <BadgeListCell
-            items={(channels ?? []).map((c, idx) => (
+            items={(channels ?? []).map((c) => (
               <StatusBadge
-                key={idx}
+                key={`${c.name}-${c.type ?? ''}`}
                 label={`${c.name} (${c.type})`}
                 autoColor={c.name}
                 size='sm'
@@ -383,11 +401,11 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
         const quotaTypes = row.getValue('quota_types') as number[]
         return (
           <BadgeListCell
-            items={(quotaTypes ?? []).map((qt, idx) => {
+            items={(quotaTypes ?? []).map((qt) => {
               const config = QUOTA_TYPE_CONFIG[qt]
               return (
                 <StatusBadge
-                  key={idx}
+                  key={qt}
                   label={config?.label || String(qt)}
                   variant={
                     (config?.color === 'error' ? 'danger' : config?.color) as

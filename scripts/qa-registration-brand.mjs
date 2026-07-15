@@ -55,7 +55,6 @@ for (const path of [
 
 for (const path of [
   'nginx/site/index.html',
-  'nginx/site/docs.html',
   'nginx/site/pricing.html',
   'nginx/site/rankings.html',
   'nginx/site/legal.html',
@@ -95,7 +94,6 @@ for (const [name, source] of Object.entries({
 
 for (const path of [
   'nginx/site/index.html',
-  'nginx/site/docs.html',
   'nginx/site/pricing.html',
   'nginx/site/rankings.html',
 ]) {

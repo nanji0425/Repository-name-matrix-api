@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = path.resolve('nginx/site');
+const spaRoot = path.resolve('output/new-api-src/web/default/dist');
 const port = Number(process.env.PORT || 4173);
 
 const types = {
@@ -15,13 +16,19 @@ const types = {
 
 function resolveRequest(url) {
   const { pathname } = new URL(url, 'http://127.0.0.1');
+  if (pathname === '/docs' || pathname === '/docs/') {
+    return path.join(spaRoot, 'index.html');
+  }
+  if (pathname.startsWith('/static/')) {
+    const filePath = path.join(spaRoot, pathname);
+    if (!filePath.startsWith(spaRoot)) return null;
+    return filePath;
+  }
   const localPath = pathname.startsWith('/matrix-assets/')
     ? pathname.slice('/matrix-assets'.length)
     : pathname;
   const pageMap = {
     '/': 'index.html',
-    '/docs': 'docs.html',
-    '/docs/': 'docs.html',
     '/pricing': 'pricing.html',
     '/pricing/': 'pricing.html',
     '/forgot-password': 'forgot-password.html',

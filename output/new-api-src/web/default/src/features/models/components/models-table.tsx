@@ -2,19 +2,9 @@
 Copyright (C) 2023-2026 QuantumNous
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 */
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
@@ -22,16 +12,22 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DataTablePage, useDataTable } from '@/components/data-table'
+import { getUpstreamChannels } from '@/features/system-settings/api'
+import { useSystemOptions } from '@/features/system-settings/hooks/use-system-options'
 import { useMediaQuery } from '@/hooks'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 
-import { getModels, searchModels, getVendors } from '../api'
+import { getModels, getVendors } from '../api'
 import {
   DEFAULT_PAGE_SIZE,
   getModelStatusOptions,
   getSyncStatusOptions,
 } from '../constants'
 import { modelsQueryKeys, vendorsQueryKeys } from '../lib'
+import {
+  buildSelectedUpstreamModelRows,
+  parseSelectedUpstreamChannelIds,
+} from '../lib/selected-upstream-models'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { useModelsColumns } from './models-columns'
 import { useModels } from './models-provider'
@@ -42,8 +38,6 @@ export function ModelsTable() {
   const { t } = useTranslation()
   const { selectedVendor } = useModels()
   const isMobile = useMediaQuery('(max-width: 640px)')
-
-  // URL state management
   const {
     globalFilter,
     onGlobalFilterChange,
@@ -67,7 +61,6 @@ export function ModelsTable() {
     ],
   })
 
-  // Extract filters from column filters
   const statusFilter =
     (columnFilters.find((f) => f.id === 'status')?.value as string[]) || []
   const vendorFilter =
@@ -75,98 +68,105 @@ export function ModelsTable() {
   const syncFilter =
     (columnFilters.find((f) => f.id === 'sync_official')?.value as string[]) ||
     []
+  const statusFilterValue = statusFilter.find((value) => value !== 'all') || ''
+  const vendorFilterValue = vendorFilter.find((value) => value !== 'all') || ''
+  const syncFilterValue = syncFilter.find((value) => value !== 'all') || ''
 
-  // Fetch vendors for filter
   const { data: vendorsData } = useQuery({
     queryKey: vendorsQueryKeys.list(),
     queryFn: () => getVendors({ page_size: 1000 }),
   })
-
   const vendors = useMemo(
     () => vendorsData?.data?.items || [],
     [vendorsData?.data?.items]
   )
+  const vendorOptions = useMemo(
+    () => vendors.map((vendor) => ({ label: vendor.name, value: String(vendor.id) })),
+    [vendors]
+  )
 
-  const vendorOptions = useMemo(() => {
-    return vendors.map((v) => ({
-      label: v.name,
-      value: String(v.id),
-    }))
-  }, [vendors])
-
-  // Determine whether to use search or regular list API
-  const shouldSearch = Boolean(globalFilter?.trim())
-
-  // Apply selected vendor from context or filter
-  const activeVendorFilter =
-    selectedVendor ||
-    (vendorFilter.length > 0 && !vendorFilter.includes('all')
-      ? vendorFilter[0]
-      : undefined)
-
-  // Fetch models data
-  // eslint-disable-next-line @tanstack/query/exhaustive-deps
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: modelsQueryKeys.list({
-      keyword: globalFilter,
-      vendor: activeVendorFilter,
-      status:
-        statusFilter.length > 0 && !statusFilter.includes('all')
-          ? statusFilter[0]
-          : undefined,
-      sync_official:
-        syncFilter.length > 0 && !syncFilter.includes('all')
-          ? syncFilter[0]
-          : undefined,
-      p: pagination.pageIndex + 1,
-      page_size: pagination.pageSize,
-    }),
-    queryFn: async () => {
-      if (shouldSearch || activeVendorFilter) {
-        return searchModels({
-          keyword: globalFilter,
-          vendor: activeVendorFilter,
-          status:
-            statusFilter.length > 0 && !statusFilter.includes('all')
-              ? statusFilter[0]
-              : undefined,
-          sync_official:
-            syncFilter.length > 0 && !syncFilter.includes('all')
-              ? syncFilter[0]
-              : undefined,
-          p: pagination.pageIndex + 1,
-          page_size: pagination.pageSize,
-        })
-      } else {
-        return getModels({
-          status:
-            statusFilter.length > 0 && !statusFilter.includes('all')
-              ? statusFilter[0]
-              : undefined,
-          sync_official:
-            syncFilter.length > 0 && !syncFilter.includes('all')
-              ? syncFilter[0]
-              : undefined,
-          p: pagination.pageIndex + 1,
-          page_size: pagination.pageSize,
-        })
-      }
-    },
-    placeholderData: (previousData) => previousData,
+  const { data: optionsData, isLoading: isOptionsLoading } = useSystemOptions()
+  const { data: channelsData, isLoading: isChannelsLoading } = useQuery({
+    queryKey: ['upstream-channels'],
+    queryFn: getUpstreamChannels,
+  })
+  const { data: metadataData, isLoading: isModelsLoading } = useQuery({
+    queryKey: modelsQueryKeys.list({ p: 1, page_size: 1000 }),
+    queryFn: () => getModels({ p: 1, page_size: 1000 }),
   })
 
-  const models = data?.data?.items || []
-  const totalCount = data?.data?.total || 0
-  const vendorCounts = data?.data?.vendor_counts
+  const selectedChannelIds = useMemo(() => {
+    const raw = optionsData?.data?.find(
+      (option) => option.key === 'model_sync.selected_channels'
+    )?.value
+    return parseSelectedUpstreamChannelIds(raw)
+  }, [optionsData?.data])
 
-  // Columns configuration
+  const sourceRows = useMemo(
+    () =>
+      buildSelectedUpstreamModelRows(
+        channelsData?.data || [],
+        metadataData?.data?.items || [],
+        selectedChannelIds
+      ),
+    [channelsData?.data, metadataData?.data?.items, selectedChannelIds]
+  )
+
+  const filteredModels = useMemo(() => {
+    const keyword = (globalFilter || '').trim().toLowerCase()
+    const activeVendor = selectedVendor || vendorFilterValue || undefined
+    const activeStatus = statusFilterValue || undefined
+    const activeSync = syncFilterValue || undefined
+
+    return sourceRows.filter((model) => {
+      if (
+        keyword &&
+        !`${model.model_name} ${model.source_channel_name}`
+          .toLowerCase()
+          .includes(keyword)
+      ) {
+        return false
+      }
+      if (activeVendor && String(model.vendor_id || '') !== activeVendor) {
+        return false
+      }
+      if (activeStatus === 'enabled' && model.status !== 1) return false
+      if (activeStatus === 'disabled' && model.status === 1) return false
+      if (activeSync === 'yes' && model.sync_official !== 1) return false
+      if (activeSync === 'no' && model.sync_official === 1) return false
+      return true
+    })
+  }, [
+    globalFilter,
+    selectedVendor,
+    sourceRows,
+    statusFilterValue,
+    syncFilterValue,
+    vendorFilterValue,
+  ])
+
+  const models = useMemo(
+    () =>
+      filteredModels.slice(
+        pagination.pageIndex * pagination.pageSize,
+        (pagination.pageIndex + 1) * pagination.pageSize
+      ),
+    [filteredModels, pagination.pageIndex, pagination.pageSize]
+  )
+  const vendorCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: filteredModels.length }
+    filteredModels.forEach((model) => {
+      const key = String(model.vendor_id || '')
+      counts[key] = (counts[key] || 0) + 1
+    })
+    return counts
+  }, [filteredModels])
+
   const columns = useModelsColumns(vendors)
-
-  // React Table instance
   const { table } = useDataTable({
     data: models,
     columns,
-    totalCount,
+    totalCount: filteredModels.length,
     initialColumnVisibility: {
       description: false,
       bound_channels: false,
@@ -185,14 +185,13 @@ export function ModelsTable() {
     ensurePageInRange,
   })
 
-  // Prepare filter options
   const vendorFilterOptions = [
     {
-      label: `${t('All Vendors')}${vendorCounts?.all ? ` (${vendorCounts.all})` : ''}`,
+      label: `${t('All Vendors')}${vendorCounts.all ? ` (${vendorCounts.all})` : ''}`,
       value: 'all',
     },
     ...vendorOptions.map((option) => ({
-      label: `${option.label}${vendorCounts?.[option.value] ? ` (${vendorCounts[option.value]})` : ''}`,
+      label: `${option.label}${vendorCounts[option.value] ? ` (${vendorCounts[option.value]})` : ''}`,
       value: option.value,
     })),
   ]
@@ -201,16 +200,16 @@ export function ModelsTable() {
     <DataTablePage
       table={table}
       columns={columns}
-      isLoading={isLoading}
-      isFetching={isFetching}
+      isLoading={isOptionsLoading || isChannelsLoading || isModelsLoading}
+      isFetching={isOptionsLoading || isChannelsLoading || isModelsLoading}
       emptyTitle={t('No Models Found')}
       emptyDescription={t(
-        'No models available. Create your first model to get started.'
+        'Select upstream channels in model sync to manage their models here.'
       )}
       skeletonKeyPrefix='model-skeleton'
       applyHeaderSize
       toolbarProps={{
-        searchPlaceholder: t('Filter by model name...'),
+        searchPlaceholder: t('Filter by model name or upstream...'),
         filters: [
           {
             columnId: 'status',

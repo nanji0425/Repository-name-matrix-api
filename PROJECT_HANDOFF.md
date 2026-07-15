@@ -84,7 +84,7 @@ https://matrixapi.online
 - 已修复令牌导入下拉层被外框裁剪的问题。
 - 已将支付限制为支付宝。
 - 已去除不需要的微信收银台文案。
-- 已设置上游地址为 `https://api.bblabu.chat/`。
+- 已设置模型上游地址为 `https://kukuai.fyi`。
 - 已按上游价格基础加价 40% 的方向配置模型倍率。
 - 已配置 ZPay 支付流程：
   - 支付方式：支付宝
@@ -96,7 +96,7 @@ https://matrixapi.online
 ## 4. 正在开发的功能
 
 - 完善控制台所有可点击组件，避免空点击、无跳转、逻辑不完整。
-- 对比上游站点 `https://api.bblabu.chat/` 补齐缺失功能。
+- 对比复刻参考站 `https://api.bblabu.chat/` 补齐缺失的 UI、信息架构和交互；该站不是模型上游。
 - 继续美化官网与控制台 UI：
   - 动态粒子效果
   - 明暗主题完整适配
@@ -197,7 +197,7 @@ node scripts\qa-deployment-guide.mjs
    - `/console/redemption`
    - `/console/deployment`
    - `/console/setting`
-4. 对比上游 `api.bblabu.chat`，补齐缺失页面和功能。
+4. 对比复刻参考站 `api.bblabu.chat`，补齐缺失页面和功能；模型上游保持为 `kukuai.fyi`。
 5. 完善 API 文档内容，参考 `docx.kkkliao.cn`。
 6. 检查所有按钮、卡片、菜单、链接是否有明确行为。
 7. 部署前执行：

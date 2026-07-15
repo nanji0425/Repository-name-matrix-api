@@ -22,6 +22,7 @@ import { PrefillGroupManagement } from './dialogs/prefill-group-management'
 import { SyncWizardDialog } from './dialogs/sync-wizard-dialog'
 import { UpstreamConflictDialog } from './dialogs/upstream-conflict-dialog'
 import { VendorMutateDialog } from './dialogs/vendor-mutate-dialog'
+import { UpstreamSyncDialog } from './dialogs/upstream-sync-dialog'
 import { ModelMutateDrawer } from './drawers/model-mutate-drawer'
 import { useModels } from './models-provider'
 
@@ -86,6 +87,11 @@ export function ModelsDialogs() {
         }}
         modelName={descriptionData?.modelName || ''}
         description={descriptionData?.description || ''}
+      />
+
+      <UpstreamSyncDialog
+        open={open === 'upstream-sync'}
+        onOpenChange={(v) => !v && setOpen(null)}
       />
     </>
   )

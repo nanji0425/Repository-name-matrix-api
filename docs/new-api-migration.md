@@ -2,7 +2,11 @@
 
 ## Decision
 
-Use `QuantumNous/new-api` as the MatrixAPI production core. This is the better fit because the upstream reference site already exposes the same class of features: console, token management, model pricing, request logs, task logs, wallet, EPay payment, channel routing, dashboards, i18n and theme switching.
+MatrixAPI has three distinct source roles:
+
+- Code base: `QuantumNous/new-api` provides the production gateway and console core.
+- Model upstream: `https://kukuai.fyi` provides the OpenAI-compatible model API.
+- replica reference: `https://api.bblabu.chat/` is used only to study UI, information architecture, and interactions. It is not a MatrixAPI model upstream.
 
 ## Pre-Deploy Backup
 
@@ -47,7 +51,7 @@ set +a
 node scripts/bootstrap-new-api.mjs
 ```
 
-The bootstrap script uses the optional `NEW_API_ADMIN_*`, `UPSTREAM_*`, and `ZPAY_*` environment variables from `.env`. It creates the first root account when setup is still open, confirms payment compliance, enables only Alipay through ZPay, sets the default group ratio to `1.4`, and creates a `bblabu-upstream` channel if it does not already exist.
+The bootstrap script uses the optional `NEW_API_ADMIN_*`, `UPSTREAM_*`, and `ZPAY_*` environment variables from `.env`. It creates the first root account when setup is still open, confirms payment compliance, enables only Alipay through ZPay, sets the default group ratio to `1.0`, and creates a `kukuai-upstream` channel if it does not already exist.
 
 ## First Setup
 
@@ -60,7 +64,7 @@ The bootstrap script uses the optional `NEW_API_ADMIN_*`, `UPSTREAM_*`, and `ZPA
 
 Create an OpenAI-compatible channel:
 
-- Base URL: `https://api.bblabu.chat` or the primary upstream endpoint visible in the upstream console.
+- Base URL: `https://kukuai.fyi`.
 - API key: use the upstream account key.
 - Test model: choose a low-cost chat model that exists upstream.
 - Enable automatic retry and health checks.
@@ -69,19 +73,19 @@ Then sync/import models where available.
 
 ## Configure Pricing
 
-MatrixAPI retail pricing must be upstream plus 40%.
+MatrixAPI currently uses the upstream price without a default group markup.
 
 Formula:
 
 ```text
-retail = upstream * 1.4
+retail = upstream * 1.0
 ```
 
 In New API this can be implemented by:
 
-- setting model ratios to 1.4 times the upstream baseline, or
-- setting group ratio to include the 1.4 markup, or
-- importing upstream ratios and multiplying the imported values by 1.4.
+- setting model ratios to 1.0 times the upstream baseline, or
+- setting group ratio to 1.0, or
+- importing upstream ratios without an additional default group multiplier.
 
 After saving, verify at least three visible model rows in `/pricing` against upstream pricing.
 
@@ -129,7 +133,7 @@ Manual checks:
 5. Token copy/import UI is usable and not clipped.
 6. `/v1/models` works with a MatrixAPI token.
 7. `/v1/chat/completions` routes to upstream.
-8. Pricing shows upstream +40%.
+8. Pricing shows the configured upstream price.
 9. Alipay top-up creates an order.
 10. A small real payment credits quota once.
 11. Request logs and top-up logs are visible.

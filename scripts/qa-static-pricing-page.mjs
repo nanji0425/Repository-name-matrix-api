@@ -16,7 +16,6 @@ function resolveAsset(url) {
   const { pathname } = new URL(url, 'http://127.0.0.1');
   if (pathname === '/pricing' || pathname === '/pricing/' || pathname === '/pricing.html') return join(siteRoot, 'pricing.html');
   if (pathname === '/wallet' || pathname === '/wallet/') return join(siteRoot, 'wallet.html');
-  if (pathname === '/docs' || pathname === '/docs/') return join(siteRoot, 'docs.html');
   if (pathname.startsWith('/matrix-assets/')) return join(siteRoot, pathname.replace('/matrix-assets/', ''));
   return null;
 }

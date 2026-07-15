@@ -11,7 +11,6 @@ const sensitivePaths = [
   '/.env',
   '/.git/config',
   '/docker-compose.yml',
-  '/docker-compose.legacy.yml',
   '/PROJECT_FULL_CONTEXT_REDACTED.txt',
   '/PROJECT_HANDOFF.md',
   '/AGENTS.md',

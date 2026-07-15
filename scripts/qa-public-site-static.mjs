@@ -15,7 +15,6 @@ const mimeTypes = {
 
 function resolveAsset(url) {
   if (url === '/' || url === '/index.html') return join(siteRoot, 'index.html');
-  if (url === '/docs' || url === '/docs/' || url === '/docs.html') return join(siteRoot, 'docs.html');
   if (url === '/pricing' || url === '/pricing/' || url === '/pricing.html') return join(siteRoot, 'pricing.html');
   if (url === '/rankings' || url === '/rankings/' || url === '/rankings.html') return join(siteRoot, 'rankings.html');
   if (url === '/forgot-password' || url === '/forgot-password/') return join(siteRoot, 'forgot-password.html');
@@ -66,6 +65,8 @@ try {
       text: (link.textContent || '').trim(),
       target: link.getAttribute('target') || '',
     }));
+    const logo = [...document.querySelectorAll('img')].find((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png'));
+    const logoStyle = logo ? getComputedStyle(logo) : null;
     return {
       title: document.title,
       hasHero: text.includes('MatrixAPI') && /OpenAI-compatible|OpenAI compatible/i.test(text),
@@ -80,6 +81,8 @@ try {
       hasAboutEntry: navLinks.some((link) => link.href === '/about' || /about/i.test(link.text)),
       docsTargetBlank: navLinks.filter((link) => link.href === '/docs').some((link) => link.target === '_blank'),
       hasBrandImage: [...document.querySelectorAll('img')].some((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png')),
+      logoWidth: logoStyle ? Math.round(parseFloat(logoStyle.width)) : 0,
+      logoHeight: logoStyle ? Math.round(parseFloat(logoStyle.height)) : 0,
     };
   });
 
@@ -94,26 +97,7 @@ try {
   if (home.hasAboutEntry) failures.push('Homepage nav still contains About');
   if (home.docsTargetBlank) failures.push('Homepage docs entry still opens in a new tab');
   if (!home.hasBrandImage) failures.push('Homepage is missing the MatrixAPI logo asset');
-
-  await page.goto(`${baseURL}/docs`, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(250);
-
-  const docs = await page.evaluate(() => {
-    const text = document.body.innerText.replace(/\s+/g, ' ');
-    return {
-      hasDocsHero: text.includes('MatrixAPI integration docs') && text.includes('Quick start'),
-      hasExternalDocHost: document.documentElement.outerHTML.includes('docx.kkkliao.cn'),
-      sameTabDocsLinks: [...document.querySelectorAll('a[href="/docs"],a[href="/docs/"]')].every((link) => !link.getAttribute('target')),
-      hasReferenceNavShape: ['Home|Console|Model Plaza|Rankings|Docs', '主页|控制台|模型广场|排行榜|文档'].includes([...document.querySelectorAll('nav a[href]')].map((link) => link.textContent.trim()).join('|')),
-      hasBrandImage: [...document.querySelectorAll('img')].some((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png')),
-    };
-  });
-
-  if (!docs.hasDocsHero) failures.push('Docs page is missing MatrixAPI docs content');
-  if (docs.hasExternalDocHost) failures.push('Docs page still references an external docs host');
-  if (!docs.sameTabDocsLinks) failures.push('Docs page still contains new-tab docs links');
-  if (!docs.hasReferenceNavShape) failures.push('Docs page nav does not match the reference public nav shape');
-  if (!docs.hasBrandImage) failures.push('Docs page is missing the MatrixAPI logo asset');
+  if (home.logoWidth !== 46 || home.logoHeight !== 46) failures.push(`Homepage logo rendered at ${home.logoWidth}x${home.logoHeight}; expected 46x46`);
 
   await page.goto(`${baseURL}/pricing`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(250);
@@ -121,11 +105,15 @@ try {
   const pricing = await page.evaluate(() => {
     const text = document.body.innerText.replace(/\s+/g, ' ');
     const html = document.documentElement.outerHTML;
+    const logo = [...document.querySelectorAll('img')].find((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png'));
+    const logoStyle = logo ? getComputedStyle(logo) : null;
     return {
       hasStaticBundle: /\/static\/js\//.test(html),
       hasModelGallery: /MatrixAPI model gallery|模型广场/i.test(text) && text.includes('gpt-5.4') && text.includes('gpt-image2'),
       hasWalletEntry: [...document.querySelectorAll('a[href="/wallet"],a[href="/topup"]')].length > 0,
       hasBrandImage: [...document.querySelectorAll('img')].some((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png')),
+      logoWidth: logoStyle ? Math.round(parseFloat(logoStyle.width)) : 0,
+      logoHeight: logoStyle ? Math.round(parseFloat(logoStyle.height)) : 0,
     };
   });
 
@@ -133,6 +121,7 @@ try {
   if (!pricing.hasModelGallery) failures.push('Pricing page is missing MatrixAPI model gallery content');
   if (!pricing.hasWalletEntry) failures.push('Pricing page is missing wallet entry');
   if (!pricing.hasBrandImage) failures.push('Pricing page is missing the MatrixAPI logo asset');
+  if (pricing.logoWidth !== 46 || pricing.logoHeight !== 46) failures.push(`Pricing logo rendered at ${pricing.logoWidth}x${pricing.logoHeight}; expected 46x46`);
 
   await page.goto(`${baseURL}/rankings`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(250);
@@ -140,16 +129,46 @@ try {
   const rankings = await page.evaluate(() => {
     const text = document.body.innerText.replace(/\s+/g, ' ');
     const navText = [...document.querySelectorAll('nav a[href]')].map((link) => link.textContent.trim()).join('|');
+    const logo = [...document.querySelectorAll('img')].find((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png'));
+    const logoStyle = logo ? getComputedStyle(logo) : null;
     return {
-      hasRankingsContent: text.includes('Rank routes before you create production tokens.') && text.includes('gpt-5.5'),
-      hasReferenceNavShape: ['Home|Console|Model Plaza|Rankings|Docs', '主页|控制台|模型广场|排行榜|文档'].includes(navText),
+      hasRankingsContent: /排行榜|LLM 排行榜|热门模型/i.test(text) && text.includes('gpt-5.5'),
+      hasReferenceNavShape: ['Home|Console|Model Plaza|Rankings|Docs', '主页|控制台|模型广场|排行榜|教程文档'].includes(navText),
       hasBrandImage: [...document.querySelectorAll('img')].some((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png')),
+      logoWidth: logoStyle ? Math.round(parseFloat(logoStyle.width)) : 0,
+      logoHeight: logoStyle ? Math.round(parseFloat(logoStyle.height)) : 0,
     };
   });
 
   if (!rankings.hasRankingsContent) failures.push('Rankings page is missing MatrixAPI ranking content');
   if (!rankings.hasReferenceNavShape) failures.push('Rankings page nav does not match the reference public nav shape');
   if (!rankings.hasBrandImage) failures.push('Rankings page is missing the MatrixAPI logo asset');
+  if (rankings.logoWidth !== 46 || rankings.logoHeight !== 46) failures.push(`Rankings logo rendered at ${rankings.logoWidth}x${rankings.logoHeight}; expected 46x46`);
+
+  for (const authPath of ['/sign-in', '/sign-up']) {
+    await page.goto(`${baseURL}${authPath}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(150);
+    const authLogo = await page.evaluate(() => {
+      const logo = [...document.querySelectorAll('img')].find((img) => (img.getAttribute('src') || '').includes('/matrix-assets/matrixapi-logo.png'));
+      const style = logo ? getComputedStyle(logo) : null;
+      return {
+        width: style ? Math.round(parseFloat(style.width)) : 0,
+        height: style ? Math.round(parseFloat(style.height)) : 0,
+      };
+    });
+    if (authLogo.width !== 38 || authLogo.height !== 38) {
+      failures.push(`${authPath} logo rendered at ${authLogo.width}x${authLogo.height}; expected 38x38`);
+    }
+    if (authPath === '/sign-up') {
+      const registration = await page.evaluate(() => ({
+        hasEmail: Boolean(document.querySelector('[name="email"], [name="verificationCode"]')),
+        passwordFields: document.querySelectorAll('input[name="password"], input[name="confirmPassword"]').length,
+        hasUsername: Boolean(document.querySelector('input[name="username"]')),
+      }));
+      if (registration.hasEmail) failures.push('Static sign-up page still asks for email or verification code');
+      if (!registration.hasUsername || registration.passwordFields !== 2) failures.push('Static sign-up page must contain username, password, and confirm password only');
+    }
+  }
 } finally {
   await browser.close();
   await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));

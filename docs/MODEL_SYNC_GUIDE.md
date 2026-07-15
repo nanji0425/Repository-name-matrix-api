@@ -2,12 +2,12 @@
 
 ## 概述
 
-MatrixAPI 已实现自动从上游同步所有模型，并自动应用 40% 加价策略和模型分类。
+MatrixAPI 已实现自动从上游同步所有模型，并使用当前配置的模型分组倍率和模型分类。
 
 ## 功能特性
 
 ### 1. 自动定价加价
-- 所有模型价格自动在上游基础上 × 1.4 (加价 40%)
+- 默认分组倍率为 × 1.0，模型价格遵循当前上游配置
 - 输入价格和输出价格均应用加价
 - 价格精确到小数点后 8 位
 
@@ -47,8 +47,8 @@ cd backend
 npm run sync-models
 
 # 或指定上游地址和 API Key
-UPSTREAM_BASE_URL=https://api.bblabu.chat/v1 \
-UPSTREAM_API_KEY=sk-your-key \
+UPSTREAM_BASE_URL=https://kukuai.fyi/v1 \
+UPSTREAM_API_KEY=<UPSTREAM_API_KEY> \
 npm run sync-models
 ```
 
@@ -75,11 +75,11 @@ npm run models:sync
 
 ```env
 # 上游 API 配置
-UPSTREAM_BASE_URL=https://api.bblabu.chat/v1
-UPSTREAM_API_KEY=sk-6ShTzN3ocQIlJfYXHjiu6BlaUUlmFhYQtQPrKERTPGkI
+UPSTREAM_BASE_URL=https://kukuai.fyi/v1
+UPSTREAM_API_KEY=<UPSTREAM_API_KEY>
 
 # 或使用通用的 OpenAI API Key 变量
-OPENAI_API_KEY=sk-your-key
+OPENAI_API_KEY=<OPENAI_API_KEY>
 ```
 
 ### 定价配置
@@ -87,7 +87,7 @@ OPENAI_API_KEY=sk-your-key
 在 `backend/prisma/model-sync.ts` 中：
 
 ```typescript
-export const PRICE_MARKUP = 1.4;  // 40% 加价
+export const PRICE_MARKUP = 1.0;  // 默认不追加分组加价
 ```
 
 修改此值可以调整加价比例。
@@ -127,7 +127,7 @@ const modelsByCategory = await prisma.model.groupBy({
 
 ### 显示模型价格
 
-模型价格已自动应用 40% 加价：
+模型价格已自动应用当前配置的分组倍率：
 
 ```typescript
 const model = await prisma.model.findUnique({
@@ -136,7 +136,7 @@ const model = await prisma.model.findUnique({
 
 console.log(`输入价格: $${model.inputPrice} / 1M tokens`);
 console.log(`输出价格: $${model.outputPrice} / 1M tokens`);
-// 这些价格已经是上游价格 × 1.4
+// 这些价格遵循当前配置的上游/分组倍率
 ```
 
 ## 同步输出示例
@@ -144,11 +144,11 @@ console.log(`输出价格: $${model.outputPrice} / 1M tokens`);
 ```
 ===== MatrixAPI 模型同步工具 =====
 
-📡 上游地址: https://api.bblabu.chat/v1
-💰 定价策略: 上游价格 × 1.4 (加价 40%)
-🔑 使用 API Key: sk-6ShTzN...kI
+📡 上游地址: https://kukuai.fyi/v1
+💰 定价策略: 上游价格 × 1.0 (默认分组倍率)
+🔑 使用 API Key: [from environment]
 
-✅ 供应商已配置: bblabu-upstream
+✅ 供应商已配置: kukuai-upstream
 
 🔄 正在从上游获取模型列表...
 📦 从上游获取到 156 个模型
@@ -174,7 +174,7 @@ console.log(`输出价格: $${model.outputPrice} / 1M tokens`);
     输出价格: $0.042000 / 1M tokens
   ...
 
-✨ 所有模型已成功同步并应用 40% 加价！
+✨ 所有模型已成功同步并应用当前分组倍率！
 ```
 
 ## 注意事项
@@ -192,11 +192,11 @@ console.log(`输出价格: $${model.outputPrice} / 1M tokens`);
 ❌ 同步失败: Upstream models request failed: 401
 
 # 检查 API Key 是否正确
-echo $UPSTREAM_API_KEY
+test -n "${UPSTREAM_API_KEY:-}" && echo "UPSTREAM_API_KEY is set"
 
 # 测试上游 API
 curl -H "Authorization: Bearer $UPSTREAM_API_KEY" \
-     https://api.bblabu.chat/v1/models
+     https://kukuai.fyi/v1/models
 ```
 
 ### 分类不准确

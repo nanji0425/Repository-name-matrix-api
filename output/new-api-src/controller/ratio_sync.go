@@ -1053,6 +1053,7 @@ func GetSyncableChannels(c *gin.Context) {
 				ID:            channel.Id,
 				Name:          channel.Name,
 				BaseURL:       channel.GetBaseURL(),
+				Models:        channel.Models,
 				Status:        channel.Status,
 				Type:          channel.Type,
 				MarkupPercent: settings.UpstreamPriceMarkup,

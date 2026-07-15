@@ -1,7 +1,13 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export const host = process.env.MATRIXAPI_HOST || '47.82.105.81';
-export const keyPath = process.env.SSH_KEY_PATH || 'C:\\Users\\Administrator\\Downloads\\server_key_restrict.pem';
+export const keyPath = process.env.SSH_KEY_PATH || (
+  existsSync(resolve('mz.pem'))
+    ? resolve('mz.pem')
+    : 'C:\\Users\\Administrator\\Downloads\\server_key_restrict.pem'
+);
 export const baseURL = process.env.MATRIXAPI_URL || 'https://matrixapi.online';
 
 export function readSecret(name) {

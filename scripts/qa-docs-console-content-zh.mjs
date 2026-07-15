@@ -7,20 +7,15 @@ import { resolve } from 'node:path'
 const root = resolve(import.meta.dirname, '..')
 const read = (path) => readFileSync(resolve(root, path), 'utf8')
 
-const docsHtml = read('nginx/site/docs.html')
+const docsSource = read('output/new-api-src/web/default/src/features/docs/index.tsx')
+const docsRoute = read('output/new-api-src/web/default/src/routes/docs/index.tsx')
 const apiBootstrap = read('scripts/bootstrap-new-api.mjs')
 const dbBootstrap = read('scripts/bootstrap-new-api-db.sh')
 const apiAnnouncements = apiBootstrap.match(/console_setting\.announcements', JSON\.stringify\(\[[\s\S]*?\]\)\)/)?.[0] || ''
-
-const publicFacingSources = {
-  'nginx/site/docs.html': docsHtml,
-  'scripts/bootstrap-new-api.mjs announcements': apiAnnouncements,
-  'scripts/bootstrap-new-api-db.sh': [
-    dbBootstrap.match(/\('console_setting\.api_info', '[\s\S]*?'\),/)?.[0] || '',
-    dbBootstrap.match(/\('console_setting\.faq', '[\s\S]*?'\),/)?.[0] || '',
-    dbBootstrap.match(/\('console_setting\.announcements', '[\s\S]*?'\),/)?.[0] || '',
-  ].join('\n'),
-}
+const dbPublicSnippets = [
+  ...dbBootstrap.matchAll(/update options set value = \$\$[\s\S]*?\$\$ where key = '(?:About|legal\.user_agreement|legal\.privacy_policy)';/g),
+  ...dbBootstrap.matchAll(/\('console_setting\.(?:api_info|faq|announcements)', '[\s\S]*?'\),/g),
+].map((match) => match[0]).join('\n')
 
 for (const phrase of [
   '快速开始',
@@ -33,10 +28,11 @@ for (const phrase of [
   '账户安全',
   'https://matrixapi.online/v1',
   'Cherry Studio',
-  'Chatbox',
-  'LobeChat',
+  'ChatBox',
+  'OpenCat',
+  'DeepChat',
 ]) {
-  assert.ok(docsHtml.includes(phrase), `docs page must include Chinese docs section: ${phrase}`)
+  assert.ok(docsSource.includes(phrase), `docs page must include Chinese docs section: ${phrase}`)
 }
 
 for (const phrase of [
@@ -68,13 +64,14 @@ for (const phrase of [
 }
 
 for (const [name, source] of Object.entries({
-  'nginx/site/docs.html': docsHtml,
-  'scripts/bootstrap-new-api.mjs': apiBootstrap,
+  'new docs source': docsSource,
   'scripts/bootstrap-new-api-db.sh': dbBootstrap,
 })) {
   assert.ok(source.includes('3315419516@qq.com'), `${name} must include the support email`)
   assert.ok(source.includes('1050365180'), `${name} must include the support QQ group`)
 }
+
+assert.ok(docsRoute.includes("createFileRoute('/docs/')"), 'docs must be served by the new SPA route')
 
 const forbiddenPublicWords = [
   /上游/,
@@ -87,7 +84,11 @@ const forbiddenPublicWords = [
   /group ratio/i,
 ]
 
-for (const [name, source] of Object.entries(publicFacingSources)) {
+for (const [name, source] of Object.entries({
+  'new docs source': docsSource,
+  'scripts/bootstrap-new-api.mjs announcements': apiAnnouncements,
+  'scripts/bootstrap-new-api-db.sh public snippets': dbPublicSnippets,
+})) {
   for (const pattern of forbiddenPublicWords) {
     assert.doesNotMatch(source, pattern, `${name} must not expose backend supplier/pricing wording: ${pattern}`)
   }

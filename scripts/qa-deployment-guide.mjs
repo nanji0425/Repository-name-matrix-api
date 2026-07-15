@@ -13,7 +13,7 @@ page.on('console', (msg) => {
 });
 
 await loginAndInstallAdmin(page, { maxAttempts: 6 });
-await page.goto(`${baseURL}/console/deployment`, { waitUntil: 'commit', timeout: 20000 });
+await page.goto(`${baseURL}/models/deployments`, { waitUntil: 'commit', timeout: 20000 });
 for (let attempt = 0; attempt < 45; attempt += 1) {
   const ready = await page.evaluate(() => {
     const text = document.body?.innerText || '';
@@ -32,9 +32,9 @@ const report = await page.evaluate(() => {
     bodyLength: text.length,
     hasGuide: Boolean(guide),
     hasRoutingTitle: text.includes('Upstream models are connected through channel management') || text.includes('MatrixAPI Routing'),
-    hasChannelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/channel'),
-    hasModelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/models'),
-    hasTokenLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/console/token'),
+    hasChannelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/channels'),
+    hasModelLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/models/metadata'),
+    hasTokenLink: [...document.querySelectorAll('[data-matrix-deployment-guide] a')].some((link) => link.getAttribute('href') === '/keys'),
     textSample: text.replace(/\s+/g, ' ').slice(0, 900),
   };
 });

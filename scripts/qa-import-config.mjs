@@ -14,8 +14,6 @@ const required = [
   '流畅阅读',
   'CC Switch',
   'DeepChat',
-  'Lobe Chat 官方示例',
-  'AI as Workspace',
   'AMA 问天',
   'OpenCat',
 ];
@@ -30,6 +28,9 @@ for (const name of required) {
 
 if (values.includes('api.bblabu.cn') || values.includes('api.bblabu.chat')) {
   failures.push('Import config still references bblabu API host');
+}
+if (/https?:\/\/[^\s"']+(?:apiKey|token|key)=\{key\}/i.test(values)) {
+  failures.push('Import config sends the API key to an external HTTPS URL');
 }
 if (!values.includes('{address}/v1') && !values.includes('ccswitch') && !values.includes('fluentread')) {
   failures.push('Import config does not contain OpenAI-compatible base URL templates');

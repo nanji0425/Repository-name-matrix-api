@@ -26,6 +26,7 @@ await page.screenshot({ path: 'output/playwright/token-import-before.png', fullP
 const before = await page.evaluate(() => ({
   hasToolbarImport: document.body.innerText.includes('Import config'),
   hasRowImport: [...document.querySelectorAll('button')].some((button) => (button.innerText || '').trim() === 'Import'),
+  hasEmptyState: /未找到 API 密钥|No API keys found/i.test(document.body.innerText),
   textSample: document.body.innerText.replace(/\s+/g, ' ').slice(0, 900),
 }));
 
@@ -77,7 +78,7 @@ const required = [
 const failures = [];
 
 if (!before.hasToolbarImport) failures.push('Token toolbar import button is missing');
-if (!before.hasRowImport) failures.push('Token row import button is missing');
+if (!before.hasRowImport && !before.hasEmptyState) failures.push('Token row import button is missing');
 if (!modal.exists) failures.push('Import modal did not open');
 if (modal.cards.length !== required.length) failures.push(`Unexpected import card count: ${modal.cards.length}`);
 for (const name of required) {

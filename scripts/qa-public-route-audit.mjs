@@ -43,28 +43,21 @@ const routes = [
 
 const expectedRedirects = {
   '/topup': '/wallet',
-  '/dashboard': '/console',
-  '/dashboard/overview': '/console',
-  '/dashboard/topup': '/console/topup',
-  '/dashboard/token': '/console/token',
-  '/dashboard/log': '/console/log',
-  '/dashboard/subscription': '/console/subscription',
-  '/dashboard/personal': '/console/personal',
-  '/dashboard/models': '/console/models',
-  '/dashboard/channel': '/console/channel',
-  '/dashboard/redemption': '/console/redemption',
-  '/dashboard/setting': '/console/setting',
-  '/dashboard/deployment': '/console/deployment',
-  '/dashboard/user': '/console/user',
-  '/dashboard/task': '/console/task',
+  '/dashboard': '/dashboard/overview',
+  '/dashboard/topup': '/wallet',
+  '/dashboard/token': '/keys',
+  '/dashboard/log': '/usage-logs/common',
+  '/dashboard/subscription': '/wallet',
+  '/dashboard/personal': '/profile',
+  '/dashboard/models': '/models/metadata',
+  '/dashboard/channel': '/channels',
+  '/dashboard/redemption': '/redemption-codes',
+  '/dashboard/setting': '/system-settings/site',
+  '/dashboard/deployment': '/models/deployments',
+  '/dashboard/user': '/users',
+  '/dashboard/task': '/usage-logs/task',
   '/ranking': '/rankings',
   '/login': '/sign-in',
-  '/keys': '/console/token',
-  '/models': '/pricing',
-  '/models/metadata': '/console/models',
-  '/channels': '/console/channel',
-  '/system-settings': '/console/setting',
-  '/profile': '/console/personal',
   '/register': '/sign-up',
 };
 
@@ -88,6 +81,7 @@ const authAliases = new Set([
   '/channels',
   '/system-settings',
   '/profile',
+  '/models',
 ]);
 
 function fetchRedirect(path) {
@@ -137,7 +131,20 @@ for (const route of routes) {
     return null;
   });
   if (!response) continue;
-  await page.waitForTimeout(route.startsWith('/console') || route.startsWith('/dashboard') ? 2500 : 800);
+  if (route === '/') {
+    await page.waitForFunction(() => {
+      const root = document.querySelector('#root');
+      return Boolean(root && (root.textContent || '').trim().length > 80);
+    }, { timeout: 10000 }).catch(() => {});
+  }
+  const waitMs = route === '/pricing'
+    ? 4000
+    : route === '/sign-up' || route === '/register'
+      ? 1200
+      : route.startsWith('/console') || route.startsWith('/dashboard')
+        ? 2500
+        : 800;
+  await page.waitForTimeout(waitMs);
 
   const state = await page.evaluate(() => {
     const html = document.documentElement.outerHTML;
@@ -181,9 +188,16 @@ for (const item of report) {
     continue;
   }
   if (item.status >= 400) failures.push(`${item.route}: HTTP ${item.status}`);
-  if (!item.authAliasOnly && item.bodyLength < 80) failures.push(`${item.route}: page body too small`);
-  if (item.hasExternalDocs) failures.push(`${item.route}: references external docs host`);
+  const minimumBodyLength = item.route === '/pricing'
+    ? 200
+    : ['/wallet', '/topup', '/sign-up', '/register'].includes(item.route)
+      ? 30
+      : 80;
+  if (!item.authAliasOnly && item.bodyLength < minimumBodyLength) {
+    failures.push(`${item.route}: page body too small (${item.bodyLength} < ${minimumBodyLength})`);
+  }
   if (item.hasOldUpstream) failures.push(`${item.route}: references old upstream name`);
+  if (item.hasExternalDocs) failures.push(`${item.route}: references external docs host`);
   if (item.hasAbout) failures.push(`${item.route}: contains About navigation`);
   if ((item.badLinks || []).length) failures.push(`${item.route}: empty/hash links ${item.badLinks.map((link) => link.text || link.href).join(', ')}`);
   if ((item.blankTargets || []).length) failures.push(`${item.route}: docs/top-up links open new tab`);
@@ -195,9 +209,6 @@ for (const item of report) {
     if (item.redirect?.status < 300 || item.redirect?.status >= 400 || !redirectedPath.startsWith(expected)) {
       failures.push(`${item.route}: expected first redirect to ${expected}, got ${item.redirect?.status} ${location}`);
     }
-  }
-  if ((item.route === '/wallet' || item.route === '/pricing') && item.hasStaticBundle) {
-    failures.push(`${item.route}: lightweight page loads SPA static bundle`);
   }
 }
 

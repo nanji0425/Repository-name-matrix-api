@@ -168,7 +168,8 @@ export const getPricingTableColumns = ({
   const descriptionColumn = {
     title: t('描述'),
     dataIndex: 'description',
-    render: (text) => renderDescription(text, 200),
+    render: (text) =>
+      String(text || '').trim() ? renderDescription(text, 200) : null,
   };
 
   const tagsColumn = {

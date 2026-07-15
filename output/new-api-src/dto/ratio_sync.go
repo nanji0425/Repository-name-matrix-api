@@ -35,6 +35,7 @@ type SyncableChannel struct {
 	ID            int     `json:"id"`
 	Name          string  `json:"name"`
 	BaseURL       string  `json:"base_url"`
+	Models        string  `json:"models,omitempty"`
 	Status        int     `json:"status"`
 	Type          int     `json:"type"`
 	MarkupPercent float64 `json:"markup_percent"`

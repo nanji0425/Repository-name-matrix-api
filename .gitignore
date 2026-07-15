@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+backend/prisma/*.db
+backend/prisma/*.db-journal
 .pnp
 .pnp.js
 
@@ -33,8 +35,22 @@ npm-debug.log*
 coverage/
 .playwright-cli/
 .playwright-mcp/
+.claude/
+.npm-cache/
 .swarm/
-output/
+output/*
+!output/new-api-src/
+!output/new-api-src/**
+output/new-api-src/**/.tanstack/
+output/new-api-src/**/.next/
+/output/new-api-src/output/
+output/new-api-src/**/node_modules/
+output/new-api-src/**/dist/
+output/new-api-src/**/.cache/
+output/new-api-src/**/.tmp/
+output/new-api-src/**/coverage/
+output/new-api-src/**/*.db
+output/new-api-src/**/*.db-journal
 screenshots/
 audit-comparison-bblabu.md
 PROJECT_FULL_CONTEXT_REDACTED.txt
@@ -48,6 +64,31 @@ docker-compose.override.yml
 # Claude Flow runtime data
 .claude-flow/data/
 .claude-flow/logs/
+.claude-flow/daemon-state.json
+.claude-flow/metrics/
+.claude-flow/security/
+.claude-flow/swarm/
+
+# Local agent databases and scratch artifacts
+agentdb.rvf*
+ruvector.db
+.superpowers/
+codex.md
+=
+*.pem
+*.tgz
+*.tar.gz
+
+# Local agent instructions and generated release binaries
+AGENTS.md
+CLAUDE.md
+.agents/
+docs/superpowers/plans/
+output/new-api-src/.agents/
+output/new-api-src/AGENTS.md
+output/new-api-src/CLAUDE.md
+output/new-api-src/web/default/AGENTS.md
+output/new-api-src/matrixapi-new-api-linux*
 
 # Environment variables
 .env
